@@ -1,9 +1,13 @@
 package com.biiiiiigmonster.jmodel.connections;
 
+import com.biiiiiigmonster.jmodel.eloquent.Model;
 import com.biiiiiigmonster.jmodel.query.Builder;
 import com.biiiiiigmonster.jmodel.query.grammars.Grammar;
 import com.biiiiiigmonster.jmodel.query.processors.Processor;
+import lombok.SneakyThrows;
 
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.List;
 
 /**
@@ -22,16 +26,19 @@ public class Connection implements ConnectionInterface {
 
     public Connection(java.sql.Connection driver, String tablePrefix) {
         this.driver = driver;
+        this.tablePrefix = tablePrefix;
         this.useDefaultQueryGrammar();
         this.useDefaultPostProcessor();
     }
 
     @Override
-    public <T> List<T> select(String query, List<Object> bindings, boolean useReadDriver) {
-        return null;
+    @SneakyThrows
+    public ResultSet select(String sql, List<Object> bindings, boolean useReadDriver) {
+        Statement statement = this.driver.createStatement();
+        return statement.executeQuery(sql);
     }
 
-    public <T> Builder<T> query() {
+    public <T extends Model<?>> Builder<T> query() {
         return new Builder<>(this, this.getQueryGrammar(), this.getPostProcessor());
     }
 

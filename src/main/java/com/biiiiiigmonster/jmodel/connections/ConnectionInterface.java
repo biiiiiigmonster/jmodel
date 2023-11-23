@@ -1,5 +1,8 @@
 package com.biiiiiigmonster.jmodel.connections;
 
+import com.biiiiiigmonster.jmodel.eloquent.Model;
+
+import java.sql.ResultSet;
 import java.util.List;
 
 /**
@@ -11,5 +14,5 @@ import java.util.List;
  * @date 2023/11/21 20:57
  */
 public interface ConnectionInterface {
-    public <T> List<T> select(String query, List<Object> bindings, boolean useReadDriver);
+    ResultSet select(String query, List<Object> bindings, boolean useReadDriver);
 }

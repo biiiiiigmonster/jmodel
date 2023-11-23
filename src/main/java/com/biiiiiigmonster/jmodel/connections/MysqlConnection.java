@@ -1,5 +1,6 @@
 package com.biiiiiigmonster.jmodel.connections;
 
+import com.biiiiiigmonster.jmodel.eloquent.Model;
 import com.biiiiiigmonster.jmodel.query.grammars.MysqlGrammar;
 
 /**
@@ -15,6 +16,7 @@ public class MysqlConnection extends Connection {
         super(driver, tablePrefix);
     }
 
+    @Override
     protected MysqlGrammar getDefaultQueryGrammar() {
         return (MysqlGrammar) this.withTablePrefix(new MysqlGrammar());
     }

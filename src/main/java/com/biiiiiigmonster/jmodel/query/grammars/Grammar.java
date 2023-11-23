@@ -1,6 +1,7 @@
 package com.biiiiiigmonster.jmodel.query.grammars;
 
 import com.biiiiiigmonster.jmodel.BaseGrammar;
+import com.biiiiiigmonster.jmodel.eloquent.Model;
 import com.biiiiiigmonster.jmodel.query.Builder;
 
 /**
@@ -12,7 +13,7 @@ import com.biiiiiigmonster.jmodel.query.Builder;
  * @date 2023/11/21 18:04
  */
 public class Grammar extends BaseGrammar {
-    public <T> String compileSelect(Builder<T> query) {
-        return "";
+    public <T extends Model<?>> String compileSelect(Builder<T> query) {
+        return "select * from " + query.getFrom();
     }
 }
