@@ -22,8 +22,9 @@ import java.util.List;
  * @author v-luyunfeng
  * @date 2023/11/21 16:31
  */
-public class Builder<T extends Model<?>> implements BuilderContract<T> {
-    private Class<T> entity;
+public class Builder<T extends Model<?>> {
+    private Class<T> model;
+    private String from;
     private Long limit;
     private Long offset;
     private List<Object> bindings;
@@ -32,25 +33,6 @@ public class Builder<T extends Model<?>> implements BuilderContract<T> {
     private Processor processor;
     private boolean useWriteDriver;
 
-    protected Class<T> currentModelClass() {
-        return (Class<T>) getSuperClassGenericType(getClass(), 0);
-    }
-
-    public Class<?> getSuperClassGenericType(final Class<?> clazz, final int index) {
-        Type genType = clazz.getGenericSuperclass();
-        if (!(genType instanceof ParameterizedType)) {
-            return Object.class;
-        }
-        Type[] params = ((ParameterizedType) genType).getActualTypeArguments();
-        if (index >= params.length || index < 0) {
-            return Object.class;
-        }
-        if (!(params[index] instanceof Class)) {
-            return Object.class;
-        }
-        return (Class<?>) params[index];
-    }
-
     public Builder(ConnectionInterface connection, Grammar grammar, Processor processor) {
         this.connection = connection;
         this.grammar = grammar;
@@ -58,11 +40,11 @@ public class Builder<T extends Model<?>> implements BuilderContract<T> {
     }
 
     public String getFrom() {
-        return this.entity.getSimpleName().toLowerCase();
+        return this.model.getSimpleName().toLowerCase();
     }
 
     public Builder<T> from(Class<T> entity) {
-        this.entity = entity;
+        this.model = entity;
         return this;
     }
 
@@ -79,8 +61,8 @@ public class Builder<T extends Model<?>> implements BuilderContract<T> {
         );
         List<T> results = new ArrayList<>();
         while (rs.next()) {
-            Field[] fields = this.entity.getDeclaredFields();
-            T model = this.entity.newInstance();
+            Field[] fields = this.model.getDeclaredFields();
+            T model = this.model.newInstance();
             for (Field field : fields) {
                 field.setAccessible(true);
                 field.set(model, rs.getObject(field.getName(), field.getType()));
