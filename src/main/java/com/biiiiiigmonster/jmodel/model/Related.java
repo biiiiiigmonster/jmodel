@@ -11,9 +11,10 @@ import java.lang.annotation.Target;
  * </p>
  *
  * @author v-luyunfeng
- * @date 2024/5/30 14:45
+ * @date 2023/10/10 16:46
  */
-@Target({ElementType.TYPE})
+@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RelatedRepository {
+public @interface Related {
+    String field();
 }

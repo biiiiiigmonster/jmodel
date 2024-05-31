@@ -4,7 +4,11 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.toolkit.LambdaUtils;
+import com.baomidou.mybatisplus.core.toolkit.support.ColumnCache;
+import com.baomidou.mybatisplus.extension.service.IService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ClassUtils;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -29,11 +34,15 @@ import java.util.Map;
 @Slf4j
 @Component
 public class RelationUtils implements BeanPostProcessor {
-    private static final Map<Class<?>, List<Map<String, Object>>> RELATION_REPOSITORY_MAP = new HashMap<>();
+    private static final Map<Class<?>, IService<?>> RELATED_REPOSITORY_MAP = new HashMap<>();
+
+    private static final Map<Class<?>, List<Map<String, Object>>> RELATED_MAP = new HashMap<>();
+
+    private static final Map<String, Map<Object, Method>> MAP_CACHE = new HashMap<>();
 
     private static final Map<String, Map<Object, Method>> FILL_MAP = new HashMap<>();
 
-    private static final Map<String, Map<Object, Method>> MAP_CACHE = new HashMap<>();
+    private static final Map<Class<?>, Map<String, ColumnCache>> COLUMN_MAP = new HashMap<>();
 
     public static <T> void load(T obj, String... withs) {
         load(ListUtil.toList(obj), withs, false);
@@ -74,7 +83,7 @@ public class RelationUtils implements BeanPostProcessor {
                     // 分离
                     List<T> eager = new ArrayList<>();
                     List<T> exists = new ArrayList<>();
-                    List<R> foreign = new ArrayList<>();
+                    List<R> results = new ArrayList<>();
                     if (loadForce) {
                         eager = models;
                     } else {
@@ -86,21 +95,25 @@ public class RelationUtils implements BeanPostProcessor {
                                 if (!nestedWith.isEmpty()) {
                                     exists.add(model);
                                     if (relationReflect.getRelatedFieldIsList()) {
-                                        foreign.addAll((List<R>) value);
+                                        results.addAll((List<R>) value);
                                     } else {
-                                        foreign.add((R) value);
+                                        results.add((R) value);
                                     }
                                 }
                             }
                         }
                     }
                     // 加载
-                    foreign.addAll(relationReflect.fetchForeignResult(eager));
-                    // 嵌套
-                    load(foreign, new String[]{nestedWith}, loadForce);
-                    // 组装
+                    results.addAll(relationReflect.fetchForeignResult(eager));
+                    // 将结果中重复的对象直接去重
+                    results = results.stream().distinct().collect(Collectors.toList());
+                    // 合并
                     eager.addAll(exists);
-                    relationReflect.setRelation(eager, foreign);
+
+                    // 嵌套
+                    load(results, new String[]{nestedWith}, loadForce);
+                    // 组装
+                    relationReflect.match(eager, results);
                 });
     }
 
@@ -116,16 +129,12 @@ public class RelationUtils implements BeanPostProcessor {
         }
     }
 
-    public static Map<Object, Method> getRepositoryMethodList(String key, Field foreignField) {
+    public static Map<Object, Method> getRelatedMethod(String key, Field foreignField) {
         return MAP_CACHE.computeIfAbsent(key, k ->
-                RELATION_REPOSITORY_MAP.get(foreignField.getDeclaringClass()).stream()
+                RELATED_MAP.get(foreignField.getDeclaringClass()).stream()
                         .filter(map -> {
-                            RelatedRepository relatedRepository = (RelatedRepository) map.get("annotation");
-                            if (relatedRepository.field().isEmpty()) {
-                                return getGenericParameterType((Method) map.get("method")).equals(foreignField.getType());
-                            } else {
-                                return relatedRepository.field().equals(foreignField.getName());
-                            }
+                            Related related = (Related) map.get("annotation");
+                            return related.field().equals(foreignField.getName());
                         })
                         .map(map -> {
                             Map<Object, Method> cache = new HashMap<>();
@@ -135,6 +144,22 @@ public class RelationUtils implements BeanPostProcessor {
                         .findFirst()
                         .orElse(null)
         );
+    }
+
+    public static IService<?> getRelatedRepository(Class<?> clazz) {
+        return RELATED_REPOSITORY_MAP.get(clazz);
+    }
+
+    public static boolean hasRelatedRepository(Class<?> clazz) {
+        return RELATED_REPOSITORY_MAP.containsKey(clazz);
+    }
+
+    public static String getColumn(Field foreignField) {
+        Class<?> entityClass = foreignField.getDeclaringClass();
+
+        Map<String, ColumnCache> columnMap = COLUMN_MAP.computeIfAbsent(entityClass, LambdaUtils::getColumnMap);
+        ColumnCache columnCache = columnMap.get(LambdaUtils.formatKey(foreignField.getName()));
+        return columnCache.getColumn();
     }
 
     public static Map<Object, Method> getFillMethod(Field fillable) {
@@ -179,16 +204,30 @@ public class RelationUtils implements BeanPostProcessor {
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
+        relatedRepository(bean);
         Class<?> clazz = bean.getClass();
         for (Method method : clazz.getDeclaredMethods()) {
-            relatedRepository(bean, method, method.getAnnotation(RelatedRepository.class));
+            related(bean, method, method.getAnnotation(Related.class));
             fill(bean, method, method.getAnnotation(Fill.class));
         }
 
         return bean;
     }
 
-    private void relatedRepository(Object bean, Method method, RelatedRepository annotation) {
+    private void relatedRepository(Object bean) {
+        Class<?> clazz = bean.getClass();
+        if (bean instanceof IService) {
+            ClassUtils.getAllInterfaces(clazz).stream()
+                    .filter(iClazz -> iClazz.getAnnotation(RelatedRepository.class) != null && IService.class.isAssignableFrom(iClazz))
+                    .findFirst()
+                    .ifPresent(iClazz -> {
+                        Class<?> typeClass = getTypeClass((ParameterizedType) iClazz.getGenericInterfaces()[0]);
+                        RELATED_REPOSITORY_MAP.put(typeClass, (IService<?>) bean);
+                    });
+        }
+    }
+
+    private void related(Object bean, Method method, Related annotation) {
         if (annotation == null) {
             return;
         }
@@ -197,8 +236,8 @@ public class RelationUtils implements BeanPostProcessor {
         map.put("method", method);
         map.put("annotation", annotation);
         Class<?> foreignClazz = getGenericReturnType(method);
-        log.info("实体对象：{}，字段：{}，实例：{}，方法：{}", foreignClazz.getName(), map.get("field"), bean.getClass().getName(), method.getName());
-        RELATION_REPOSITORY_MAP.computeIfAbsent(foreignClazz, k -> new ArrayList<>()).add(map);
+        log.info("实体对象：{}，实例：{}，方法：{}", foreignClazz.getName(), bean.getClass().getName(), method.getName());
+        RELATED_MAP.computeIfAbsent(foreignClazz, k -> new ArrayList<>()).add(map);
     }
 
     private void fill(Object bean, Method method, Fill annotation) {

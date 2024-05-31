@@ -121,7 +121,16 @@ public abstract class Model<T> {
         Arrays.stream(columns).forEach(column -> load(getField(column)));
     }
 
+    @SafeVarargs
+    public final <R> void loadForce(SerializableFunction<T, R>... columns) {
+        Arrays.stream(columns).forEach(column -> loadForce(getField(column)));
+    }
+
     private void load(Field field) {
         RelationUtils.load((T) this, field.getName());
+    }
+
+    private void loadForce(Field field) {
+        RelationUtils.loadForce((T) this, field.getName());
     }
 }

@@ -2,9 +2,11 @@ package com.biiiiiigmonster.jmodel.model;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.service.IService;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -32,7 +34,6 @@ public class RelationReflect<T, R> {
     private Field localField;
     private Field foreignField;
     private Boolean relatedFieldIsList;
-    private Map<Object, Method> repositoryMethod;
 
     public RelationReflect(Class<T> clazz, String fieldName) {
         this.clazz = clazz;
@@ -49,29 +50,38 @@ public class RelationReflect<T, R> {
         localField.setAccessible(true);
         foreignField = ReflectUtil.getField(RelationUtils.getGenericType(relatedField), relation.foreignKey());
         foreignField.setAccessible(true);
-
-        String cacheKey = String.format("%s.%s", relatedField.getDeclaringClass().getName(), relatedField.getName());
-        repositoryMethod = RelationUtils.getRepositoryMethodList(cacheKey, foreignField);
-        Assert.assertNotNull("未找到仓库", repositoryMethod);
     }
 
-    public <TL> List<R> fetchForeignResult(List<T> list) {
-        List<TL> localKeyList = list.stream()
+    public <TL> List<R> fetchForeignResult(List<T> eager) {
+        List<TL> localKeyValueList = eager.stream()
                 .map(o -> (TL) ReflectUtil.getFieldValue(o, localField))
                 .filter(ObjectUtil::isNotEmpty)
                 .distinct()
                 .collect(Collectors.toList());
-        if (ObjectUtil.isEmpty(localKeyList)) {
+        if (ObjectUtil.isEmpty(localKeyValueList)) {
             return new ArrayList<>();
         }
 
-        Object bean = repositoryMethod.keySet().iterator().next();
-        Method method = repositoryMethod.values().iterator().next();
+        return RelationUtils.hasRelatedRepository(foreignField.getDeclaringClass())
+                ? byRelatedRepository(localKeyValueList) : byRelatedMethod(localKeyValueList);
+    }
+
+    private <TL> List<R> byRelatedRepository(List<TL> localKeyValueList) {
+        IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
+        return relatedRepository.list((Wrapper<R>) Wrappers.query().in(RelationUtils.getColumn(foreignField), localKeyValueList));
+    }
+
+    private <TL> List<R> byRelatedMethod(List<TL> localKeyValueList) {
+        String cacheKey = String.format("%s.%s", foreignField.getDeclaringClass().getName(), foreignField.getName());
+        Map<Object, Method> relatedMethod = RelationUtils.getRelatedMethod(cacheKey, foreignField);
+
+        Object bean = relatedMethod.keySet().iterator().next();
+        Method method = relatedMethod.values().iterator().next();
         if (List.class.isAssignableFrom(method.getParameterTypes()[0])) {
-            return ReflectUtil.invoke(bean, method, localKeyList);
+            return ReflectUtil.invoke(bean, method, localKeyValueList);
         } else {
             log.warn("{}存在N + 1查询隐患，建议{}实现List参数的仓库方法", bean.getClass().getName(), method.getName());
-            return localKeyList.stream()
+            return localKeyValueList.stream()
                     .map(param -> ReflectUtil.invoke(bean, method, param))
                     .filter(Objects::nonNull)
                     .flatMap(r -> {
@@ -85,12 +95,12 @@ public class RelationReflect<T, R> {
         }
     }
 
-    public <TL> void setRelation(List<T> models, List<R> foreign) {
-        Map<TL, List<R>> map = foreign.stream()
+    public <TL> void match(List<T> models, List<R> results) {
+        Map<TL, List<R>> dictionary = results.stream()
                 .collect(Collectors.groupingBy(r -> (TL) ReflectUtil.getFieldValue(r, foreignField)));
 
         models.forEach(o -> {
-            List<R> valList = map.get((TL) ReflectUtil.getFieldValue(o, localField));
+            List<R> valList = dictionary.get((TL) ReflectUtil.getFieldValue(o, localField));
             if (relatedFieldIsList) {
                 ReflectUtil.setFieldValue(o, relatedField, valList == null ? new ArrayList<>() : valList);
             } else if (ObjectUtil.isNotEmpty(valList)) {

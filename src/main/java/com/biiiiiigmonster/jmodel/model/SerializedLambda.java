@@ -13,6 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.biiiiiigmonster.jmodel.model;
 
 import org.springframework.util.SerializationUtils;
@@ -45,7 +46,6 @@ public class SerializedLambda implements Serializable {
     private String implMethodSignature;
     private int implMethodKind;
     private String instantiatedMethodType;
-    private Object[] capturedArgs;
 
     /**
      * 通过反序列化转换 lambda 表达式，该方法只能序列化 lambda 表达式，不能序列化接口实现或者正常非 lambda 写法的对象
