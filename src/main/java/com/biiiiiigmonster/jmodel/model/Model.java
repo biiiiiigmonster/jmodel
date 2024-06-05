@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2023/10/26 9:52
  */
 @Slf4j
-public abstract class Model<T> {
+public abstract class Model<T extends Model<?>> {
     private static final Map<String, WeakReference<Field>> LAMBDA_CACHE = new ConcurrentHashMap<>();
 
     public <R> R get(SerializableFunction<T, R> column) {

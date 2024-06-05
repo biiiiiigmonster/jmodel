@@ -27,7 +27,7 @@ import java.util.stream.Stream;
  */
 @Getter
 @Slf4j
-public class RelationReflect<T, R> {
+public class RelationReflect<T extends Model<?>, R> {
     private final Class<T> clazz;
     private final String fieldName;
     private Field relatedField;
@@ -68,12 +68,14 @@ public class RelationReflect<T, R> {
 
     private <TL> List<R> byRelatedRepository(List<TL> localKeyValueList) {
         IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
-        return relatedRepository.list((Wrapper<R>) Wrappers.query().in(RelationUtils.getColumn(foreignField), localKeyValueList));
+        Wrapper<R> wrapper = (Wrapper<R>) Wrappers.query().in(RelationUtils.getColumn(foreignField), localKeyValueList);
+        return relatedRepository.list(wrapper);
     }
 
     private <TL> List<R> byRelatedMethod(List<TL> localKeyValueList) {
         String cacheKey = String.format("%s.%s", foreignField.getDeclaringClass().getName(), foreignField.getName());
         Map<Object, Method> relatedMethod = RelationUtils.getRelatedMethod(cacheKey, foreignField);
+//        Assert.assertNotNull("未找到仓库" + cacheKey, relatedMethod);
 
         Object bean = relatedMethod.keySet().iterator().next();
         Method method = relatedMethod.values().iterator().next();
@@ -100,11 +102,13 @@ public class RelationReflect<T, R> {
                 .collect(Collectors.groupingBy(r -> (TL) ReflectUtil.getFieldValue(r, foreignField)));
 
         models.forEach(o -> {
-            List<R> valList = dictionary.get((TL) ReflectUtil.getFieldValue(o, localField));
+            List<R> valList = dictionary.getOrDefault((TL) ReflectUtil.getFieldValue(o, localField), new ArrayList<>());
             if (relatedFieldIsList) {
-                ReflectUtil.setFieldValue(o, relatedField, valList == null ? new ArrayList<>() : valList);
-            } else if (ObjectUtil.isNotEmpty(valList)) {
-                ReflectUtil.setFieldValue(o, relatedField, valList.get(0));
+                ReflectUtil.setFieldValue(o, relatedField, valList);
+            } else {
+                if (ObjectUtil.isNotEmpty(valList)) {
+                    ReflectUtil.setFieldValue(o, relatedField, valList.get(0));
+                }
             }
         });
     }

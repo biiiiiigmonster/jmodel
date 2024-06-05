@@ -44,77 +44,92 @@ public class RelationUtils implements BeanPostProcessor {
 
     private static final Map<Class<?>, Map<String, ColumnCache>> COLUMN_MAP = new HashMap<>();
 
-    public static <T> void load(T obj, String... withs) {
+    public static <T extends Model<?>> void load(T obj, String... withs) {
         load(ListUtil.toList(obj), withs, false);
     }
 
-    public static <T> void load(List<T> list, String... withs) {
+    public static <T extends Model<?>> void load(List<T> list, String... withs) {
         load(list, withs, false);
     }
 
-    public static <T> void load(T obj, boolean loadForce, String... withs) {
+    public static <T extends Model<?>> void load(T obj, boolean loadForce, String... withs) {
         load(ListUtil.toList(obj), withs, loadForce);
     }
 
-    public static <T> void load(List<T> list, boolean loadForce, String... withs) {
+    public static <T extends Model<?>> void load(List<T> list, boolean loadForce, String... withs) {
         load(list, withs, loadForce);
     }
 
-    public static <T> void loadForce(List<T> list, String... withs) {
+    public static <T extends Model<?>> void loadForce(List<T> list, String... withs) {
         load(list, withs, true);
     }
 
-    public static <T> void loadForce(T obj, String... withs) {
+    public static <T extends Model<?>> void loadForce(T obj, String... withs) {
         load(ListUtil.toList(obj), withs, true);
     }
 
-    private static <T, R> void load(List<T> models, String[] withs, boolean loadForce) {
+    private static <T extends Model<?>> void load(List<T> models, String[] withs, boolean loadForce) {
         if (ObjectUtil.isEmpty(models)) {
             return;
         }
 
-        Class<T> clazz = (Class<T>) models.get(0).getClass();
-        Arrays.stream(withs)
-                .filter(ObjectUtil::isNotEmpty)
-                .forEach(with -> {
-                    String fieldName = StrUtil.subBefore(with, ".", false);
-                    String nestedWith = StrUtil.subAfter(with, ".", false);
-                    RelationReflect<T, R> relationReflect = new RelationReflect<>(clazz, fieldName);
-                    // 分离
-                    List<T> eager = new ArrayList<>();
-                    List<T> exists = new ArrayList<>();
-                    List<R> results = new ArrayList<>();
-                    if (loadForce) {
-                        eager = models;
-                    } else {
-                        for (T model : models) {
-                            Object value = ReflectUtil.getFieldValue(model, relationReflect.getRelatedField());
-                            if (value == null) {
-                                eager.add(model);
-                            } else {
-                                if (!nestedWith.isEmpty()) {
-                                    exists.add(model);
-                                    if (relationReflect.getRelatedFieldIsList()) {
-                                        results.addAll((List<R>) value);
-                                    } else {
-                                        results.add((R) value);
-                                    }
-                                }
-                            }
+        processWiths(withs).forEach((fieldName, nestedWiths) -> handle(models, loadForce, fieldName, nestedWiths));
+    }
+
+    private static <T extends Model<?>, R extends Model<?>> void handle(List<T> models, boolean loadForce, String fieldName, List<String> nestedWiths) {
+        RelationReflect<T, R> relationReflect = new RelationReflect<>((Class<T>) models.get(0).getClass(), fieldName);
+        // 分离
+        List<T> eager = new ArrayList<>();
+        List<T> exists = new ArrayList<>();
+        List<R> results = new ArrayList<>();
+        if (loadForce) {
+            eager = models;
+        } else {
+            for (T model : models) {
+                Object value = ReflectUtil.getFieldValue(model, relationReflect.getRelatedField());
+                if (value == null) {
+                    eager.add(model);
+                } else {
+                    if (!nestedWiths.isEmpty()) {
+                        exists.add(model);
+                        if (relationReflect.getRelatedFieldIsList()) {
+                            results.addAll((List<R>) value);
+                        } else {
+                            results.add((R) value);
                         }
                     }
-                    // 加载
-                    results.addAll(relationReflect.fetchForeignResult(eager));
-                    // 将结果中重复的对象直接去重
-                    results = results.stream().distinct().collect(Collectors.toList());
-                    // 合并
-                    eager.addAll(exists);
+                }
+            }
+        }
+        // 加载
+        results.addAll(relationReflect.fetchForeignResult(eager));
+        // 将结果中重复的对象直接去重
+        results = results.stream().distinct().collect(Collectors.toList());
+        // 合并
+        eager.addAll(exists);
 
-                    // 嵌套
-                    load(results, new String[]{nestedWith}, loadForce);
-                    // 组装
-                    relationReflect.match(eager, results);
-                });
+        // 嵌套
+        if (!nestedWiths.isEmpty()) {
+            load(results, nestedWiths.toArray(new String[0]), loadForce);
+        }
+        // 组装
+        relationReflect.match(eager, results);
+    }
+
+    private static Map<String, List<String>> processWiths(String[] withs) {
+        return Arrays.stream(withs)
+                .filter(ObjectUtil::isNotEmpty)
+                .collect(Collectors.toMap(
+                        with -> StrUtil.subBefore(with, ".", false),
+                        with -> {
+                            String nestedWith = StrUtil.subAfter(with, ".", false);
+                            return nestedWith.isEmpty() ? new ArrayList<>() : ListUtil.toList(nestedWith);
+                        },
+                        (v1, v2) -> {
+                            v1.addAll(v2);
+                            return v1;
+                        }
+                ));
     }
 
     @SafeVarargs
