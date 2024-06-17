@@ -1,6 +1,5 @@
 package com.biiiiiigmonster.octopus;
 
-import com.biiiiiigmonster.octopus.eloquent.Model;
 import com.biiiiiigmonster.octopus.models.User;
 import org.junit.Test;
 

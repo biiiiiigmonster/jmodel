@@ -1,15 +1,12 @@
 package com.biiiiiigmonster.octopus.query;
 
 import com.biiiiiigmonster.octopus.connections.ConnectionInterface;
-import com.biiiiiigmonster.octopus.contracts.query.BuilderContract;
 import com.biiiiiigmonster.octopus.eloquent.Model;
 import com.biiiiiigmonster.octopus.query.grammars.Grammar;
 import com.biiiiiigmonster.octopus.query.processors.Processor;
 import lombok.SneakyThrows;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
