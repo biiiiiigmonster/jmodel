@@ -29,7 +29,7 @@ public abstract class Model<T extends Model<?>> {
         if (value == null) {
             Field field = getField(column);
             if (field.getAnnotation(Relation.class) != null) {
-                load(field);
+                load(field.getName());
             } else {
                 append(field);
             }
@@ -40,6 +40,10 @@ public abstract class Model<T extends Model<?>> {
 
     @SafeVarargs
     public final <R> void append(SerializableFunction<T, R>... columns) {
+        Arrays.stream(columns).forEach(column -> append(getField(column)));
+    }
+
+    public final void append(String... columns) {
         Arrays.stream(columns).forEach(column -> append(getField(column)));
     }
 
@@ -54,6 +58,10 @@ public abstract class Model<T extends Model<?>> {
                     LAMBDA_CACHE.put(name, new WeakReference<>(field));
                     return field;
                 });
+    }
+
+    private Field getField(String column) {
+        return ReflectUtil.getField(this.getClass(), column);
     }
 
     private void append(Field field) {
@@ -117,20 +125,20 @@ public abstract class Model<T extends Model<?>> {
     }
 
     @SafeVarargs
-    public final <R> void load(SerializableFunction<T, R>... columns) {
-        Arrays.stream(columns).forEach(column -> load(getField(column)));
+    public final <R> void load(SerializableFunction<T, R>... withs) {
+        RelationUtils.load((T) this, Arrays.stream(withs).map(with -> getField(with).getName()).toArray(String[]::new));
+    }
+
+    public final void load(String... withs) {
+        RelationUtils.load((T) this, withs);
     }
 
     @SafeVarargs
-    public final <R> void loadForce(SerializableFunction<T, R>... columns) {
-        Arrays.stream(columns).forEach(column -> loadForce(getField(column)));
+    public final <R> void loadForce(SerializableFunction<T, R>... withs) {
+        RelationUtils.loadForce((T) this, Arrays.stream(withs).map(with -> getField(with).getName()).toArray(String[]::new));
     }
 
-    private void load(Field field) {
-        RelationUtils.load((T) this, field.getName());
-    }
-
-    private void loadForce(Field field) {
-        RelationUtils.loadForce((T) this, field.getName());
+    public final void loadForce(String... withs) {
+        RelationUtils.loadForce((T) this, withs);
     }
 }

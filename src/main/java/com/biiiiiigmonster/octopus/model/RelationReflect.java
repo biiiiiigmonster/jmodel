@@ -101,15 +101,16 @@ public class RelationReflect<T extends Model<?>, R> {
         Map<TL, List<R>> dictionary = results.stream()
                 .collect(Collectors.groupingBy(r -> (TL) ReflectUtil.getFieldValue(r, foreignField)));
 
-        models.forEach(o -> {
-            List<R> valList = dictionary.getOrDefault((TL) ReflectUtil.getFieldValue(o, localField), new ArrayList<>());
-            if (relatedFieldIsList) {
-                ReflectUtil.setFieldValue(o, relatedField, valList);
-            } else {
-                if (ObjectUtil.isNotEmpty(valList)) {
-                    ReflectUtil.setFieldValue(o, relatedField, valList.get(0));
-                }
+        models.forEach(o -> match(o, dictionary.getOrDefault((TL) ReflectUtil.getFieldValue(o, localField), new ArrayList<>())));
+    }
+
+    public void match(T model, List<R> results) {
+        if (relatedFieldIsList) {
+            ReflectUtil.setFieldValue(model, relatedField, results);
+        } else {
+            if (ObjectUtil.isNotEmpty(results)) {
+                ReflectUtil.setFieldValue(model, relatedField, results.get(0));
             }
-        });
+        }
     }
 }
