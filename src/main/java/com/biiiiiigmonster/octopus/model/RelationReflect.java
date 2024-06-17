@@ -4,6 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,7 @@ import java.util.stream.Stream;
  */
 @Getter
 @Slf4j
-public class RelationReflect<T extends Model<?>, R> {
+public class RelationReflect<T extends Model<?>, R extends Model<?>> {
     private final Class<T> clazz;
     private final String fieldName;
     private Field relatedField;
@@ -62,13 +63,13 @@ public class RelationReflect<T extends Model<?>, R> {
             return new ArrayList<>();
         }
 
-        return RelationUtils.hasRelatedRepository(foreignField.getDeclaringClass())
+        return RelationUtils.hasRelatedRepository((Class<R>) foreignField.getDeclaringClass())
                 ? byRelatedRepository(localKeyValueList) : byRelatedMethod(localKeyValueList);
     }
 
     private <TL> List<R> byRelatedRepository(List<TL> localKeyValueList) {
-        IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
-        Wrapper<R> wrapper = (Wrapper<R>) Wrappers.query().in(RelationUtils.getColumn(foreignField), localKeyValueList);
+        IService<R> relatedRepository = RelationUtils.getRelatedRepository((Class<R>) foreignField.getDeclaringClass());
+        QueryChainWrapper<R> wrapper = relatedRepository.query().in(RelationUtils.getColumn(foreignField), localKeyValueList);
         return relatedRepository.list(wrapper);
     }
 
@@ -101,16 +102,15 @@ public class RelationReflect<T extends Model<?>, R> {
         Map<TL, List<R>> dictionary = results.stream()
                 .collect(Collectors.groupingBy(r -> (TL) ReflectUtil.getFieldValue(r, foreignField)));
 
-        models.forEach(o -> match(o, dictionary.getOrDefault((TL) ReflectUtil.getFieldValue(o, localField), new ArrayList<>())));
-    }
-
-    public void match(T model, List<R> results) {
-        if (relatedFieldIsList) {
-            ReflectUtil.setFieldValue(model, relatedField, results);
-        } else {
-            if (ObjectUtil.isNotEmpty(results)) {
-                ReflectUtil.setFieldValue(model, relatedField, results.get(0));
+        models.forEach(o -> {
+            List<R> valList = dictionary.getOrDefault((TL) ReflectUtil.getFieldValue(o, localField), new ArrayList<>());
+            if (relatedFieldIsList) {
+                ReflectUtil.setFieldValue(o, relatedField, valList);
+            } else {
+                if (ObjectUtil.isNotEmpty(valList)) {
+                    ReflectUtil.setFieldValue(o, relatedField, valList.get(0));
+                }
             }
-        }
+        });
     }
 }

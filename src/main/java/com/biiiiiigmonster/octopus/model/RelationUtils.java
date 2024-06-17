@@ -161,11 +161,11 @@ public class RelationUtils implements BeanPostProcessor {
         );
     }
 
-    public static IService<?> getRelatedRepository(Class<?> clazz) {
-        return RELATED_REPOSITORY_MAP.get(clazz);
+    public static <T extends Model<?>> IService<T> getRelatedRepository(Class<T> clazz) {
+        return (IService<T>) RELATED_REPOSITORY_MAP.get(clazz);
     }
 
-    public static boolean hasRelatedRepository(Class<?> clazz) {
+    public static <T extends Model<?>> boolean hasRelatedRepository(Class<T> clazz) {
         return RELATED_REPOSITORY_MAP.containsKey(clazz);
     }
 
