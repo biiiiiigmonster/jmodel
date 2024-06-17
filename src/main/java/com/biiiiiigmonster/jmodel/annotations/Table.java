@@ -1,4 +1,4 @@
-package com.biiiiiigmonster.jmodel.annotations;
+package com.biiiiiigmonster.octopus.annotations;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

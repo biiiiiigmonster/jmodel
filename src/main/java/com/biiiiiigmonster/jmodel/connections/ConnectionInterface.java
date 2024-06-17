@@ -1,6 +1,6 @@
-package com.biiiiiigmonster.jmodel.connections;
+package com.biiiiiigmonster.octopus.connections;
 
-import com.biiiiiigmonster.jmodel.eloquent.Model;
+import com.biiiiiigmonster.octopus.eloquent.Model;
 
 import java.sql.ResultSet;
 import java.util.List;

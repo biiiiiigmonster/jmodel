@@ -1,6 +1,6 @@
-package com.biiiiiigmonster.jmodel.models;
+package com.biiiiiigmonster.octopus.models;
 
-import com.biiiiiigmonster.jmodel.eloquent.Model;
+import com.biiiiiigmonster.octopus.eloquent.Model;
 
 /**
  * <p>

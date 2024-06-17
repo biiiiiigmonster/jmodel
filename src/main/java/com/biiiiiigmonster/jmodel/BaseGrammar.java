@@ -1,4 +1,4 @@
-package com.biiiiiigmonster.jmodel;
+package com.biiiiiigmonster.octopus;
 
 /**
  * <p>

@@ -1,4 +1,4 @@
-package com.biiiiiigmonster.jmodel.model;
+package com.biiiiiigmonster.octopus.model;
 
 import java.io.Serializable;
 import java.util.function.Function;

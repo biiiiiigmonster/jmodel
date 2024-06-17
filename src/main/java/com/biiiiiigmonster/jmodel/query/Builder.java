@@ -1,10 +1,10 @@
-package com.biiiiiigmonster.jmodel.query;
+package com.biiiiiigmonster.octopus.query;
 
-import com.biiiiiigmonster.jmodel.connections.ConnectionInterface;
-import com.biiiiiigmonster.jmodel.contracts.query.BuilderContract;
-import com.biiiiiigmonster.jmodel.eloquent.Model;
-import com.biiiiiigmonster.jmodel.query.grammars.Grammar;
-import com.biiiiiigmonster.jmodel.query.processors.Processor;
+import com.biiiiiigmonster.octopus.connections.ConnectionInterface;
+import com.biiiiiigmonster.octopus.contracts.query.BuilderContract;
+import com.biiiiiigmonster.octopus.eloquent.Model;
+import com.biiiiiigmonster.octopus.query.grammars.Grammar;
+import com.biiiiiigmonster.octopus.query.processors.Processor;
 import lombok.SneakyThrows;
 
 import java.lang.reflect.Field;

@@ -1,9 +1,9 @@
-package com.biiiiiigmonster.jmodel.connections;
+package com.biiiiiigmonster.octopus.connections;
 
-import com.biiiiiigmonster.jmodel.eloquent.Model;
-import com.biiiiiigmonster.jmodel.query.Builder;
-import com.biiiiiigmonster.jmodel.query.grammars.Grammar;
-import com.biiiiiigmonster.jmodel.query.processors.Processor;
+import com.biiiiiigmonster.octopus.eloquent.Model;
+import com.biiiiiigmonster.octopus.query.Builder;
+import com.biiiiiigmonster.octopus.query.grammars.Grammar;
+import com.biiiiiigmonster.octopus.query.processors.Processor;
 import lombok.SneakyThrows;
 
 import java.sql.ResultSet;

@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.biiiiiigmonster.jmodel.model;
+package com.biiiiiigmonster.octopus.model;
 
 import org.springframework.util.SerializationUtils;
 

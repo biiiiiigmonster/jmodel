@@ -1,8 +1,8 @@
-package com.biiiiiigmonster.jmodel.eloquent;
+package com.biiiiiigmonster.octopus.eloquent;
 
-import com.biiiiiigmonster.jmodel.connections.Connection;
-import com.biiiiiigmonster.jmodel.connections.MysqlConnection;
-import com.biiiiiigmonster.jmodel.query.Builder;
+import com.biiiiiigmonster.octopus.connections.Connection;
+import com.biiiiiigmonster.octopus.connections.MysqlConnection;
+import com.biiiiiigmonster.octopus.query.Builder;
 import lombok.SneakyThrows;
 
 import java.sql.DriverManager;

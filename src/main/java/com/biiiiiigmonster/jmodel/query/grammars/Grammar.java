@@ -1,8 +1,8 @@
-package com.biiiiiigmonster.jmodel.query.grammars;
+package com.biiiiiigmonster.octopus.query.grammars;
 
-import com.biiiiiigmonster.jmodel.BaseGrammar;
-import com.biiiiiigmonster.jmodel.eloquent.Model;
-import com.biiiiiigmonster.jmodel.query.Builder;
+import com.biiiiiigmonster.octopus.BaseGrammar;
+import com.biiiiiigmonster.octopus.eloquent.Model;
+import com.biiiiiigmonster.octopus.query.Builder;
 
 /**
  * <p>

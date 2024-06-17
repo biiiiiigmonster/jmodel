@@ -1,6 +1,6 @@
-package com.biiiiiigmonster.jmodel.query.processors;
+package com.biiiiiigmonster.octopus.query.processors;
 
-import com.biiiiiigmonster.jmodel.eloquent.Model;
+import com.biiiiiigmonster.octopus.eloquent.Model;
 
 import java.util.List;
 

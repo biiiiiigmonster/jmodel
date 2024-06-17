@@ -1,7 +1,7 @@
-package com.biiiiiigmonster.jmodel;
+package com.biiiiiigmonster.octopus;
 
-import com.biiiiiigmonster.jmodel.eloquent.Model;
-import com.biiiiiigmonster.jmodel.models.User;
+import com.biiiiiigmonster.octopus.eloquent.Model;
+import com.biiiiiigmonster.octopus.models.User;
 import org.junit.Test;
 
 import java.util.List;

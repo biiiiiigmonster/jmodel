@@ -1,4 +1,4 @@
-package com.biiiiiigmonster.jmodel.model;
+package com.biiiiiigmonster.octopus.model;
 
 import cn.hutool.core.util.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;

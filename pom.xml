@@ -4,13 +4,13 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.biiiiiigmonster.jmodel</groupId>
-  <artifactId>jmodel</artifactId>
+  <groupId>com.biiiiiigmonster.octopus</groupId>
+  <artifactId>octopus</artifactId>
   <version>1.0.0-SNAPSHOT</version>
 
-  <name>jmodel</name>
+  <name>octopus</name>
   <description>ORM with DSL for Java</description>
-  <url>https://github.com/biiiiiigmonster/jmodel</url>
+  <url>https://github.com/biiiiiigmonster/octopus</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

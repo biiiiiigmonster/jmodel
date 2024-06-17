@@ -1,4 +1,4 @@
-package com.biiiiiigmonster.jmodel.query.grammars;
+package com.biiiiiigmonster.octopus.query.grammars;
 
 /**
  * <p>

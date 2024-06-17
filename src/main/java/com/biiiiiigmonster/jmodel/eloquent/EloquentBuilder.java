@@ -1,7 +1,7 @@
-package com.biiiiiigmonster.jmodel.eloquent;
+package com.biiiiiigmonster.octopus.eloquent;
 
-import com.biiiiiigmonster.jmodel.contracts.eloquent.EloquentBuilderContract;
-import com.biiiiiigmonster.jmodel.query.Builder;
+import com.biiiiiigmonster.octopus.contracts.eloquent.EloquentBuilderContract;
+import com.biiiiiigmonster.octopus.query.Builder;
 
 import java.lang.reflect.Field;
 import java.util.List;

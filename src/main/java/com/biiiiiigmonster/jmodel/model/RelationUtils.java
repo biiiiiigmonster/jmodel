@@ -1,4 +1,4 @@
-package com.biiiiiigmonster.jmodel.model;
+package com.biiiiiigmonster.octopus.model;
 
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ObjectUtil;
