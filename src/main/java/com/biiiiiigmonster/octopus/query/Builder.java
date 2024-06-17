@@ -1,7 +1,6 @@
 package com.biiiiiigmonster.octopus.query;
 
 import com.biiiiiigmonster.octopus.connections.ConnectionInterface;
-import com.biiiiiigmonster.octopus.eloquent.Model;
 import com.biiiiiigmonster.octopus.query.grammars.Grammar;
 import com.biiiiiigmonster.octopus.query.processors.Processor;
 import lombok.SneakyThrows;
@@ -19,8 +18,8 @@ import java.util.List;
  * @author v-luyunfeng
  * @date 2023/11/21 16:31
  */
-public class Builder<T extends Model<?>> {
-    private Class<T> model;
+public class Builder<T> {
+    private Class<T> entity;
     private String from;
     private Long limit;
     private Long offset;
@@ -37,11 +36,12 @@ public class Builder<T extends Model<?>> {
     }
 
     public String getFrom() {
-        return this.model.getSimpleName().toLowerCase();
+        return this.from;
     }
 
     public Builder<T> from(Class<T> entity) {
-        this.model = entity;
+        this.entity = entity;
+        this.from = entity.getSimpleName().toLowerCase();
         return this;
     }
 
@@ -49,6 +49,9 @@ public class Builder<T extends Model<?>> {
         return this.processor.processSelect(this, this.runSelect());
     }
 
+    /**
+     * Run the query as a “select” statement against the connection.
+     */
     @SneakyThrows
     protected List<T> runSelect() {
         ResultSet rs = this.connection.select(
@@ -58,13 +61,13 @@ public class Builder<T extends Model<?>> {
         );
         List<T> results = new ArrayList<>();
         while (rs.next()) {
-            Field[] fields = this.model.getDeclaredFields();
-            T model = this.model.newInstance();
+            Field[] fields = this.entity.getDeclaredFields();
+            T entity = this.entity.newInstance();
             for (Field field : fields) {
                 field.setAccessible(true);
-                field.set(model, rs.getObject(field.getName(), field.getType()));
+                field.set(entity, rs.getObject(field.getName(), field.getType()));
             }
-            results.add(model);
+            results.add(entity);
         }
         return results;
     }

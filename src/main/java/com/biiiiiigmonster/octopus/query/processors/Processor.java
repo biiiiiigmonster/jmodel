@@ -14,11 +14,11 @@ import java.util.List;
  * @date 2023/11/21 19:52
  */
 public class Processor {
-    public <T extends Model<?>> List<T> processSelect(Builder<T> builder, List<T> results) {
+    public <T> List<T> processSelect(Builder<T> builder, List<T> results) {
         return results;
     }
 
-    public <T extends Model<?>> List<T> processColumnListing(List<T> results)
+    public <T> List<T> processColumnListing(List<T> results)
     {
         return results;
     }

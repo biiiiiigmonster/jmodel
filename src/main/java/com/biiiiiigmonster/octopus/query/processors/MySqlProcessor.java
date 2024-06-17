@@ -13,7 +13,7 @@ import java.util.List;
  * @date 2023/11/21 20:06
  */
 public class MySqlProcessor extends Processor {
-    public <T extends Model<?>> List<T> processColumnListing(List<T> results)
+    public <T> List<T> processColumnListing(List<T> results)
     {
         return results;
     }

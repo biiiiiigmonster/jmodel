@@ -13,7 +13,11 @@ import com.biiiiiigmonster.octopus.query.Builder;
  * @date 2023/11/21 18:04
  */
 public class Grammar extends BaseGrammar {
-    public <T extends Model<?>> String compileSelect(Builder<T> query) {
+
+    /**
+     * Compile a select query into SQL.
+     */
+    public <T> String compileSelect(Builder<T> query) {
         return "select * from " + query.getFrom();
     }
 }
