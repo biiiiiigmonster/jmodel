@@ -1,15 +1,12 @@
 package com.biiiiiigmonster.jmodel.query;
 
 import com.biiiiiigmonster.jmodel.connections.ConnectionInterface;
-import com.biiiiiigmonster.jmodel.contracts.query.BuilderContract;
 import com.biiiiiigmonster.jmodel.eloquent.Model;
 import com.biiiiiigmonster.jmodel.query.grammars.Grammar;
 import com.biiiiiigmonster.jmodel.query.processors.Processor;
 import lombok.SneakyThrows;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;

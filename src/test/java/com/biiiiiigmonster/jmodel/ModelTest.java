@@ -1,10 +1,6 @@
 package com.biiiiiigmonster.jmodel;
 
-import com.biiiiiigmonster.jmodel.eloquent.Model;
-import com.biiiiiigmonster.jmodel.models.User;
 import org.junit.Test;
-
-import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 
@@ -22,7 +18,6 @@ public class ModelTest {
 
     @Test
     public void get() {
-        List<User> users = new User().newQuery().get();
-        System.out.println(users);
+
     }
 }

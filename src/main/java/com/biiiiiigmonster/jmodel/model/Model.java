@@ -43,6 +43,10 @@ public abstract class Model<T extends Model<?>> {
         Arrays.stream(columns).forEach(column -> append(getField(column)));
     }
 
+    public final <R> void append(String... columns) {
+        Arrays.stream(columns).forEach(column -> append(getField(column)));
+    }
+
     private Field getField(SerializableFunction<T, ?> column) {
         Class<?> clazz = column.getClass();
         String name = clazz.getName();
@@ -54,6 +58,10 @@ public abstract class Model<T extends Model<?>> {
                     LAMBDA_CACHE.put(name, new WeakReference<>(field));
                     return field;
                 });
+    }
+
+    private Field getField(String column) {
+        return ReflectUtil.getField(this.getClass(), column);
     }
 
     private void append(Field field) {
