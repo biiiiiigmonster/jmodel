@@ -101,18 +101,18 @@ public class RelationUtils implements BeanPostProcessor {
                 }
             }
         }
-        // 加载
+        // 合并关联结果
         results.addAll(relationReflect.fetchForeignResult(eager));
-        // 将结果中重复的对象直接去重
+        // 将结果中重复的对象直接去重，这个【重复】的判定规则后续还需注意
         results = results.stream().distinct().collect(Collectors.toList());
-        // 合并
-        eager.addAll(exists);
-
-        // 嵌套
+        // 嵌套处理
         if (!nestedWiths.isEmpty()) {
             load(results, nestedWiths.toArray(new String[0]), loadForce);
         }
-        // 组装
+
+        // 合并
+        eager.addAll(exists);
+        // 组装匹配
         relationReflect.match(eager, results);
     }
 

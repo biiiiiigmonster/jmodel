@@ -43,13 +43,10 @@ public class RelationReflect<T extends Model<?>, R> {
 
     private void parse() {
         relatedField = ReflectUtil.getField(clazz, fieldName);
-        relatedField.setAccessible(true);
         relatedFieldIsList = List.class.isAssignableFrom(relatedField.getType());
         Relation relation = relatedField.getAnnotation(Relation.class);
         localField = ReflectUtil.getField(relatedField.getDeclaringClass(), relation.localKey());
-        localField.setAccessible(true);
         foreignField = ReflectUtil.getField(RelationUtils.getGenericType(relatedField), relation.foreignKey());
-        foreignField.setAccessible(true);
     }
 
     public <TL> List<R> fetchForeignResult(List<T> eager) {
@@ -98,6 +95,10 @@ public class RelationReflect<T extends Model<?>, R> {
     }
 
     public <TL> void match(List<T> models, List<R> results) {
+        if (ObjectUtil.isEmpty(results)) {
+            return;
+        }
+
         Map<TL, List<R>> dictionary = results.stream()
                 .collect(Collectors.groupingBy(r -> (TL) ReflectUtil.getFieldValue(r, foreignField)));
 
