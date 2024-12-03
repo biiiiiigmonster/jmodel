@@ -82,6 +82,7 @@ public class RelationReflect<T extends Model<?>, R extends Model<?>> {
         } else {
             log.warn("{}存在N + 1查询隐患，建议{}实现List参数的仓库方法", bean.getClass().getName(), method.getName());
             return localKeyValueList.stream()
+                    // todo：这里可以考虑并行执行
                     .map(param -> ReflectUtil.invoke(bean, method, param))
                     .filter(Objects::nonNull)
                     .flatMap(r -> {

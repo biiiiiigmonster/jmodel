@@ -40,7 +40,7 @@ public class RelationUtils implements BeanPostProcessor {
 
     private static final Map<String, Map<Object, Method>> MAP_CACHE = new HashMap<>();
 
-    private static final Map<String, Map<Object, Method>> FILL_MAP = new HashMap<>();
+    private static final Map<String, Map<Object, Method>> COMPUTED_MAP = new HashMap<>();
 
     private static final Map<Class<?>, Map<String, ColumnCache>> COLUMN_MAP = new HashMap<>();
 
@@ -73,7 +73,9 @@ public class RelationUtils implements BeanPostProcessor {
             return;
         }
 
-        processWiths(withs).forEach((fieldName, nestedWiths) -> handle(models, loadForce, fieldName, nestedWiths));
+        processWiths(withs)
+                // todo：这里可以考虑并行执行
+                .forEach((fieldName, nestedWiths) -> handle(models, loadForce, fieldName, nestedWiths));
     }
 
     private static <T extends Model<?>, R extends Model<?>> void handle(List<T> models, boolean loadForce, String fieldName, List<String> nestedWiths) {
@@ -178,7 +180,7 @@ public class RelationUtils implements BeanPostProcessor {
     }
 
     public static Map<Object, Method> getFillMethod(Field fillable) {
-        return FILL_MAP.get(fillCacheKey(fillable.getDeclaringClass(), fillable.getName()));
+        return COMPUTED_MAP.get(computedCacheKey(fillable.getDeclaringClass(), fillable.getName()));
     }
 
     public static Class<?> getGenericType(Field field) {
@@ -223,7 +225,7 @@ public class RelationUtils implements BeanPostProcessor {
         Class<?> clazz = bean.getClass();
         for (Method method : clazz.getDeclaredMethods()) {
             related(bean, method, method.getAnnotation(Related.class));
-            fill(bean, method, method.getAnnotation(Fill.class));
+            computed(bean, method, method.getAnnotation(Computed.class));
         }
 
         return bean;
@@ -255,7 +257,7 @@ public class RelationUtils implements BeanPostProcessor {
         RELATED_MAP.computeIfAbsent(foreignClazz, k -> new ArrayList<>()).add(map);
     }
 
-    private void fill(Object bean, Method method, Fill annotation) {
+    private void computed(Object bean, Method method, Computed annotation) {
         if (annotation == null) {
             return;
         }
@@ -264,12 +266,12 @@ public class RelationUtils implements BeanPostProcessor {
         Class<?> modelClazz = getGenericParameterType(method);
         String field = annotation.field();
         if (field.isEmpty()) {
-            field = StrUtil.removePreAndLowerFirst(method.getName(), "fill");
+            field = StrUtil.removePreAndLowerFirst(method.getName(), "computed");
         }
-        FILL_MAP.put(fillCacheKey(modelClazz, field), map);
+        COMPUTED_MAP.put(computedCacheKey(modelClazz, field), map);
     }
 
-    private static String fillCacheKey(Class<?> clazz, String field) {
+    private static String computedCacheKey(Class<?> clazz, String field) {
         return String.format("%s.%s", clazz.getName(), field);
     }
 }

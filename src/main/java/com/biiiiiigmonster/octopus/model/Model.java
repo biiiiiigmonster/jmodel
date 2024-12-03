@@ -30,7 +30,7 @@ public abstract class Model<T extends Model<?>> {
             Field field = getField(column);
             if (field.getAnnotation(Relation.class) != null) {
                 load(field.getName());
-            } else {
+            } else if (field.getAnnotation(Computed.class) != null) {
                 append(field);
             }
         }
