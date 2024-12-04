@@ -109,6 +109,7 @@ public class RelationUtils implements BeanPostProcessor {
         results = results.stream().distinct().collect(Collectors.toList());
         // 嵌套处理
         if (!nestedWiths.isEmpty()) {
+            // todo: 这里可以考虑异步执行
             load(results, nestedWiths.toArray(new String[0]), loadForce);
         }
 

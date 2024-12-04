@@ -54,7 +54,7 @@ public abstract class Model<T extends Model<?>> {
                 .map(WeakReference::get)
                 .orElseGet(() -> {
                     SerializedLambda lambda = SerializedLambda.resolve(column);
-                    Field field = ReflectUtil.getField(this.getClass(), methodToProperty(lambda.getImplMethodName()));
+                    Field field = getField(methodToProperty(lambda.getImplMethodName()));
                     LAMBDA_CACHE.put(name, new WeakReference<>(field));
                     return field;
                 });
