@@ -1,6 +1,6 @@
 package com.biiiiiigmonster.jmodel.models;
 
-import com.biiiiiigmonster.jmodel.eloquent.Model;
+import com.biiiiiigmonster.octopus.model.Model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

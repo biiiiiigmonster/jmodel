@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * <p>
- *
+ * 此注解用来指定数据加载方法，约定情况下@RelatedRepository即可
  * </p>
  *
  * @author v-luyunfeng

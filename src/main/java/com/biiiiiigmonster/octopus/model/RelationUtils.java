@@ -40,32 +40,60 @@ public class RelationUtils implements BeanPostProcessor {
 
     private static final Map<String, Map<Object, Method>> MAP_CACHE = new HashMap<>();
 
-    private static final Map<String, Map<Object, Method>> COMPUTED_MAP = new HashMap<>();
-
     private static final Map<Class<?>, Map<String, ColumnCache>> COLUMN_MAP = new HashMap<>();
 
     public static <T extends Model<?>> void load(T obj, String... withs) {
         load(ListUtil.toList(obj), withs, false);
     }
 
+    @SafeVarargs
+    public static <T extends Model<?>> void load(T obj, SerializableFunction<T, ?>... withs) {
+        load(ListUtil.toList(obj), SerializedLambda.resolveFieldNames(withs), false);
+    }
+
     public static <T extends Model<?>> void load(List<T> list, String... withs) {
         load(list, withs, false);
+    }
+
+    @SafeVarargs
+    public static <T extends Model<?>> void load(List<T> list, SerializableFunction<T, ?>... withs) {
+        load(list, SerializedLambda.resolveFieldNames(withs), false);
     }
 
     public static <T extends Model<?>> void load(T obj, boolean loadForce, String... withs) {
         load(ListUtil.toList(obj), withs, loadForce);
     }
 
+    @SafeVarargs
+    public static <T extends Model<?>> void load(T obj, boolean loadForce, SerializableFunction<T, ?>... withs) {
+        load(ListUtil.toList(obj), SerializedLambda.resolveFieldNames(withs), loadForce);
+    }
+
     public static <T extends Model<?>> void load(List<T> list, boolean loadForce, String... withs) {
         load(list, withs, loadForce);
+    }
+
+    @SafeVarargs
+    public static <T extends Model<?>> void load(List<T> list, boolean loadForce, SerializableFunction<T, ?>... withs) {
+        load(list, SerializedLambda.resolveFieldNames(withs), loadForce);
     }
 
     public static <T extends Model<?>> void loadForce(List<T> list, String... withs) {
         load(list, withs, true);
     }
 
+    @SafeVarargs
+    public static <T extends Model<?>> void loadForce(List<T> list, SerializableFunction<T, ?>... withs) {
+        load(list, SerializedLambda.resolveFieldNames(withs), true);
+    }
+
     public static <T extends Model<?>> void loadForce(T obj, String... withs) {
         load(ListUtil.toList(obj), withs, true);
+    }
+
+    @SafeVarargs
+    public static <T extends Model<?>> void loadForce(T obj, SerializableFunction<T, ?>... withs) {
+        load(ListUtil.toList(obj), SerializedLambda.resolveFieldNames(withs), true);
     }
 
     private static <T extends Model<?>> void load(List<T> models, String[] withs, boolean loadForce) {
@@ -135,18 +163,6 @@ public class RelationUtils implements BeanPostProcessor {
                 ));
     }
 
-    @SafeVarargs
-    public static <T extends Model<T>, R> void append(List<T> models, SerializableFunction<T, R>... column) {
-        models.forEach(model -> model.append(column));
-    }
-
-    @SafeVarargs
-    public static <T extends Model<T>, R> void append(T obj, SerializableFunction<T, R>... column) {
-        if (obj != null) {
-            obj.append(column);
-        }
-    }
-
     public static Map<Object, Method> getRelatedMethod(String key, Field foreignField) {
         return MAP_CACHE.computeIfAbsent(key, k ->
                 RELATED_MAP.get(foreignField.getDeclaringClass()).stream()
@@ -180,10 +196,6 @@ public class RelationUtils implements BeanPostProcessor {
         return columnCache.getColumn();
     }
 
-    public static Map<Object, Method> getFillMethod(Field fillable) {
-        return COMPUTED_MAP.get(computedCacheKey(fillable.getDeclaringClass(), fillable.getName()));
-    }
-
     public static Class<?> getGenericType(Field field) {
         if (!List.class.isAssignableFrom(field.getType())) {
             return field.getType();
@@ -192,7 +204,7 @@ public class RelationUtils implements BeanPostProcessor {
         return getTypeClass((ParameterizedType) field.getGenericType());
     }
 
-    private static Class<?> getGenericParameterType(Method method) {
+    public static Class<?> getGenericParameterType(Method method) {
         Class<?> paramClazz = method.getParameterTypes()[0];
         if (!List.class.isAssignableFrom(paramClazz)) {
             return paramClazz;
@@ -201,7 +213,7 @@ public class RelationUtils implements BeanPostProcessor {
         return getTypeClass((ParameterizedType) method.getGenericParameterTypes()[0]);
     }
 
-    private static Class<?> getGenericReturnType(Method method) {
+    public static Class<?> getGenericReturnType(Method method) {
         if (!List.class.isAssignableFrom(method.getReturnType())) {
             return method.getReturnType();
         }
@@ -220,29 +232,33 @@ public class RelationUtils implements BeanPostProcessor {
         return Object.class;
     }
 
+    /**
+     * 启动时扫描一下一些model的加载是否有指定方法，默认都是@RelatedRepository
+     */
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
         relatedRepository(bean);
         Class<?> clazz = bean.getClass();
         for (Method method : clazz.getDeclaredMethods()) {
             related(bean, method, method.getAnnotation(Related.class));
-            computed(bean, method, method.getAnnotation(Computed.class));
         }
 
         return bean;
     }
 
     private void relatedRepository(Object bean) {
-        Class<?> clazz = bean.getClass();
-        if (bean instanceof IService) {
-            ClassUtils.getAllInterfaces(clazz).stream()
-                    .filter(iClazz -> iClazz.getAnnotation(RelatedRepository.class) != null && IService.class.isAssignableFrom(iClazz))
-                    .findFirst()
-                    .ifPresent(iClazz -> {
-                        Class<?> typeClass = getTypeClass((ParameterizedType) iClazz.getGenericInterfaces()[0]);
-                        RELATED_REPOSITORY_MAP.put(typeClass, (IService<?>) bean);
-                    });
+        if (!(bean instanceof IService)) {
+            return;
         }
+
+        Class<?> clazz = bean.getClass();
+        ClassUtils.getAllInterfaces(clazz).stream()
+                .filter(iClazz -> iClazz.getAnnotation(RelatedRepository.class) != null && IService.class.isAssignableFrom(iClazz))
+                .findFirst()
+                .ifPresent(iClazz -> {
+                    Class<?> typeClass = getTypeClass((ParameterizedType) iClazz.getGenericInterfaces()[0]);
+                    RELATED_REPOSITORY_MAP.put(typeClass, (IService<?>) bean);
+                });
     }
 
     private void related(Object bean, Method method, Related annotation) {
@@ -256,23 +272,5 @@ public class RelationUtils implements BeanPostProcessor {
         Class<?> foreignClazz = getGenericReturnType(method);
         log.info("实体对象：{}，实例：{}，方法：{}", foreignClazz.getName(), bean.getClass().getName(), method.getName());
         RELATED_MAP.computeIfAbsent(foreignClazz, k -> new ArrayList<>()).add(map);
-    }
-
-    private void computed(Object bean, Method method, Computed annotation) {
-        if (annotation == null) {
-            return;
-        }
-        Map<Object, Method> map = new HashMap<>();
-        map.put(bean, method);
-        Class<?> modelClazz = getGenericParameterType(method);
-        String field = annotation.field();
-        if (field.isEmpty()) {
-            field = StrUtil.removePreAndLowerFirst(method.getName(), "computed");
-        }
-        COMPUTED_MAP.put(computedCacheKey(modelClazz, field), map);
-    }
-
-    private static String computedCacheKey(Class<?> clazz, String field) {
-        return String.format("%s.%s", clazz.getName(), field);
     }
 }
