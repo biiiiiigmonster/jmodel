@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +42,10 @@ public class RelationUtils implements BeanPostProcessor {
     private static final Map<String, Map<Object, Method>> MAP_CACHE = new HashMap<>();
 
     private static final Map<Class<?>, Map<String, ColumnCache>> COLUMN_MAP = new HashMap<>();
+
+    private static final String EXECUTOR_NAME = "relationUtilExecutor";
+
+    private static Executor executor;
 
     public static <T extends Model<?>> void load(T obj, String... withs) {
         load(ListUtil.toList(obj), withs, false);
@@ -102,8 +107,13 @@ public class RelationUtils implements BeanPostProcessor {
         }
 
         processWiths(withs)
-                // todo：这里可以考虑并行执行
-                .forEach((fieldName, nestedWiths) -> handle(models, loadForce, fieldName, nestedWiths));
+                .forEach((fieldName, nestedWiths) -> {
+                    if (executor != null) {
+                        executor.execute(() -> handle(models, loadForce, fieldName, nestedWiths));
+                    } else {
+                        handle(models, loadForce, fieldName, nestedWiths);
+                    }
+                });
     }
 
     private static <T extends Model<?>, R extends Model<?>> void handle(List<T> models, boolean loadForce, String fieldName, List<String> nestedWiths) {
@@ -137,7 +147,6 @@ public class RelationUtils implements BeanPostProcessor {
         results = results.stream().distinct().collect(Collectors.toList());
         // 嵌套处理
         if (!nestedWiths.isEmpty()) {
-            // todo: 这里可以考虑异步执行
             load(results, nestedWiths.toArray(new String[0]), loadForce);
         }
 
@@ -237,6 +246,11 @@ public class RelationUtils implements BeanPostProcessor {
      */
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
+        if ((bean instanceof Executor) && RelationUtils.EXECUTOR_NAME.equals(beanName)) {
+            RelationUtils.executor = (Executor) bean;
+            return bean;
+        }
+
         relatedRepository(bean);
         Class<?> clazz = bean.getClass();
         for (Method method : clazz.getDeclaredMethods()) {
