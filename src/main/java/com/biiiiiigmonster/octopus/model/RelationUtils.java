@@ -246,7 +246,7 @@ public class RelationUtils implements BeanPostProcessor {
      */
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
-        if ((bean instanceof Executor) && RelationUtils.EXECUTOR_NAME.equals(beanName)) {
+        if (RelationUtils.executor == null && (bean instanceof Executor) && RelationUtils.EXECUTOR_NAME.equals(beanName)) {
             RelationUtils.executor = (Executor) bean;
             return bean;
         }
