@@ -261,13 +261,8 @@ public class RelationUtils implements BeanPostProcessor {
     }
 
     private void relatedRepository(Object bean) {
-        if (!(bean instanceof IService)) {
-            return;
-        }
-
-        Class<?> clazz = bean.getClass();
-        ClassUtils.getAllInterfaces(clazz).stream()
-                .filter(iClazz -> iClazz.getAnnotation(RelatedRepository.class) != null && IService.class.isAssignableFrom(iClazz))
+        ClassUtils.getAllInterfaces(bean.getClass()).stream()
+                .filter(IService.class::isAssignableFrom)
                 .findFirst()
                 .ifPresent(iClazz -> {
                     Class<?> typeClass = getTypeClass((ParameterizedType) iClazz.getGenericInterfaces()[0]);

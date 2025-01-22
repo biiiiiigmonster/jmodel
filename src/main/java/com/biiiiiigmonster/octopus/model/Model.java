@@ -1,5 +1,6 @@
 package com.biiiiiigmonster.octopus.model;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
@@ -28,6 +29,20 @@ public abstract class Model<T extends Model<?>> {
         }
 
         return column.apply((T) this);
+    }
+
+    public Boolean save() {
+        IService<T> relatedRepository = RelationUtils.getRelatedRepository((Class<T>) this.getClass());
+        boolean result = relatedRepository.saveOrUpdate((T) this);
+
+        return result;
+    }
+
+    public Boolean delete() {
+        IService<T> relatedRepository = RelationUtils.getRelatedRepository((Class<T>) this.getClass());
+        boolean result = relatedRepository.removeById((T) this);
+
+        return result;
     }
 
     @SafeVarargs
