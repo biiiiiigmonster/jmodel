@@ -30,6 +30,7 @@ public abstract class Model<T extends Model<?>> {
         return column.apply((T) this);
     }
 
+    // wip: event
     public Boolean save() {
         IService<T> relatedRepository = RelationUtils.getRelatedRepository((Class<T>) this.getClass());
         boolean result = relatedRepository.saveOrUpdate((T) this);
@@ -37,6 +38,7 @@ public abstract class Model<T extends Model<?>> {
         return result;
     }
 
+    // wip: event
     public Boolean delete() {
         IService<T> relatedRepository = RelationUtils.getRelatedRepository((Class<T>) this.getClass());
         boolean result = relatedRepository.removeById((T) this);
