@@ -29,28 +29,24 @@ import java.util.stream.Stream;
 @Getter
 @Slf4j
 public class RelationReflect<T extends Model<?>, R extends Model<?>> {
-    private final Class<T> clazz;
-    private final String fieldName;
-    private Field relatedField;
+    private final Field relatedField;
     private Field localField;
     private Field foreignField;
     private Boolean relatedFieldIsList;
 
-    public RelationReflect(Class<T> clazz, String fieldName) {
-        this.clazz = clazz;
-        this.fieldName = fieldName;
+    public RelationReflect(Field relatedField) {
+        this.relatedField = relatedField;
         parse();
     }
 
     private void parse() {
-        relatedField = ReflectUtil.getField(clazz, fieldName);
         relatedFieldIsList = List.class.isAssignableFrom(relatedField.getType());
         Relation relation = relatedField.getAnnotation(Relation.class);
         localField = ReflectUtil.getField(relatedField.getDeclaringClass(), relation.localKey());
         foreignField = ReflectUtil.getField(RelationUtils.getGenericType(relatedField), relation.foreignKey());
     }
 
-    public <TL> List<R> fetchForeignResult(List<T> eager) {
+    public <TL> List<R> eagerlyLoad(List<T> eager) {
         List<TL> localKeyValueList = eager.stream()
                 .map(o -> (TL) ReflectUtil.getFieldValue(o, localField))
                 .filter(ObjectUtil::isNotEmpty)
@@ -73,7 +69,6 @@ public class RelationReflect<T extends Model<?>, R extends Model<?>> {
     private <TL> List<R> byRelatedMethod(List<TL> localKeyValueList) {
         String cacheKey = String.format("%s.%s", foreignField.getDeclaringClass().getName(), foreignField.getName());
         Map<Object, Method> relatedMethod = RelationUtils.getRelatedMethod(cacheKey, foreignField);
-//        Assert.assertNotNull("未找到仓库" + cacheKey, relatedMethod);
 
         Object bean = relatedMethod.keySet().iterator().next();
         Method method = relatedMethod.values().iterator().next();

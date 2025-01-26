@@ -27,10 +27,12 @@ import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 这个类是从 {@link java.lang.invoke.SerializedLambda} 里面 copy 过来的，
@@ -172,8 +174,8 @@ public class SerializedLambda implements Serializable {
         return toClassConfident(instantiatedTypeName);
     }
 
-    public static String[] resolveFieldNames(SerializableFunction<?, ?>... columns) {
-        return Arrays.stream(columns).map(SerializedLambda::getField).map(Field::getName).toArray(String[]::new);
+    public static List<String> resolveFieldNames(SerializableFunction<?, ?>... columns) {
+        return Arrays.stream(columns).map(SerializedLambda::getField).map(Field::getName).collect(Collectors.toList());
     }
 
     public static Field getField(SerializableFunction<?, ?> column) {

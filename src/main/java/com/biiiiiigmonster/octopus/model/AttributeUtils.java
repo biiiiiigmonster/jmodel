@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +27,7 @@ public class AttributeUtils implements BeanPostProcessor {
     }
 
     public static <T extends Model<?>> void append(T obj, String... attributes) {
-        computed(ListUtil.toList(obj), attributes);
+        computed(ListUtil.toList(obj), Arrays.asList(attributes));
     }
 
     @SafeVarargs
@@ -35,7 +36,7 @@ public class AttributeUtils implements BeanPostProcessor {
     }
 
     public static <T extends Model<?>> void append(List<T> models, String... attributes) {
-        computed(models, attributes);
+        computed(models, Arrays.asList(attributes));
     }
 
     @SafeVarargs
@@ -43,7 +44,7 @@ public class AttributeUtils implements BeanPostProcessor {
         computed(models, SerializedLambda.resolveFieldNames(attributes));
     }
 
-    private static <T extends Model<?>> void computed(List<T> models, String[] attributes) {
+    private static <T extends Model<?>> void computed(List<T> models, List<String> attributes) {
         if (ObjectUtil.isEmpty(models)) {
             return;
         }
@@ -52,8 +53,8 @@ public class AttributeUtils implements BeanPostProcessor {
                 .forEach(attributeName -> handle(models, attributeName));
     }
 
-    private static List<String> processAttributes(String[] attributes) {
-        return Arrays.stream(attributes)
+    private static List<String> processAttributes(List<String> attributes) {
+        return attributes.stream()
                 .filter(ObjectUtil::isNotEmpty)
                 .collect(Collectors.toList());
     }

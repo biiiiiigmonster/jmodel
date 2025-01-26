@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
 
 /**
  * <p>
@@ -46,8 +45,8 @@ public abstract class Model<T extends Model<?>> {
     }
 
     @SafeVarargs
-    public final <R> void append(SerializableFunction<T, R>... attributes) {
-        AttributeUtils.append((T) this, SerializedLambda.resolveFieldNames(attributes));
+    public final void append(SerializableFunction<T, ?>... attributes) {
+        AttributeUtils.append((T) this, attributes);
     }
 
     public final void append(String... attributes) {
@@ -55,20 +54,30 @@ public abstract class Model<T extends Model<?>> {
     }
 
     @SafeVarargs
-    public final <R> void load(SerializableFunction<T, R>... withs) {
-        RelationUtils.load((T) this, SerializedLambda.resolveFieldNames(withs));
-    }
-
-    public final void load(String... withs) {
-        RelationUtils.load((T) this, withs);
+    public final void load(SerializableFunction<T, ?>... relations) {
+        RelationUtils.load((T) this, relations);
     }
 
     @SafeVarargs
-    public final <R> void loadForce(SerializableFunction<T, R>... withs) {
-        RelationUtils.loadForce((T) this, SerializedLambda.resolveFieldNames(withs));
+    public final void load(RelationOption<T, ?>... relations) {
+        RelationUtils.load((T) this, relations);
     }
 
-    public final void loadForce(String... withs) {
-        RelationUtils.loadForce((T) this, withs);
+    public final void load(String... relations) {
+        RelationUtils.load((T) this, relations);
+    }
+
+    @SafeVarargs
+    public final void loadForce(SerializableFunction<T, ?>... relations) {
+        RelationUtils.loadForce((T) this, relations);
+    }
+
+    @SafeVarargs
+    public final void loadForce(RelationOption<T, ?>... relations) {
+        RelationUtils.loadForce((T) this, relations);
+    }
+
+    public final void loadForce(String... relations) {
+        RelationUtils.loadForce((T) this, relations);
     }
 }

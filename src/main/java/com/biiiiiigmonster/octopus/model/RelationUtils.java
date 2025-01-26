@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ClassUtils;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -47,77 +48,113 @@ public class RelationUtils implements BeanPostProcessor {
 
     private static Executor executor;
 
-    public static <T extends Model<?>> void load(T obj, String... withs) {
-        load(ListUtil.toList(obj), withs, false);
+    public static <T extends Model<?>> void load(T obj, String... relations) {
+        load(ListUtil.toList(obj), Arrays.asList(relations), false);
     }
 
     @SafeVarargs
-    public static <T extends Model<?>> void load(T obj, SerializableFunction<T, ?>... withs) {
-        load(ListUtil.toList(obj), SerializedLambda.resolveFieldNames(withs), false);
-    }
-
-    public static <T extends Model<?>> void load(List<T> list, String... withs) {
-        load(list, withs, false);
+    public static <T extends Model<?>> void load(T obj, SerializableFunction<T, ?>... relations) {
+        load(ListUtil.toList(obj), SerializedLambda.resolveFieldNames(relations), false);
     }
 
     @SafeVarargs
-    public static <T extends Model<?>> void load(List<T> list, SerializableFunction<T, ?>... withs) {
-        load(list, SerializedLambda.resolveFieldNames(withs), false);
+    public static <T extends Model<?>> void load(T obj, RelationOption<T, ?>... relations) {
+        load(ListUtil.toList(obj), Arrays.asList(relations), false);
     }
 
-    public static <T extends Model<?>> void load(T obj, boolean loadForce, String... withs) {
-        load(ListUtil.toList(obj), withs, loadForce);
-    }
-
-    @SafeVarargs
-    public static <T extends Model<?>> void load(T obj, boolean loadForce, SerializableFunction<T, ?>... withs) {
-        load(ListUtil.toList(obj), SerializedLambda.resolveFieldNames(withs), loadForce);
-    }
-
-    public static <T extends Model<?>> void load(List<T> list, boolean loadForce, String... withs) {
-        load(list, withs, loadForce);
+    public static <T extends Model<?>> void load(List<T> list, String... relations) {
+        load(list, Arrays.asList(relations), false);
     }
 
     @SafeVarargs
-    public static <T extends Model<?>> void load(List<T> list, boolean loadForce, SerializableFunction<T, ?>... withs) {
-        load(list, SerializedLambda.resolveFieldNames(withs), loadForce);
-    }
-
-    public static <T extends Model<?>> void loadForce(List<T> list, String... withs) {
-        load(list, withs, true);
+    public static <T extends Model<?>> void load(List<T> list, SerializableFunction<T, ?>... relations) {
+        load(list, SerializedLambda.resolveFieldNames(relations), false);
     }
 
     @SafeVarargs
-    public static <T extends Model<?>> void loadForce(List<T> list, SerializableFunction<T, ?>... withs) {
-        load(list, SerializedLambda.resolveFieldNames(withs), true);
+    public static <T extends Model<?>> void load(List<T> list, RelationOption<T, ?>... relations) {
+        load(list, Arrays.asList(relations), false);
     }
 
-    public static <T extends Model<?>> void loadForce(T obj, String... withs) {
-        load(ListUtil.toList(obj), withs, true);
+    public static <T extends Model<?>> void load(T obj, boolean loadForce, String... relations) {
+        load(ListUtil.toList(obj), Arrays.asList(relations), loadForce);
     }
 
     @SafeVarargs
-    public static <T extends Model<?>> void loadForce(T obj, SerializableFunction<T, ?>... withs) {
-        load(ListUtil.toList(obj), SerializedLambda.resolveFieldNames(withs), true);
+    public static <T extends Model<?>> void load(T obj, boolean loadForce, SerializableFunction<T, ?>... relations) {
+        load(ListUtil.toList(obj), SerializedLambda.resolveFieldNames(relations), loadForce);
     }
 
-    private static <T extends Model<?>> void load(List<T> models, String[] withs, boolean loadForce) {
+    @SafeVarargs
+    public static <T extends Model<?>> void load(T obj, boolean loadForce, RelationOption<T, ?>... relations) {
+        load(ListUtil.toList(obj), Arrays.asList(relations), loadForce);
+    }
+
+    public static <T extends Model<?>> void load(List<T> list, boolean loadForce, String... relations) {
+        load(list, Arrays.asList(relations), loadForce);
+    }
+
+    @SafeVarargs
+    public static <T extends Model<?>> void load(List<T> list, boolean loadForce, SerializableFunction<T, ?>... relations) {
+        load(list, SerializedLambda.resolveFieldNames(relations), loadForce);
+    }
+
+    @SafeVarargs
+    public static <T extends Model<?>> void load(List<T> list, boolean loadForce, RelationOption<T, ?>... relations) {
+        load(list, Arrays.asList(relations), loadForce);
+    }
+
+    public static <T extends Model<?>> void loadForce(List<T> list, String... relations) {
+        load(list, Arrays.asList(relations), true);
+    }
+
+    @SafeVarargs
+    public static <T extends Model<?>> void loadForce(List<T> list, SerializableFunction<T, ?>... relations) {
+        load(list, SerializedLambda.resolveFieldNames(relations), true);
+    }
+
+    @SafeVarargs
+    public static <T extends Model<?>> void loadForce(List<T> list, RelationOption<T, ?>... relations) {
+        load(list, Arrays.asList(relations), true);
+    }
+
+    public static <T extends Model<?>> void loadForce(T obj, String... relations) {
+        load(ListUtil.toList(obj), Arrays.asList(relations), true);
+    }
+
+    @SafeVarargs
+    public static <T extends Model<?>> void loadForce(T obj, SerializableFunction<T, ?>... relations) {
+        load(ListUtil.toList(obj), SerializedLambda.resolveFieldNames(relations), true);
+    }
+
+    @SafeVarargs
+    public static <T extends Model<?>> void loadForce(T obj, RelationOption<T, ?>... relations) {
+        load(ListUtil.toList(obj), Arrays.asList(relations), true);
+    }
+
+    private static <T extends Model<?>, P> void load(List<T> models, List<P> list, boolean loadForce) {
         if (ObjectUtil.isEmpty(models)) {
             return;
         }
+        
+        List<RelationOption<?, ?>> relations;
+        if (list.get(0) instanceof String) {
+            relations = processRelations(models.get(0).getClass(), (List<String>) list);
+        } else  {
+            relations = (List<RelationOption<?, ?>>) list;
+        }
 
-        processWiths(withs)
-                .forEach((fieldName, nestedWiths) -> {
-                    if (executor != null) {
-                        executor.execute(() -> handle(models, loadForce, fieldName, nestedWiths));
-                    } else {
-                        handle(models, loadForce, fieldName, nestedWiths);
-                    }
-                });
+        relations.forEach((relation) -> {
+            if (executor != null) {
+                executor.execute(() -> handle(models, loadForce, relation));
+            } else {
+                handle(models, loadForce, relation);
+            }
+        });
     }
 
-    private static <T extends Model<?>, R extends Model<?>> void handle(List<T> models, boolean loadForce, String fieldName, List<String> nestedWiths) {
-        RelationReflect<T, R> relationReflect = new RelationReflect<>((Class<T>) models.get(0).getClass(), fieldName);
+    private static <T extends Model<?>, R extends Model<?>> void handle(List<T> models, boolean loadForce, RelationOption<?, ?> relation) {
+        RelationReflect<T, R> relationReflect = new RelationReflect<>(relation.getRelatedField());
         // 分离
         List<T> eager = new ArrayList<>();
         List<T> exists = new ArrayList<>();
@@ -130,7 +167,7 @@ public class RelationUtils implements BeanPostProcessor {
                 if (value == null) {
                     eager.add(model);
                 } else {
-                    if (!nestedWiths.isEmpty()) {
+                    if (!relation.isNestedEmpty()) {
                         exists.add(model);
                         if (relationReflect.getRelatedFieldIsList()) {
                             results.addAll((List<R>) value);
@@ -142,12 +179,12 @@ public class RelationUtils implements BeanPostProcessor {
             }
         }
         // 合并关联结果
-        results.addAll(relationReflect.fetchForeignResult(eager));
+        results.addAll(relationReflect.eagerlyLoad(eager));
         // 将结果中重复的对象直接去重，这个【重复】的判定规则后续还需注意
         results = results.stream().distinct().collect(Collectors.toList());
         // 嵌套处理
-        if (!nestedWiths.isEmpty()) {
-            load(results, nestedWiths.toArray(new String[0]), loadForce);
+        if (!relation.isNestedEmpty()) {
+            load(results, relation.getNestedRelations(), loadForce);
         }
 
         // 合并
@@ -156,20 +193,31 @@ public class RelationUtils implements BeanPostProcessor {
         relationReflect.match(eager, results);
     }
 
-    private static Map<String, List<String>> processWiths(String[] withs) {
-        return Arrays.stream(withs)
+    private static List<RelationOption<?, ?>> processRelations(Class<?> clazz, List<String> relations) {
+        Map<String, List<String>> map = relations.stream()
                 .filter(ObjectUtil::isNotEmpty)
                 .collect(Collectors.toMap(
-                        with -> StrUtil.subBefore(with, ".", false),
-                        with -> {
-                            String nestedWith = StrUtil.subAfter(with, ".", false);
-                            return nestedWith.isEmpty() ? new ArrayList<>() : ListUtil.toList(nestedWith);
+                        relation -> StrUtil.subBefore(relation, ".", false),
+                        relation -> {
+                            String nestedRelation = StrUtil.subAfter(relation, ".", false);
+                            return nestedRelation.isEmpty() ? new ArrayList<>() : ListUtil.toList(nestedRelation);
                         },
                         (v1, v2) -> {
                             v1.addAll(v2);
                             return v1;
                         }
                 ));
+
+        List<RelationOption<?, ?>> list = new ArrayList<>();
+        map.forEach((fieldName, nestedRelations) -> {
+            RelationOption<?, ?> relationOption = RelationOption.of(clazz, fieldName);
+            if (!CollectionUtils.isEmpty(nestedRelations)) {
+                relationOption.nested(processRelations(getGenericType(relationOption.getRelatedField()), nestedRelations));
+            }
+            list.add(relationOption);
+        });
+
+        return list;
     }
 
     public static Map<Object, Method> getRelatedMethod(String key, Field foreignField) {
