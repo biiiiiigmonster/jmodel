@@ -132,6 +132,14 @@ public class RelationUtils implements BeanPostProcessor {
         load(ListUtil.toList(obj), Arrays.asList(relations), true);
     }
 
+    /**
+     *
+     * @param models
+     * @param list
+     * @param loadForce
+     * @param <T>
+     * @param <P> String | RelationOption<?, ?>
+     */
     private static <T extends Model<?>, P> void load(List<T> models, List<P> list, boolean loadForce) {
         if (ObjectUtil.isEmpty(models)) {
             return;
