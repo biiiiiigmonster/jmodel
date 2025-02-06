@@ -4,15 +4,34 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.biiiiiigmonster.octopus</groupId>
-  <artifactId>octopus</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <groupId>com.github.biiiiiigmonster</groupId>
+  <artifactId>jmodel</artifactId>
+  <version>${jmodel.version}</version>
 
-  <name>octopus</name>
+  <name>jmodel</name>
   <description>ORM with DSL for Java</description>
-  <url>https://github.com/biiiiiigmonster/octopus</url>
+  <url>https://github.com/biiiiiigmonster/jmodel</url>
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>jmodel</id>
+      <name>luyunfeng</name>
+      <email>biiiiiigmonster@gmail.com</email>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:https://github.com/biiiiiigmonster/jmodel.git</connection>
+    <developerConnection>scm:git:https://github.com/biiiiiigmonster/jmodel.git</developerConnection>
+    <url>https://github.com/biiiiiigmonster/jmodel</url>
+  </scm>
 
   <properties>
+    <jmodel.version>1.0.0</jmodel.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
