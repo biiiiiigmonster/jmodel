@@ -1,4 +1,4 @@
-package com.github.biiiiiigmonster.model;
+package com.github.biiiiiigmonster.attribute;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

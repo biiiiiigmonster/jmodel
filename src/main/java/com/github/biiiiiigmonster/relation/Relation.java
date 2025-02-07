@@ -1,6 +1,5 @@
-package com.github.biiiiiigmonster.annotations;
+package com.github.biiiiiigmonster.relation;
 
-import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -12,11 +11,12 @@ import java.lang.annotation.Target;
  * </p>
  *
  * @author v-luyunfeng
- * @date 2023/11/22 16:45
+ * @date 2023/10/10 16:46
  */
-@Documented
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Table {// What should it be called ?
-    String value();
+public @interface Relation {
+    String foreignKey() default "id";
+
+    String localKey() default "id";
 }

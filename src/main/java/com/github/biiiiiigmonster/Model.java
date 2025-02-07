@@ -1,7 +1,11 @@
-package com.github.biiiiiigmonster.model;
+package com.github.biiiiiigmonster;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import lombok.extern.slf4j.Slf4j;
+import com.github.biiiiiigmonster.attribute.Attribute;
+import com.github.biiiiiigmonster.attribute.AttributeUtils;
+import com.github.biiiiiigmonster.relation.Relation;
+import com.github.biiiiiigmonster.relation.RelationOption;
+import com.github.biiiiiigmonster.relation.RelationUtils;
 
 import java.lang.reflect.Field;
 
@@ -13,17 +17,16 @@ import java.lang.reflect.Field;
  * @author v-luyunfeng
  * @date 2023/10/26 9:52
  */
-@Slf4j
 public abstract class Model<T extends Model<?>> {
 
     public <R> R get(SerializableFunction<T, R> column) {
         R value = column.apply((T) this);
         if (value == null) {
             Field field = SerializedLambda.getField(column);
-            if (field.getAnnotation(Relation.class) != null) {
-                load(field.getName());
-            } else if (field.getAnnotation(Attribute.class) != null) {
-                append(field.getName());
+            if (RelationUtils.hasRelation(field)) {
+                load(column);
+            } else if (AttributeUtils.hasAttribute(field)) {
+                append(column);
             }
         }
 

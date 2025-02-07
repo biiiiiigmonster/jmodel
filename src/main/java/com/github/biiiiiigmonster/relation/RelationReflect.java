@@ -1,9 +1,10 @@
-package com.github.biiiiiigmonster.model;
+package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.github.biiiiiigmonster.Model;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

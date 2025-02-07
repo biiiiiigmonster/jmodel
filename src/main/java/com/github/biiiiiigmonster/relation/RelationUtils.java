@@ -1,4 +1,4 @@
-package com.github.biiiiiigmonster.model;
+package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -7,12 +7,16 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.LambdaUtils;
 import com.baomidou.mybatisplus.core.toolkit.support.ColumnCache;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.github.biiiiiigmonster.Model;
+import com.github.biiiiiigmonster.SerializableFunction;
+import com.github.biiiiiigmonster.SerializedLambda;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ClassUtils;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -295,6 +299,15 @@ public class RelationUtils implements BeanPostProcessor {
         }
 
         return Object.class;
+    }
+
+    public static boolean hasRelation(Field field) {
+        for (Annotation annotation : field.getAnnotations()) {
+            if (annotation.annotationType().isAnnotationPresent(Relation.class)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

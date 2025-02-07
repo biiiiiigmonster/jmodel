@@ -1,6 +1,9 @@
-package com.github.biiiiiigmonster.model;
+package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ReflectUtil;
+import com.github.biiiiiigmonster.Model;
+import com.github.biiiiiigmonster.SerializableFunction;
+import com.github.biiiiiigmonster.SerializedLambda;
 import lombok.Data;
 import org.springframework.util.CollectionUtils;
 

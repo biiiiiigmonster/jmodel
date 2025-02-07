@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.github.biiiiiigmonster.model;
+package com.github.biiiiiigmonster;
 
 import cn.hutool.core.util.ReflectUtil;
 import org.springframework.util.SerializationUtils;

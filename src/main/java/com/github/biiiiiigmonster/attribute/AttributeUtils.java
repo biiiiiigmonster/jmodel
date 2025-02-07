@@ -1,9 +1,13 @@
-package com.github.biiiiiigmonster.model;
+package com.github.biiiiiigmonster.attribute;
 
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.github.biiiiiigmonster.Model;
+import com.github.biiiiiigmonster.relation.RelationUtils;
+import com.github.biiiiiigmonster.SerializableFunction;
+import com.github.biiiiiigmonster.SerializedLambda;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;
@@ -111,5 +115,9 @@ public class AttributeUtils implements BeanPostProcessor {
 
     private static String attributeCacheKey(Class<?> clazz, String field) {
         return String.format("%s.%s", clazz.getName(), field);
+    }
+
+    public static boolean hasAttribute(Field field) {
+        return field.getAnnotation(Attribute.class) != null;
     }
 }
