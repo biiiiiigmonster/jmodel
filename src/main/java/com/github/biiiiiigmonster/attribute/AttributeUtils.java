@@ -117,7 +117,7 @@ public class AttributeUtils implements BeanPostProcessor {
         return String.format("%s.%s", clazz.getName(), field);
     }
 
-    public static boolean hasAttribute(Field field) {
+    public static boolean hasAttributeAnnotation(Field field) {
         return field.getAnnotation(Attribute.class) != null;
     }
 }

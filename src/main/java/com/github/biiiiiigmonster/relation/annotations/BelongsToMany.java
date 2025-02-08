@@ -9,4 +9,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Relation
 public @interface BelongsToMany {
+    String localKey() default "";
+    String foreignKey() default "";
 }

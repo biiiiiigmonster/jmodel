@@ -1,10 +1,9 @@
 package com.github.biiiiiigmonster;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.github.biiiiiigmonster.attribute.Attribute;
 import com.github.biiiiiigmonster.attribute.AttributeUtils;
-import com.github.biiiiiigmonster.relation.Relation;
 import com.github.biiiiiigmonster.relation.RelationOption;
+import com.github.biiiiiigmonster.relation.RelationType;
 import com.github.biiiiiigmonster.relation.RelationUtils;
 
 import java.lang.reflect.Field;
@@ -23,9 +22,9 @@ public abstract class Model<T extends Model<?>> {
         R value = column.apply((T) this);
         if (value == null) {
             Field field = SerializedLambda.getField(column);
-            if (RelationUtils.hasRelation(field)) {
+            if (RelationType.hasRelationAnnotation(field)) {
                 load(column);
-            } else if (AttributeUtils.hasAttribute(field)) {
+            } else if (AttributeUtils.hasAttributeAnnotation(field)) {
                 append(column);
             }
         }

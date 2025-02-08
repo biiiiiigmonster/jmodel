@@ -16,13 +16,20 @@ import java.util.stream.Collectors;
 public class RelationOption<T extends Model<?>, R extends Model<?>> {
     private List<RelationOption<?, ?>> nestedRelations;
     private Field relatedField;
+    private RelationType relationType;
 
     public RelationOption(SerializableFunction<T, R> relation) {
         this.relatedField = SerializedLambda.getField(relation);
+        parse();
     }
 
     public RelationOption(Class<?> clazz, String fieldName) {
         this.relatedField = ReflectUtil.getField(clazz, fieldName);
+        parse();
+    }
+
+    private void parse() {
+        relationType = RelationType.of(relatedField);
     }
 
     public static <T extends Model<?>, R extends Model<?>> RelationOption<T, R> of(SerializableFunction<T, R> relation) {
@@ -44,6 +51,14 @@ public class RelationOption<T extends Model<?>, R extends Model<?>> {
                 .filter(relation -> relation instanceof RelationOption)
                 .map(relation -> (RelationOption<?, ?>) relation)
                 .collect(Collectors.toList());
+    }
+
+    public boolean isRelatedFieldList() {
+        return relationType.isResultList();
+    }
+
+    public Relation getRelation() {
+        return relationType.getRelation(relatedField);
     }
 
     public boolean isNestedEmpty() {

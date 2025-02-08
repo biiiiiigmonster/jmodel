@@ -16,7 +16,6 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -137,22 +136,21 @@ public class RelationUtils implements BeanPostProcessor {
     }
 
     /**
-     *
      * @param models
      * @param list
      * @param loadForce
      * @param <T>
-     * @param <P> String | RelationOption<?, ?>
+     * @param <P>       String | RelationOption<?, ?>
      */
     private static <T extends Model<?>, P> void load(List<T> models, List<P> list, boolean loadForce) {
         if (ObjectUtil.isEmpty(models)) {
             return;
         }
-        
+
         List<RelationOption<?, ?>> relations;
         if (list.get(0) instanceof String) {
             relations = processRelations(models.get(0).getClass(), (List<String>) list);
-        } else  {
+        } else {
             relations = (List<RelationOption<?, ?>>) list;
         }
 
@@ -165,8 +163,7 @@ public class RelationUtils implements BeanPostProcessor {
         });
     }
 
-    private static <T extends Model<?>, R extends Model<?>> void handle(List<T> models, boolean loadForce, RelationOption<?, ?> relation) {
-        RelationReflect<T, R> relationReflect = new RelationReflect<>(relation.getRelatedField());
+    private static <T extends Model<?>, R extends Model<?>> void handle(List<T> models, boolean loadForce, RelationOption<?, ?> relationOption) {
         // 分离
         List<T> eager = new ArrayList<>();
         List<T> exists = new ArrayList<>();
@@ -175,13 +172,13 @@ public class RelationUtils implements BeanPostProcessor {
             eager = models;
         } else {
             for (T model : models) {
-                Object value = ReflectUtil.getFieldValue(model, relationReflect.getRelatedField());
+                Object value = ReflectUtil.getFieldValue(model, relationOption.getRelatedField());
                 if (value == null) {
                     eager.add(model);
                 } else {
-                    if (!relation.isNestedEmpty()) {
+                    if (!relationOption.isNestedEmpty()) {
                         exists.add(model);
-                        if (relationReflect.getRelatedFieldIsList()) {
+                        if (relationOption.isRelatedFieldList()) {
                             results.addAll((List<R>) value);
                         } else {
                             results.add((R) value);
@@ -190,19 +187,32 @@ public class RelationUtils implements BeanPostProcessor {
                 }
             }
         }
+        Relation relation = relationOption.getRelation();
         // 合并关联结果
-        results.addAll(relationReflect.eagerlyLoad(eager));
-        // 将结果中重复的对象直接去重，这个【重复】的判定规则后续还需注意
-        results = results.stream().distinct().collect(Collectors.toList());
+        results = merge(results, relation.getEager(eager));
         // 嵌套处理
-        if (!relation.isNestedEmpty()) {
-            load(results, relation.getNestedRelations(), loadForce);
+        if (!relationOption.isNestedEmpty()) {
+            load(results, relationOption.getNestedRelations(), loadForce);
         }
 
         // 合并
         eager.addAll(exists);
         // 组装匹配
-        relationReflect.match(eager, results);
+        relation.match(eager, results);
+    }
+
+    // 新旧结果集合并，如果重复以新结果集为准
+    private static <T extends Model<?>> List<T> merge(List<T> oldList, List<T> newList) {
+        if (CollectionUtils.isEmpty(oldList) || CollectionUtils.isEmpty(newList)) {
+            return newList;
+        }
+
+        newList.addAll(oldList);
+        return new ArrayList<>(newList.stream().collect(Collectors.toMap(
+                r -> ReflectUtil.getFieldValue(r, RelationUtils.getPrimaryKey(r.getClass())),
+                r -> r,
+                (o1, o2) -> o1
+        )).values());
     }
 
     private static List<RelationOption<?, ?>> processRelations(Class<?> clazz, List<String> relations) {
@@ -301,13 +311,24 @@ public class RelationUtils implements BeanPostProcessor {
         return Object.class;
     }
 
-    public static boolean hasRelation(Field field) {
-        for (Annotation annotation : field.getAnnotations()) {
-            if (annotation.annotationType().isAnnotationPresent(Relation.class)) {
-                return true;
-            }
-        }
-        return false;
+    /**
+     * 模型默认本地键名
+     *
+     * @param clazz
+     * @return
+     */
+    public static String getPrimaryKey(Class<?> clazz) {
+        return "id";
+    }
+
+    /**
+     * 模型默认外地键名
+     *
+     * @param clazz
+     * @return
+     */
+    public static String getForeignKey(Class<?> clazz) {
+        return StrUtil.lowerFirst(clazz.getSimpleName()) + "_" + getPrimaryKey(clazz);
     }
 
     /**
