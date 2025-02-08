@@ -27,7 +27,7 @@ public enum RelationType {
         public com.github.biiiiiigmonster.relation.HasOne getRelation(Field field) {
             HasOne relation = field.getAnnotation(HasOne.class);
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
-            String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getForeignKey(field.getDeclaringClass());
+            String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getForeignKey(field.getType());
             return new com.github.biiiiiigmonster.relation.HasOne(
                     field,
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
