@@ -9,6 +9,8 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Relation
 public @interface MorphOne {
+    String name();
+    String type() default "";
+    String id() default "";
     String localKey() default "";
-    String foreignKey() default "";
 }

@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class HasMany extends HasOneOrMany {
-    public HasMany(Field relatedField, Field foreignField, Field localField) {
-        super(relatedField, foreignField, localField);
+public class MorphMany extends MorphOneOrMany {
+    public MorphMany(Field relatedField, Field morphType, Field foreignField, Field localField) {
+        super(relatedField, morphType, foreignField, localField);
     }
 
     @Override
@@ -22,6 +22,7 @@ public class HasMany extends HasOneOrMany {
         }
 
         Map<?, List<R>> dictionary = results.stream()
+                .filter(r -> ReflectUtil.getFieldValue(r, morphType) == Relation.getMorphAlias(localField.getDeclaringClass()))
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignField)));
 
         models.forEach(o -> {

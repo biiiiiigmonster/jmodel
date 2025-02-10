@@ -2,6 +2,8 @@ package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ReflectUtil;
 import com.github.biiiiiigmonster.Model;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,6 +19,8 @@ import java.util.stream.Stream;
 @Slf4j
 public abstract class Relation {
     protected Field relatedField;
+
+    private static final BiMap<String, Class<?>> MORPH_MAP = HashBiMap.create();
 
     public Relation(Field relatedField) {
         this.relatedField = relatedField;
@@ -45,5 +49,9 @@ public abstract class Relation {
                     })
                     .collect(Collectors.toList());
         }
+    }
+
+    public static String getMorphAlias(Class<?> clazz) {
+        return MORPH_MAP.inverse().computeIfAbsent(clazz, Class::getName);
     }
 }

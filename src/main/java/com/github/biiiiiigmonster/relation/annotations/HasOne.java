@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Relation
 public @interface HasOne {
-    String localKey() default "";
     String foreignKey() default "";
+    String localKey() default "";
 }

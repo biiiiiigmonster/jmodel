@@ -11,15 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public abstract class HasOneOrMany extends Relation {
-    protected Field foreignField;
-    protected Field localField;
+public abstract class MorphOneOrMany extends HasOneOrMany {
+    protected Field morphType;
 
-    public HasOneOrMany(Field relatedField, Field foreignField, Field localField) {
-        super(relatedField);
+    public MorphOneOrMany(Field relatedField, Field morphType, Field foreignField, Field localField) {
+        super(relatedField, foreignField, localField);
 
-        this.foreignField = foreignField;
-        this.localField = localField;
+        this.morphType = morphType;
     }
 
     @Override
@@ -33,14 +31,11 @@ public abstract class HasOneOrMany extends Relation {
             return new ArrayList<>();
         }
 
-        return RelationUtils.hasRelatedRepository((Class<R>) foreignField.getDeclaringClass())
-                ? byRelatedRepository(localKeyValueList)
-                : byRelatedMethod(localKeyValueList, RelationUtils.getRelatedMethod(String.format("%s.%s", foreignField.getDeclaringClass().getName(), foreignField.getName()), foreignField));
-    }
-
-    private <R extends Model<?>> List<R> byRelatedRepository(List<?> localKeyValueList) {
+        // 多态只支持从Repository中获取
         IService<R> relatedRepository = RelationUtils.getRelatedRepository((Class<R>) foreignField.getDeclaringClass());
-        QueryChainWrapper<R> wrapper = relatedRepository.query().in(RelationUtils.getColumn(foreignField), localKeyValueList);
+        QueryChainWrapper<R> wrapper = relatedRepository.query()
+                .eq(RelationUtils.getColumn(morphType), Relation.getMorphAlias(localField.getDeclaringClass()))
+                .in(RelationUtils.getColumn(foreignField), localKeyValueList);
         return relatedRepository.list(wrapper);
     }
 }
