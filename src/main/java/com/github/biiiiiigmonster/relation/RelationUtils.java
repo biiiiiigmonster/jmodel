@@ -328,7 +328,7 @@ public class RelationUtils implements BeanPostProcessor {
      * @return
      */
     public static String getForeignKey(Class<?> clazz) {
-        return StrUtil.lowerFirst(clazz.getSimpleName()) + "_" + getPrimaryKey(clazz);
+        return StrUtil.lowerFirst(clazz.getSimpleName()) + StrUtil.upperFirst(getPrimaryKey(clazz));
     }
 
     /**

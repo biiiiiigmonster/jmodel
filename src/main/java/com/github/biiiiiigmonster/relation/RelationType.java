@@ -63,8 +63,19 @@ public enum RelationType {
     },
     BELONGS_TO_MANY(BelongsToMany.class, true) {
         @Override
-        public Relation getRelation(Field field) {
-            return null;
+        public com.github.biiiiiigmonster.relation.BelongsToMany getRelation(Field field) {
+            BelongsToMany relation = field.getAnnotation(BelongsToMany.class);
+            String foreignPivotKey = StringUtils.isNotBlank(relation.foreignPivotKey()) ? relation.foreignPivotKey() : RelationUtils.getForeignKey(field.getDeclaringClass());
+            String relatedPivotKey = StringUtils.isNotBlank(relation.relatedPivotKey()) ? relation.relatedPivotKey() : RelationUtils.getForeignKey(RelationUtils.getGenericType(field));
+            String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
+            String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getPrimaryKey(RelationUtils.getGenericType(field));
+            return new com.github.biiiiiigmonster.relation.BelongsToMany(
+                    field,
+                    ReflectUtil.getField(relation.using(), foreignPivotKey),
+                    ReflectUtil.getField(relation.using(), relatedPivotKey),
+                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
+                    ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey)
+            );
         }
     },
     HAS_ONE_THROUGH(HasOneThrough.class, false) {
