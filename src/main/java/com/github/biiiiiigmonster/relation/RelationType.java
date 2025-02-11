@@ -80,14 +80,36 @@ public enum RelationType {
     },
     HAS_ONE_THROUGH(HasOneThrough.class, false) {
         @Override
-        public Relation getRelation(Field field) {
-            return null;
+        public com.github.biiiiiigmonster.relation.HasOneThrough getRelation(Field field) {
+            HasOneThrough relation = field.getAnnotation(HasOneThrough.class);
+            String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getForeignKey(field.getDeclaringClass());
+            String throughForeignKey = StringUtils.isNotBlank(relation.throughForeignKey()) ? relation.throughForeignKey() : RelationUtils.getForeignKey(relation.through());
+            String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
+            String throughLocalKey = StringUtils.isNotBlank(relation.throughLocalKey()) ? relation.throughLocalKey() : RelationUtils.getPrimaryKey(relation.through());
+            return new com.github.biiiiiigmonster.relation.HasOneThrough(
+                    field,
+                    ReflectUtil.getField(relation.through(), foreignKey),
+                    ReflectUtil.getField(field.getType(), throughForeignKey),
+                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
+                    ReflectUtil.getField(relation.through(), throughLocalKey)
+            );
         }
     },
     HAS_MANY_THROUGH(HasManyThrough.class, true) {
         @Override
-        public Relation getRelation(Field field) {
-            return null;
+        public com.github.biiiiiigmonster.relation.HasManyThrough getRelation(Field field) {
+            HasManyThrough relation = field.getAnnotation(HasManyThrough.class);
+            String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getForeignKey(field.getDeclaringClass());
+            String throughForeignKey = StringUtils.isNotBlank(relation.throughForeignKey()) ? relation.throughForeignKey() : RelationUtils.getForeignKey(relation.through());
+            String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
+            String throughLocalKey = StringUtils.isNotBlank(relation.throughLocalKey()) ? relation.throughLocalKey() : RelationUtils.getPrimaryKey(relation.through());
+            return new com.github.biiiiiigmonster.relation.HasManyThrough(
+                    field,
+                    ReflectUtil.getField(relation.through(), foreignKey),
+                    ReflectUtil.getField(field.getType(), throughForeignKey),
+                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
+                    ReflectUtil.getField(relation.through(), throughLocalKey)
+            );
         }
     },
     MORPH_ONE(MorphOne.class, false) {
