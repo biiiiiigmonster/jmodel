@@ -34,7 +34,7 @@ public class AttributeUtils implements BeanPostProcessor {
     }
 
     @SafeVarargs
-    public static <T extends Model<?>> void append(T obj, SerializableFunction<T, ?>... attributes) {
+    public static <T extends Model<?>, R> void append(T obj, SerializableFunction<T, R>... attributes) {
         computed(ListUtil.toList(obj), SerializedLambda.resolveFieldNames(attributes));
     }
 
@@ -43,7 +43,7 @@ public class AttributeUtils implements BeanPostProcessor {
     }
 
     @SafeVarargs
-    public static <T extends Model<?>> void append(List<T> models, SerializableFunction<T, ?>... attributes) {
+    public static <T extends Model<?>, R> void append(List<T> models, SerializableFunction<T, R>... attributes) {
         computed(models, SerializedLambda.resolveFieldNames(attributes));
     }
 

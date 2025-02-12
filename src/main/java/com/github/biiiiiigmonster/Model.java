@@ -34,7 +34,7 @@ public abstract class Model<T extends Model<?>> {
 
     // wip: event
     public Boolean save() {
-        IService<T> relatedRepository = RelationUtils.getRelatedRepository((Class<T>) this.getClass());
+        IService<T> relatedRepository = (IService<T>) RelationUtils.getRelatedRepository(this.getClass());
         boolean result = relatedRepository.saveOrUpdate((T) this);
 
         return result;
@@ -42,14 +42,14 @@ public abstract class Model<T extends Model<?>> {
 
     // wip: event
     public Boolean delete() {
-        IService<T> relatedRepository = RelationUtils.getRelatedRepository((Class<T>) this.getClass());
+        IService<T> relatedRepository = (IService<T>) RelationUtils.getRelatedRepository(this.getClass());
         boolean result = relatedRepository.removeById((T) this);
 
         return result;
     }
 
     @SafeVarargs
-    public final void append(SerializableFunction<T, ?>... attributes) {
+    public final <R> void append(SerializableFunction<T, R>... attributes) {
         AttributeUtils.append((T) this, attributes);
     }
 
@@ -58,12 +58,12 @@ public abstract class Model<T extends Model<?>> {
     }
 
     @SafeVarargs
-    public final void load(SerializableFunction<T, ?>... relations) {
+    public final <R> void load(SerializableFunction<T, R>... relations) {
         RelationUtils.load((T) this, relations);
     }
 
     @SafeVarargs
-    public final void load(RelationOption<T, ?>... relations) {
+    public final void load(RelationOption<T>... relations) {
         RelationUtils.load((T) this, relations);
     }
 
@@ -72,12 +72,12 @@ public abstract class Model<T extends Model<?>> {
     }
 
     @SafeVarargs
-    public final void loadForce(SerializableFunction<T, ?>... relations) {
+    public final <R> void loadForce(SerializableFunction<T, R>... relations) {
         RelationUtils.loadForce((T) this, relations);
     }
 
     @SafeVarargs
-    public final void loadForce(RelationOption<T, ?>... relations) {
+    public final void loadForce(RelationOption<T>... relations) {
         RelationUtils.loadForce((T) this, relations);
     }
 

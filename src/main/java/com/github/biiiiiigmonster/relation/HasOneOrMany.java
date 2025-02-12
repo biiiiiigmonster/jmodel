@@ -39,7 +39,7 @@ public abstract class HasOneOrMany extends Relation {
     }
 
     private <R extends Model<?>> List<R> byRelatedRepository(List<?> localKeyValueList) {
-        IService<R> relatedRepository = RelationUtils.getRelatedRepository((Class<R>) foreignField.getDeclaringClass());
+        IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
         QueryChainWrapper<R> wrapper = relatedRepository.query().in(RelationUtils.getColumn(foreignField), localKeyValueList);
         return relatedRepository.list(wrapper);
     }

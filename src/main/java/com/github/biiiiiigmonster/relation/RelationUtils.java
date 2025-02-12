@@ -56,12 +56,12 @@ public class RelationUtils implements BeanPostProcessor {
     }
 
     @SafeVarargs
-    public static <T extends Model<?>> void load(T obj, SerializableFunction<T, ?>... relations) {
+    public static <T extends Model<?>, R> void load(T obj, SerializableFunction<T, R>... relations) {
         load(ListUtil.toList(obj), SerializedLambda.resolveFieldNames(relations), false);
     }
 
     @SafeVarargs
-    public static <T extends Model<?>> void load(T obj, RelationOption<T, ?>... relations) {
+    public static <T extends Model<?>> void load(T obj, RelationOption<T>... relations) {
         load(ListUtil.toList(obj), Arrays.asList(relations), false);
     }
 
@@ -75,7 +75,7 @@ public class RelationUtils implements BeanPostProcessor {
     }
 
     @SafeVarargs
-    public static <T extends Model<?>> void load(List<T> list, RelationOption<T, ?>... relations) {
+    public static <T extends Model<?>> void load(List<T> list, RelationOption<T>... relations) {
         load(list, Arrays.asList(relations), false);
     }
 
@@ -89,7 +89,7 @@ public class RelationUtils implements BeanPostProcessor {
     }
 
     @SafeVarargs
-    public static <T extends Model<?>> void load(T obj, boolean loadForce, RelationOption<T, ?>... relations) {
+    public static <T extends Model<?>> void load(T obj, boolean loadForce, RelationOption<T>... relations) {
         load(ListUtil.toList(obj), Arrays.asList(relations), loadForce);
     }
 
@@ -103,7 +103,7 @@ public class RelationUtils implements BeanPostProcessor {
     }
 
     @SafeVarargs
-    public static <T extends Model<?>> void load(List<T> list, boolean loadForce, RelationOption<T, ?>... relations) {
+    public static <T extends Model<?>> void load(List<T> list, boolean loadForce, RelationOption<T>... relations) {
         load(list, Arrays.asList(relations), loadForce);
     }
 
@@ -117,7 +117,7 @@ public class RelationUtils implements BeanPostProcessor {
     }
 
     @SafeVarargs
-    public static <T extends Model<?>> void loadForce(List<T> list, RelationOption<T, ?>... relations) {
+    public static <T extends Model<?>> void loadForce(List<T> list, RelationOption<T>... relations) {
         load(list, Arrays.asList(relations), true);
     }
 
@@ -131,7 +131,7 @@ public class RelationUtils implements BeanPostProcessor {
     }
 
     @SafeVarargs
-    public static <T extends Model<?>> void loadForce(T obj, RelationOption<T, ?>... relations) {
+    public static <T extends Model<?>> void loadForce(T obj, RelationOption<T>... relations) {
         load(ListUtil.toList(obj), Arrays.asList(relations), true);
     }
 
@@ -140,18 +140,17 @@ public class RelationUtils implements BeanPostProcessor {
      * @param list
      * @param loadForce
      * @param <T>
-     * @param <P>       String | RelationOption<?, ?>
      */
-    private static <T extends Model<?>, P> void load(List<T> models, List<P> list, boolean loadForce) {
+    private static <T extends Model<?>> void load(List<T> models, List<?> list, boolean loadForce) {
         if (ObjectUtil.isEmpty(models)) {
             return;
         }
 
-        List<RelationOption<?, ?>> relations;
+        List<RelationOption<?>> relations;
         if (list.get(0) instanceof String) {
             relations = processRelations(models.get(0).getClass(), (List<String>) list);
         } else {
-            relations = (List<RelationOption<?, ?>>) list;
+            relations = (List<RelationOption<?>>) list;
         }
 
         relations.forEach((relation) -> {
@@ -163,7 +162,7 @@ public class RelationUtils implements BeanPostProcessor {
         });
     }
 
-    private static <T extends Model<?>, R extends Model<?>> void handle(List<T> models, boolean loadForce, RelationOption<?, ?> relationOption) {
+    private static <T extends Model<?>, R extends Model<?>> void handle(List<T> models, boolean loadForce, RelationOption<?> relationOption) {
         // 分离
         List<T> eager = new ArrayList<>();
         List<T> exists = new ArrayList<>();
@@ -215,7 +214,7 @@ public class RelationUtils implements BeanPostProcessor {
         )).values());
     }
 
-    private static List<RelationOption<?, ?>> processRelations(Class<?> clazz, List<String> relations) {
+    private static List<RelationOption<? extends Model<?>>> processRelations(Class<?> clazz, List<String> relations) {
         Map<String, List<String>> map = relations.stream()
                 .filter(ObjectUtil::isNotEmpty)
                 .collect(Collectors.toMap(
@@ -230,9 +229,9 @@ public class RelationUtils implements BeanPostProcessor {
                         }
                 ));
 
-        List<RelationOption<?, ?>> list = new ArrayList<>();
+        List<RelationOption<?>> list = new ArrayList<>();
         map.forEach((fieldName, nestedRelations) -> {
-            RelationOption<?, ?> relationOption = RelationOption.of(clazz, fieldName);
+            RelationOption<?> relationOption = RelationOption.of(clazz, fieldName);
             if (!CollectionUtils.isEmpty(nestedRelations)) {
                 relationOption.nested(processRelations(getGenericType(relationOption.getRelatedField()), nestedRelations));
             }
@@ -259,8 +258,8 @@ public class RelationUtils implements BeanPostProcessor {
         );
     }
 
-    public static <T extends Model<?>> IService<T> getRelatedRepository(Class<T> clazz) {
-        return (IService<T>) RELATED_REPOSITORY_MAP.get(clazz);
+    public static IService<?> getRelatedRepository(Class<?> clazz) {
+        return RELATED_REPOSITORY_MAP.get(clazz);
     }
 
     public static <T extends Model<?>> boolean hasRelatedRepository(Class<T> clazz) {

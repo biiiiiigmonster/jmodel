@@ -40,7 +40,7 @@ public class BelongsTo extends Relation {
     }
 
     private <R extends Model<?>> List<R> byRelatedRepository(List<?> ownerKeyValueList) {
-        IService<R> relatedRepository = RelationUtils.getRelatedRepository((Class<R>) foreignField.getDeclaringClass());
+        IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
         QueryChainWrapper<R> wrapper = relatedRepository.query().in(RelationUtils.getColumn(foreignField), ownerKeyValueList);
         return relatedRepository.list(wrapper);
     }
