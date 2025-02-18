@@ -1,4 +1,6 @@
-package com.github.biiiiiigmonster.relation.annotations;
+package com.github.biiiiiigmonster.relation.annotation;
+
+import com.github.biiiiiigmonster.relation.Pivot;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,7 +10,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 @Relation
-public @interface MorphTo {
+public @interface BelongsToMany {
+    Class<? extends Pivot<?>> using();
+    String foreignPivotKey() default "";
+    String relatedPivotKey() default "";
     String localKey() default "";
     String foreignKey() default "";
 }

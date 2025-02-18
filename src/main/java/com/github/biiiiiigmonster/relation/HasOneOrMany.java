@@ -23,6 +23,7 @@ public abstract class HasOneOrMany extends Relation {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> localKeyValueList = models.stream()
                 .map(o -> ReflectUtil.getFieldValue(o, localField))
@@ -38,6 +39,7 @@ public abstract class HasOneOrMany extends Relation {
                 : byRelatedMethod(localKeyValueList, RelationUtils.getRelatedMethod(String.format("%s.%s", foreignField.getDeclaringClass().getName(), foreignField.getName()), foreignField));
     }
 
+    @SuppressWarnings("unchecked")
     private <R extends Model<?>> List<R> byRelatedRepository(List<?> localKeyValueList) {
         IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
         QueryChainWrapper<R> wrapper = relatedRepository.query().in(RelationUtils.getColumn(foreignField), localKeyValueList);

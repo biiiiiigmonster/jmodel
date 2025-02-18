@@ -21,6 +21,7 @@ public abstract class MorphOneOrMany extends HasOneOrMany {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> localKeyValueList = models.stream()
                 .map(o -> ReflectUtil.getFieldValue(o, localField))

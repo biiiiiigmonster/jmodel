@@ -30,6 +30,7 @@ public abstract class Relation {
 
     public abstract <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results);
 
+    @SuppressWarnings("unchecked")
     protected <R extends Model<?>> List<R> byRelatedMethod(List<?> localKeyValueList, Map<Object, Method> relatedMethod) {
         Object bean = relatedMethod.keySet().iterator().next();
         Method method = relatedMethod.values().iterator().next();

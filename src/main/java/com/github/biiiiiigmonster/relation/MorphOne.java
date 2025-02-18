@@ -25,7 +25,7 @@ public class MorphOne extends MorphOneOrMany {
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (o1, o2) -> o1));
 
         models.forEach(o -> {
-            R value = dictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), null);
+            R value = dictionary.get(ReflectUtil.getFieldValue(o, localField));
             ReflectUtil.setFieldValue(o, relatedField, value);
         });
     }

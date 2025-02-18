@@ -24,6 +24,7 @@ public class BelongsTo extends Relation {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> ownerKeyValueList = models.stream()
                 .map(o -> ReflectUtil.getFieldValue(o, ownerField))
@@ -39,6 +40,7 @@ public class BelongsTo extends Relation {
                 : byRelatedMethod(ownerKeyValueList, RelationUtils.getRelatedMethod(String.format("%s.%s", foreignField.getDeclaringClass().getName(), foreignField.getName()), foreignField));
     }
 
+    @SuppressWarnings("unchecked")
     private <R extends Model<?>> List<R> byRelatedRepository(List<?> ownerKeyValueList) {
         IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
         QueryChainWrapper<R> wrapper = relatedRepository.query().in(RelationUtils.getColumn(foreignField), ownerKeyValueList);
@@ -55,7 +57,7 @@ public class BelongsTo extends Relation {
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (o1, o2) -> o1));
 
         models.forEach(o -> {
-            R value = dictionary.getOrDefault(ReflectUtil.getFieldValue(o, ownerField), null);
+            R value = dictionary.get(ReflectUtil.getFieldValue(o, ownerField));
             ReflectUtil.setFieldValue(o, relatedField, value);
         });
     }

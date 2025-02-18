@@ -1,4 +1,4 @@
-package com.github.biiiiiigmonster.relation;
+package com.github.biiiiiigmonster.relation.exception;
 
 public class RelationNotFoundException extends RuntimeException {
     public RelationNotFoundException(Class<?> clazz, String fieldName) {

@@ -1,4 +1,4 @@
-package com.github.biiiiiigmonster.relation.annotations;
+package com.github.biiiiiigmonster.relation.annotation;
 
 import com.github.biiiiiigmonster.Model;
 
@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 @Relation
-public @interface HasOneThrough {
+public @interface HasManyThrough {
     Class<? extends Model<?>> through();
     String foreignKey() default "";
     String throughForeignKey() default "";

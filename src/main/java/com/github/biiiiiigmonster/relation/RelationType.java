@@ -1,17 +1,17 @@
 package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ReflectUtil;
-import com.github.biiiiiigmonster.relation.annotations.BelongsTo;
-import com.github.biiiiiigmonster.relation.annotations.BelongsToMany;
-import com.github.biiiiiigmonster.relation.annotations.HasMany;
-import com.github.biiiiiigmonster.relation.annotations.HasManyThrough;
-import com.github.biiiiiigmonster.relation.annotations.HasOne;
-import com.github.biiiiiigmonster.relation.annotations.HasOneThrough;
-import com.github.biiiiiigmonster.relation.annotations.MorphMany;
-import com.github.biiiiiigmonster.relation.annotations.MorphOne;
-import com.github.biiiiiigmonster.relation.annotations.MorphTo;
-import com.github.biiiiiigmonster.relation.annotations.MorphToMany;
-import com.github.biiiiiigmonster.relation.annotations.MorphedByMany;
+import com.github.biiiiiigmonster.relation.annotation.BelongsTo;
+import com.github.biiiiiigmonster.relation.annotation.BelongsToMany;
+import com.github.biiiiiigmonster.relation.annotation.HasMany;
+import com.github.biiiiiigmonster.relation.annotation.HasManyThrough;
+import com.github.biiiiiigmonster.relation.annotation.HasOne;
+import com.github.biiiiiigmonster.relation.annotation.HasOneThrough;
+import com.github.biiiiiigmonster.relation.annotation.MorphMany;
+import com.github.biiiiiigmonster.relation.annotation.MorphOne;
+import com.github.biiiiiigmonster.relation.annotation.MorphTo;
+import com.github.biiiiiigmonster.relation.annotation.MorphToMany;
+import com.github.biiiiiigmonster.relation.annotation.MorphedByMany;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -69,8 +69,9 @@ public enum RelationType {
             String relatedPivotKey = StringUtils.isNotBlank(relation.relatedPivotKey()) ? relation.relatedPivotKey() : RelationUtils.getForeignKey(RelationUtils.getGenericType(field));
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
             String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getPrimaryKey(RelationUtils.getGenericType(field));
-            return new com.github.biiiiiigmonster.relation.BelongsToMany(
+            return new com.github.biiiiiigmonster.relation.BelongsToMany<>(
                     field,
+                    relation.using(),
                     ReflectUtil.getField(relation.using(), foreignPivotKey),
                     ReflectUtil.getField(relation.using(), relatedPivotKey),
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
@@ -86,8 +87,9 @@ public enum RelationType {
             String throughForeignKey = StringUtils.isNotBlank(relation.throughForeignKey()) ? relation.throughForeignKey() : RelationUtils.getForeignKey(relation.through());
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
             String throughLocalKey = StringUtils.isNotBlank(relation.throughLocalKey()) ? relation.throughLocalKey() : RelationUtils.getPrimaryKey(relation.through());
-            return new com.github.biiiiiigmonster.relation.HasOneThrough(
+            return new com.github.biiiiiigmonster.relation.HasOneThrough<>(
                     field,
+                    relation.through(),
                     ReflectUtil.getField(relation.through(), foreignKey),
                     ReflectUtil.getField(field.getType(), throughForeignKey),
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
@@ -105,6 +107,7 @@ public enum RelationType {
             String throughLocalKey = StringUtils.isNotBlank(relation.throughLocalKey()) ? relation.throughLocalKey() : RelationUtils.getPrimaryKey(relation.through());
             return new com.github.biiiiiigmonster.relation.HasManyThrough(
                     field,
+                    relation.through(),
                     ReflectUtil.getField(relation.through(), foreignKey),
                     ReflectUtil.getField(field.getType(), throughForeignKey),
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
@@ -180,7 +183,7 @@ public enum RelationType {
 
     public static Annotation getRelationAnnotation(Field field) {
         for (Annotation annotation : field.getAnnotations()) {
-            if (annotation.annotationType().isAnnotationPresent(com.github.biiiiiigmonster.relation.annotations.Relation.class)) {
+            if (annotation.annotationType().isAnnotationPresent(com.github.biiiiiigmonster.relation.annotation.Relation.class)) {
                 return annotation;
             }
         }

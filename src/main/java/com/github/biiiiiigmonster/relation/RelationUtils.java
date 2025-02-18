@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.SerializableFunction;
 import com.github.biiiiiigmonster.SerializedLambda;
+import com.github.biiiiiigmonster.relation.annotation.Related;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ClassUtils;
 import org.springframework.beans.factory.config.BeanPostProcessor;

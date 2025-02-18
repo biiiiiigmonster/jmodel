@@ -1,4 +1,4 @@
-package com.github.biiiiiigmonster.relation.annotations;
+package com.github.biiiiiigmonster.relation.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 @Relation
-public @interface HasOne {
-    String foreignKey() default "";
+public @interface MorphToMany {
     String localKey() default "";
+    String foreignKey() default "";
 }
