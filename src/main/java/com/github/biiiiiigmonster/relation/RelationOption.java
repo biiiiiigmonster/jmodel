@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @Getter
 public class RelationOption<T extends Model<?>> {
     private List<RelationOption<? extends Model<?>>> nestedRelations;
-    private Field relatedField;
+    private final Field relatedField;
     private RelationType relationType;
 
     public <R> RelationOption(SerializableFunction<T, R> relation) {

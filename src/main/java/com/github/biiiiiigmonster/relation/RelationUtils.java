@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
@@ -47,10 +46,6 @@ public class RelationUtils implements BeanPostProcessor {
     private static final Map<String, Map<Object, Method>> MAP_CACHE = new HashMap<>();
 
     private static final Map<Class<?>, Map<String, ColumnCache>> COLUMN_MAP = new HashMap<>();
-
-    private static final String EXECUTOR_NAME = "relationUtilExecutor";
-
-    private static Executor executor;
 
     public static <T extends Model<?>> void load(T obj, String... relations) {
         load(ListUtil.toList(obj), Arrays.asList(relations), false);
@@ -142,27 +137,23 @@ public class RelationUtils implements BeanPostProcessor {
      * @param loadForce
      * @param <T>
      */
+    @SuppressWarnings("unchecked")
     private static <T extends Model<?>> void load(List<T> models, List<?> list, boolean loadForce) {
         if (ObjectUtil.isEmpty(models)) {
             return;
         }
 
-        List<RelationOption<?>> relations;
+        List<RelationOption<?>> relationOptions;
         if (list.get(0) instanceof String) {
-            relations = processRelations(models.get(0).getClass(), (List<String>) list);
+            relationOptions = processRelations(models.get(0).getClass(), (List<String>) list);
         } else {
-            relations = (List<RelationOption<?>>) list;
+            relationOptions = (List<RelationOption<?>>) list;
         }
 
-        relations.forEach((relation) -> {
-            if (executor != null) {
-                executor.execute(() -> handle(models, loadForce, relation));
-            } else {
-                handle(models, loadForce, relation);
-            }
-        });
+        relationOptions.forEach((relationOption) -> handle(models, loadForce, relationOption));
     }
 
+    @SuppressWarnings("unchecked")
     private static <T extends Model<?>, R extends Model<?>> void handle(List<T> models, boolean loadForce, RelationOption<?> relationOption) {
         // 分离
         List<T> eager = new ArrayList<>();
@@ -336,11 +327,6 @@ public class RelationUtils implements BeanPostProcessor {
      */
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
-        if (RelationUtils.executor == null && (bean instanceof Executor) && RelationUtils.EXECUTOR_NAME.equals(beanName)) {
-            RelationUtils.executor = (Executor) bean;
-            return bean;
-        }
-
         relatedRepository(bean);
         Class<?> clazz = bean.getClass();
         for (Method method : clazz.getDeclaredMethods()) {
@@ -369,7 +355,6 @@ public class RelationUtils implements BeanPostProcessor {
         map.put("method", method);
         map.put("annotation", annotation);
         Class<?> foreignClazz = getGenericReturnType(method);
-        log.info("实体对象：{}，实例：{}，方法：{}", foreignClazz.getName(), bean.getClass().getName(), method.getName());
         RELATED_MAP.computeIfAbsent(foreignClazz, k -> new ArrayList<>()).add(map);
     }
 }
