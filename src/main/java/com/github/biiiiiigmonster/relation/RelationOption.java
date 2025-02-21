@@ -19,7 +19,7 @@ public class RelationOption<T extends Model<?>> {
     private final Field relatedField;
     private RelationType relationType;
 
-    public <R> RelationOption(SerializableFunction<T, R> relation) {
+    public <F> RelationOption(SerializableFunction<T, F> relation) {
         this.relatedField = SerializedLambda.getField(relation);
         parse();
     }
@@ -37,7 +37,7 @@ public class RelationOption<T extends Model<?>> {
         relationType = RelationType.of(relatedField);
     }
 
-    public static <T extends Model<?>, R> RelationOption<T> of(SerializableFunction<T, R> relation) {
+    public static <T extends Model<?>, F> RelationOption<T> of(SerializableFunction<T, F> relation) {
         return new RelationOption<>(relation);
     }
 
@@ -45,11 +45,11 @@ public class RelationOption<T extends Model<?>> {
         return new RelationOption<>(clazz, fieldName);
     }
 
-    public <N extends Model<?>, R> void appendNested(SerializableFunction<N, R>... relations) {
+    public <R extends Model<?>, F> void appendNested(SerializableFunction<R, F>... relations) {
         nestedRelations.addAll(Arrays.stream(relations).map(RelationOption::of).collect(Collectors.toList()));
     }
 
-    public <N extends Model<?>> void appendNested(RelationOption<N>... relations) {
+    public <R extends Model<?>> void appendNested(RelationOption<R>... relations) {
         nestedRelations.addAll(Arrays.stream(relations).collect(Collectors.toList()));
     }
 
