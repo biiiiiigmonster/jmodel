@@ -66,7 +66,7 @@ public class RelationOption<T extends Model<?>> {
     }
 
     public boolean isNested() {
-        boolean notSupport = relationType.equals(RelationType.MORPH_TO) || relationType.equals(RelationType.MORPHED_BY_MANY);
-        return !notSupport && !CollectionUtils.isEmpty(nestedRelations);
+        return !relationType.equals(RelationType.MORPH_TO) // morphTo关联类型无法继续嵌套加载了
+                && !CollectionUtils.isEmpty(nestedRelations);
     }
 }

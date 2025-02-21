@@ -142,6 +142,7 @@ public enum RelationType {
             );
         }
     },
+    // todo: 还是要改回来，仿照morphToMany，指定类型
     MORPH_TO(MorphTo.class, false) {
         @Override
         public com.github.biiiiiigmonster.relation.MorphTo getRelation(Field field) {
@@ -157,12 +158,23 @@ public enum RelationType {
             );
         }
     },
-
-
     MORPH_TO_MANY(MorphToMany.class, true) {
         @Override
-        public Relation getRelation(Field field) {
-            return null;
+        public com.github.biiiiiigmonster.relation.MorphToMany getRelation(Field field) {
+            MorphToMany relation = field.getAnnotation(MorphToMany.class);
+            String pivotType = StringUtils.isNotBlank(relation.pivotType()) ? relation.pivotType() : String.format("%sType", relation.name());
+            String pivotId = StringUtils.isNotBlank(relation.pivotId()) ? relation.pivotId() : String.format("%sId", relation.name());
+            String relatedPivotKey = StringUtils.isNotBlank(relation.relatedPivotKey()) ? relation.relatedPivotKey() : RelationUtils.getForeignKey(RelationUtils.getGenericType(field));
+            String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getPrimaryKey(RelationUtils.getGenericType(field));
+            String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
+            return new com.github.biiiiiigmonster.relation.MorphToMany(
+                    field,
+                    ReflectUtil.getField(relation.using(), pivotType),
+                    ReflectUtil.getField(relation.using(), pivotId),
+                    ReflectUtil.getField(relation.using(), relatedPivotKey),
+                    ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey),
+                    ReflectUtil.getField(field.getDeclaringClass(), localKey)
+            );
         }
     },
     MORPHED_BY_MANY(MorphedByMany.class, true) {
