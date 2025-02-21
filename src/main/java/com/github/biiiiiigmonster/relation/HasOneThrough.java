@@ -10,6 +10,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class HasOneThrough<TR extends Model<?>> extends HasOneOrManyThrough<TR> {
+
+    /**
+     * @param relatedField Mechanic.carOwner
+     * @param throughClass Car.class
+     * @param foreignField Car.mechanic_id
+     * @param throughForeignField Owner.car_id
+     * @param localField Mechanic.id
+     * @param throughLocalField Car.id
+     */
     public HasOneThrough(Field relatedField, Class<TR> throughClass, Field foreignField, Field throughForeignField, Field localField, Field throughLocalField) {
         super(relatedField, throughClass, foreignField, throughForeignField, localField, throughLocalField);
     }

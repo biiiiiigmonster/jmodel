@@ -11,6 +11,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class HasMany extends HasOneOrMany {
+    /**
+     * @param relatedField Post.comments
+     * @param foreignField Comment.post_id
+     * @param localField Post.id
+     */
     public HasMany(Field relatedField, Field foreignField, Field localField) {
         super(relatedField, foreignField, localField);
     }

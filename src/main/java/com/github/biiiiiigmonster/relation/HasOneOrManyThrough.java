@@ -13,10 +13,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public abstract class HasOneOrManyThrough<TR extends Model<?>> extends Relation {
-    protected Field foreignField; // Car.mechanic_id
-    protected Field throughForeignField; // Owner.car_id
-    protected Field localField; // Mechanic.id
-    protected Field throughLocalField; // Car.id
+    protected Field foreignField;
+    protected Field throughForeignField;
+    protected Field localField;
+    protected Field throughLocalField;
     protected Class<TR> throughClass;
 
     public HasOneOrManyThrough(Field relatedField, Class<TR> throughClass, Field foreignField, Field throughForeignField, Field localField, Field throughLocalField) {
@@ -32,11 +32,7 @@ public abstract class HasOneOrManyThrough<TR extends Model<?>> extends Relation 
     @Override
     @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
-        List<?> localKeyValueList = models.stream()
-                .map(o -> ReflectUtil.getFieldValue(o, localField))
-                .filter(ObjectUtil::isNotEmpty)
-                .distinct()
-                .collect(Collectors.toList());
+        List<?> localKeyValueList = relatedKeyValueList(models, localField);
         if (ObjectUtil.isEmpty(localKeyValueList)) {
             return new ArrayList<>();
         }
@@ -45,11 +41,7 @@ public abstract class HasOneOrManyThrough<TR extends Model<?>> extends Relation 
         QueryChainWrapper<TR> throughWrapper = throughRepository.query()
                 .in(RelationUtils.getColumn(foreignField), localKeyValueList);
         List<TR> throughs = throughRepository.list(throughWrapper);
-        List<?> throughKeyValueList = throughs.stream()
-                .map(o -> ReflectUtil.getFieldValue(o, throughLocalField))
-                .filter(ObjectUtil::isNotEmpty)
-                .distinct()
-                .collect(Collectors.toList());
+        List<?> throughKeyValueList = relatedKeyValueList(throughs, throughLocalField);
         if (ObjectUtil.isEmpty(throughKeyValueList)) {
             return new ArrayList<>();
         }

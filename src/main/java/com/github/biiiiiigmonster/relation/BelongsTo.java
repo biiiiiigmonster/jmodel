@@ -13,9 +13,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class BelongsTo extends Relation {
-    protected Field foreignField;
-    protected Field ownerField;
+    protected Field foreignField; // Comment.post_id
+    protected Field ownerField; // Post.id
 
+    /**
+     * @param relatedField Phone.user
+     * @param foreignField Phone.user_id
+     * @param ownerField User.id
+     */
     public BelongsTo(Field relatedField, Field foreignField, Field ownerField) {
         super(relatedField);
 
@@ -26,24 +31,20 @@ public class BelongsTo extends Relation {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
-        List<?> ownerKeyValueList = models.stream()
-                .map(o -> ReflectUtil.getFieldValue(o, ownerField))
-                .filter(ObjectUtil::isNotEmpty)
-                .distinct()
-                .collect(Collectors.toList());
+        List<?> ownerKeyValueList = relatedKeyValueList(models, foreignField);
         if (ObjectUtil.isEmpty(ownerKeyValueList)) {
             return new ArrayList<>();
         }
 
-        return RelationUtils.hasRelatedRepository((Class<R>) foreignField.getDeclaringClass())
+        return RelationUtils.hasRelatedRepository((Class<R>) ownerField.getDeclaringClass())
                 ? byRelatedRepository(ownerKeyValueList)
-                : byRelatedMethod(ownerKeyValueList, RelationUtils.getRelatedMethod(String.format("%s.%s", foreignField.getDeclaringClass().getName(), foreignField.getName()), foreignField));
+                : byRelatedMethod(ownerKeyValueList, RelationUtils.getRelatedMethod(String.format("%s.%s", ownerField.getDeclaringClass().getName(), ownerField.getName()), ownerField));
     }
 
     @SuppressWarnings("unchecked")
     private <R extends Model<?>> List<R> byRelatedRepository(List<?> ownerKeyValueList) {
-        IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
-        QueryChainWrapper<R> wrapper = relatedRepository.query().in(RelationUtils.getColumn(foreignField), ownerKeyValueList);
+        IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(ownerField.getDeclaringClass());
+        QueryChainWrapper<R> wrapper = relatedRepository.query().in(RelationUtils.getColumn(ownerField), ownerKeyValueList);
         return relatedRepository.list(wrapper);
     }
 
@@ -54,10 +55,10 @@ public class BelongsTo extends Relation {
         }
 
         Map<?, R> dictionary = results.stream()
-                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (o1, o2) -> o1));
+                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, ownerField), r -> r, (o1, o2) -> o1));
 
         models.forEach(o -> {
-            R value = dictionary.get(ReflectUtil.getFieldValue(o, ownerField));
+            R value = dictionary.get(ReflectUtil.getFieldValue(o, foreignField));
             ReflectUtil.setFieldValue(o, relatedField, value);
         });
     }

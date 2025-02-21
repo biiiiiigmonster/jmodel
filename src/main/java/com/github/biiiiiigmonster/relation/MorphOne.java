@@ -10,6 +10,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MorphOne extends MorphOneOrMany {
+    /**
+     * @param relatedField (Post|User).image
+     * @param morphType Image.imageable_type
+     * @param foreignField Image.imageable_id
+     * @param localField (Post|User).id
+     */
     public MorphOne(Field relatedField, Field morphType, Field foreignField, Field localField) {
         super(relatedField, morphType, foreignField, localField);
     }

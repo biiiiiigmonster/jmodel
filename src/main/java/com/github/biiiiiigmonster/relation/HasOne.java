@@ -10,6 +10,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class HasOne extends HasOneOrMany {
+    /**
+     * @param relatedField User.phone
+     * @param foreignField Phone.user_id
+     * @param localField User.id
+     */
     public HasOne(Field relatedField, Field foreignField, Field localField) {
         super(relatedField, foreignField, localField);
     }

@@ -25,11 +25,7 @@ public abstract class HasOneOrMany extends Relation {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
-        List<?> localKeyValueList = models.stream()
-                .map(o -> ReflectUtil.getFieldValue(o, localField))
-                .filter(ObjectUtil::isNotEmpty)
-                .distinct()
-                .collect(Collectors.toList());
+        List<?> localKeyValueList = relatedKeyValueList(models, localField);
         if (ObjectUtil.isEmpty(localKeyValueList)) {
             return new ArrayList<>();
         }

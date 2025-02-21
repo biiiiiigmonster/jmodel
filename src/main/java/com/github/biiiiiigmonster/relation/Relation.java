@@ -1,10 +1,12 @@
 package com.github.biiiiiigmonster.relation;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.github.biiiiiigmonster.Model;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
@@ -52,7 +54,20 @@ public abstract class Relation {
         }
     }
 
+    public static <T extends Model<?>> List<?> relatedKeyValueList(List<T> models, Field field) {
+        return models.stream()
+                .map(o -> ReflectUtil.getFieldValue(o, field))
+                .filter(ObjectUtil::isNotEmpty)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
     public static String getMorphAlias(Class<?> clazz) {
         return MORPH_MAP.inverse().computeIfAbsent(clazz, Class::getName);
+    }
+
+    @SneakyThrows
+    public static Class<?> getMorphClass(String morphAlias) {
+        return MORPH_MAP.computeIfAbsent(morphAlias, Class::forName);
     }
 }

@@ -233,12 +233,12 @@ public class RelationUtils implements BeanPostProcessor {
         return list;
     }
 
-    public static Map<Object, Method> getRelatedMethod(String key, Field foreignField) {
+    public static Map<Object, Method> getRelatedMethod(String key, Field field) {
         return MAP_CACHE.computeIfAbsent(key, k ->
-                RELATED_MAP.get(foreignField.getDeclaringClass()).stream()
+                RELATED_MAP.get(field.getDeclaringClass()).stream()
                         .filter(map -> {
                             Related related = (Related) map.get("annotation");
-                            return related.field().equals(foreignField.getName());
+                            return related.field().equals(field.getName());
                         })
                         .map(map -> {
                             Map<Object, Method> cache = new HashMap<>();

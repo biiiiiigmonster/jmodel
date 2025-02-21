@@ -11,6 +11,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MorphMany extends MorphOneOrMany {
+    /**
+     * @param relatedField (Post|Video).comments
+     * @param morphType Comment.commentable_type
+     * @param foreignField Comment.commentable_id
+     * @param localField (Post|Video).id
+     */
     public MorphMany(Field relatedField, Field morphType, Field foreignField, Field localField) {
         super(relatedField, morphType, foreignField, localField);
     }

@@ -26,7 +26,7 @@ public enum RelationType {
         @Override
         public com.github.biiiiiigmonster.relation.HasOne getRelation(Field field) {
             HasOne relation = field.getAnnotation(HasOne.class);
-            String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getForeignKey(field.getType());
+            String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getForeignKey(field.getDeclaringClass());
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
             return new com.github.biiiiiigmonster.relation.HasOne(
                     field,
@@ -39,7 +39,7 @@ public enum RelationType {
         @Override
         public com.github.biiiiiigmonster.relation.HasMany getRelation(Field field) {
             HasMany relation = field.getAnnotation(HasMany.class);
-            String foreignKey = StringUtils.isNotBlank(relation.localKey()) ? relation.foreignKey() : RelationUtils.getForeignKey(RelationUtils.getGenericType(field));
+            String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getForeignKey(field.getDeclaringClass());
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
             return new com.github.biiiiiigmonster.relation.HasMany(
                     field,
@@ -52,12 +52,12 @@ public enum RelationType {
         @Override
         public com.github.biiiiiigmonster.relation.BelongsTo getRelation(Field field) {
             BelongsTo relation = field.getAnnotation(BelongsTo.class);
-            String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getPrimaryKey(field.getType());
-            String ownerKey = StringUtils.isNotBlank(relation.ownerKey()) ? relation.ownerKey() : RelationUtils.getForeignKey(field.getDeclaringClass());
+            String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getForeignKey(field.getType());
+            String ownerKey = StringUtils.isNotBlank(relation.ownerKey()) ? relation.ownerKey() : RelationUtils.getPrimaryKey(field.getType());
             return new com.github.biiiiiigmonster.relation.BelongsTo(
                     field,
-                    ReflectUtil.getField(field.getType(), foreignKey),
-                    ReflectUtil.getField(field.getDeclaringClass(), ownerKey)
+                    ReflectUtil.getField(field.getDeclaringClass(), foreignKey),
+                    ReflectUtil.getField(field.getType(), ownerKey)
             );
         }
     },
@@ -134,9 +134,9 @@ public enum RelationType {
         @Override
         public com.github.biiiiiigmonster.relation.MorphMany getRelation(Field field) {
             MorphMany relation = field.getAnnotation(MorphMany.class);
-            String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
             String type = StringUtils.isNotBlank(relation.type()) ? relation.type() : String.format("%sType", relation.name());
             String id = StringUtils.isNotBlank(relation.id()) ? relation.id() : String.format("%sId", relation.name());
+            String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
             return new com.github.biiiiiigmonster.relation.MorphMany(
                     field,
                     ReflectUtil.getField(field.getType(), type),
@@ -145,10 +145,22 @@ public enum RelationType {
             );
         }
     },
+
+    // todo: 需要确认哦
     MORPH_TO(MorphTo.class, false) {
         @Override
-        public Relation getRelation(Field field) {
-            return null;
+        public com.github.biiiiiigmonster.relation.MorphTo getRelation(Field field) {
+            MorphTo relation = field.getAnnotation(MorphTo.class);
+            String name = StringUtils.isNotBlank(relation.name()) ? relation.name() : field.getName();
+            String type = StringUtils.isNotBlank(relation.type()) ? relation.type() : String.format("%sType", name);
+            String id = StringUtils.isNotBlank(relation.id()) ? relation.id() : String.format("%sId", name);
+            return new com.github.biiiiiigmonster.relation.MorphTo(
+                    field,
+                    ReflectUtil.getField(field.getType(), type),
+                    ReflectUtil.getField(field.getType(), id),
+                    null,
+                    relation.ownerKey()
+            );
         }
     },
     MORPH_TO_MANY(MorphToMany.class, true) {

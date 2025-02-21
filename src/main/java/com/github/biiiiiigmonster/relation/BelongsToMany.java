@@ -21,6 +21,14 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
     protected Field foreignField;// Role.id
     protected Class<P> pivotClass;
 
+    /**
+     * @param relatedField User.roles
+     * @param pivotClass UserRole.class
+     * @param foreignPivotField UserRole.user_id
+     * @param relatedPivotField UserRole.role_id
+     * @param localField User.id
+     * @param foreignField Role.id
+     */
     public BelongsToMany(Field relatedField, Class<P> pivotClass, Field foreignPivotField, Field relatedPivotField, Field localField, Field foreignField) {
         super(relatedField);
 
@@ -34,11 +42,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
-        List<?> localKeyValueList = models.stream()
-                .map(o -> ReflectUtil.getFieldValue(o, localField))
-                .filter(ObjectUtil::isNotEmpty)
-                .distinct()
-                .collect(Collectors.toList());
+        List<?> localKeyValueList = relatedKeyValueList(models, localField);
         if (ObjectUtil.isEmpty(localKeyValueList)) {
             return new ArrayList<>();
         }
@@ -47,11 +51,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
         QueryChainWrapper<P> pivotWrapper = pivotRepository.query()
                 .in(RelationUtils.getColumn(foreignPivotField), localKeyValueList);
         List<P> pivots = pivotRepository.list(pivotWrapper);
-        List<?> relatedPivotKeyValueList = pivots.stream()
-                .map(o -> ReflectUtil.getFieldValue(o, relatedPivotField))
-                .filter(ObjectUtil::isNotEmpty)
-                .distinct()
-                .collect(Collectors.toList());
+        List<?> relatedPivotKeyValueList = relatedKeyValueList(pivots, relatedPivotField);
         if (ObjectUtil.isEmpty(relatedPivotKeyValueList)) {
             return new ArrayList<>();
         }
