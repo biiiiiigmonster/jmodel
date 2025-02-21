@@ -69,9 +69,8 @@ public enum RelationType {
             String relatedPivotKey = StringUtils.isNotBlank(relation.relatedPivotKey()) ? relation.relatedPivotKey() : RelationUtils.getForeignKey(RelationUtils.getGenericType(field));
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
             String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getPrimaryKey(RelationUtils.getGenericType(field));
-            return new com.github.biiiiiigmonster.relation.BelongsToMany<>(
+            return new com.github.biiiiiigmonster.relation.BelongsToMany(
                     field,
-                    relation.using(),
                     ReflectUtil.getField(relation.using(), foreignPivotKey),
                     ReflectUtil.getField(relation.using(), relatedPivotKey),
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
@@ -87,9 +86,8 @@ public enum RelationType {
             String throughForeignKey = StringUtils.isNotBlank(relation.throughForeignKey()) ? relation.throughForeignKey() : RelationUtils.getForeignKey(relation.through());
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
             String throughLocalKey = StringUtils.isNotBlank(relation.throughLocalKey()) ? relation.throughLocalKey() : RelationUtils.getPrimaryKey(relation.through());
-            return new com.github.biiiiiigmonster.relation.HasOneThrough<>(
+            return new com.github.biiiiiigmonster.relation.HasOneThrough(
                     field,
-                    relation.through(),
                     ReflectUtil.getField(relation.through(), foreignKey),
                     ReflectUtil.getField(field.getType(), throughForeignKey),
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
@@ -105,9 +103,8 @@ public enum RelationType {
             String throughForeignKey = StringUtils.isNotBlank(relation.throughForeignKey()) ? relation.throughForeignKey() : RelationUtils.getForeignKey(relation.through());
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
             String throughLocalKey = StringUtils.isNotBlank(relation.throughLocalKey()) ? relation.throughLocalKey() : RelationUtils.getPrimaryKey(relation.through());
-            return new com.github.biiiiiigmonster.relation.HasManyThrough<>(
+            return new com.github.biiiiiigmonster.relation.HasManyThrough(
                     field,
-                    relation.through(),
                     ReflectUtil.getField(relation.through(), foreignKey),
                     ReflectUtil.getField(field.getType(), throughForeignKey),
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
@@ -145,8 +142,6 @@ public enum RelationType {
             );
         }
     },
-
-    // todo: 需要确认哦
     MORPH_TO(MorphTo.class, false) {
         @Override
         public com.github.biiiiiigmonster.relation.MorphTo getRelation(Field field) {
@@ -158,11 +153,12 @@ public enum RelationType {
                     field,
                     ReflectUtil.getField(field.getType(), type),
                     ReflectUtil.getField(field.getType(), id),
-                    null,
                     relation.ownerKey()
             );
         }
     },
+
+
     MORPH_TO_MANY(MorphToMany.class, true) {
         @Override
         public Relation getRelation(Field field) {

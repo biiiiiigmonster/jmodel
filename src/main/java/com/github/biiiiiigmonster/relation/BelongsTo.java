@@ -30,13 +30,13 @@ public class BelongsTo extends Relation {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
+    public <T extends Model<?>> List<Model<?>> getEager(List<T> models) {
         List<?> ownerKeyValueList = relatedKeyValueList(models, foreignField);
         if (ObjectUtil.isEmpty(ownerKeyValueList)) {
             return new ArrayList<>();
         }
 
-        return RelationUtils.hasRelatedRepository((Class<R>) ownerField.getDeclaringClass())
+        return RelationUtils.hasRelatedRepository(ownerField.getDeclaringClass())
                 ? byRelatedRepository(ownerKeyValueList)
                 : byRelatedMethod(ownerKeyValueList, RelationUtils.getRelatedMethod(String.format("%s.%s", ownerField.getDeclaringClass().getName(), ownerField.getName()), ownerField));
     }
@@ -49,16 +49,16 @@ public class BelongsTo extends Relation {
     }
 
     @Override
-    public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
+    public <T extends Model<?>> void match(List<T> models, List<Model<?>> results) {
         if (ObjectUtil.isEmpty(results)) {
             return;
         }
 
-        Map<?, R> dictionary = results.stream()
+        Map<?, Model<?>> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, ownerField), r -> r, (o1, o2) -> o1));
 
         models.forEach(o -> {
-            R value = dictionary.get(ReflectUtil.getFieldValue(o, foreignField));
+            Model<?> value = dictionary.get(ReflectUtil.getFieldValue(o, foreignField));
             ReflectUtil.setFieldValue(o, relatedField, value);
         });
     }

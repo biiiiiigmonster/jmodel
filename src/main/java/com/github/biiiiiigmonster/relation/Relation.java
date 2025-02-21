@@ -28,9 +28,9 @@ public abstract class Relation {
         this.relatedField = relatedField;
     }
 
-    public abstract <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models);
+    public abstract <T extends Model<?>> List<Model<?>> getEager(List<T> models);
 
-    public abstract <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results);
+    public abstract <T extends Model<?>> void match(List<T> models, List<Model<?>> results);
 
     @SuppressWarnings("unchecked")
     protected <R extends Model<?>> List<R> byRelatedMethod(List<?> localKeyValueList, Map<Object, Method> relatedMethod) {

@@ -9,6 +9,8 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Relation
 public @interface MorphTo {
-    String localKey() default "";
-    String foreignKey() default "";
+    String name() default "";
+    String type() default "";
+    String id() default "";
+    String ownerKey() default "";
 }

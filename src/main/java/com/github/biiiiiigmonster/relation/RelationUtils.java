@@ -223,7 +223,7 @@ public class RelationUtils implements BeanPostProcessor {
         // 分离
         List<T> eager = new ArrayList<>();
         List<T> exists = new ArrayList<>();
-        List<R> results = new ArrayList<>();
+        List<Model<?>> results = new ArrayList<>();
         if (loadForce) {
             eager = models;
         } else {
@@ -232,12 +232,12 @@ public class RelationUtils implements BeanPostProcessor {
                 if (value == null) {
                     eager.add(model);
                 } else {
-                    if (!relationOption.isNestedEmpty()) {
+                    if (relationOption.isNested()) {
                         exists.add(model);
                         if (relationOption.isRelatedFieldList()) {
-                            results.addAll((List<R>) value);
+                            results.addAll((List<Model<?>>) value);
                         } else {
-                            results.add((R) value);
+                            results.add((Model<?>) value);
                         }
                     }
                 }
@@ -247,8 +247,8 @@ public class RelationUtils implements BeanPostProcessor {
         // 合并关联结果
         results = merge(results, relation.getEager(eager));
         // 嵌套处理
-        if (!relationOption.isNestedEmpty()) {
-            load(results, relationOption.getNestedRelations(), loadForce);
+        if (relationOption.isNested()) {
+            load((List<R>) results, relationOption.getNestedRelations(), loadForce);
         }
 
         // 合并父模型数据
@@ -320,7 +320,7 @@ public class RelationUtils implements BeanPostProcessor {
         return RELATED_REPOSITORY_MAP.get(clazz);
     }
 
-    public static <T extends Model<?>> boolean hasRelatedRepository(Class<T> clazz) {
+    public static boolean hasRelatedRepository(Class<?> clazz) {
         return RELATED_REPOSITORY_MAP.containsKey(clazz);
     }
 

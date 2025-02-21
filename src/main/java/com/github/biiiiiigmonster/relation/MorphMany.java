@@ -22,17 +22,17 @@ public class MorphMany extends MorphOneOrMany {
     }
 
     @Override
-    public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
+    public <T extends Model<?>> void match(List<T> models, List<Model<?>> results) {
         if (ObjectUtil.isEmpty(results)) {
             return;
         }
 
-        Map<?, List<R>> dictionary = results.stream()
+        Map<?, List<Model<?>>> dictionary = results.stream()
                 .filter(r -> ReflectUtil.getFieldValue(r, morphType) == Relation.getMorphAlias(localField.getDeclaringClass()))
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignField)));
 
         models.forEach(o -> {
-            List<R> valList = dictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>());
+            List<Model<?>> valList = dictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>());
             ReflectUtil.setFieldValue(o, relatedField, valList);
         });
     }

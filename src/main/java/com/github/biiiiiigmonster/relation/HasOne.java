@@ -20,16 +20,16 @@ public class HasOne extends HasOneOrMany {
     }
 
     @Override
-    public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
+    public <T extends Model<?>> void match(List<T> models, List<Model<?>> results) {
         if (ObjectUtil.isEmpty(results)) {
             return;
         }
 
-        Map<?, R> dictionary = results.stream()
+        Map<?, Model<?>> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (o1, o2) -> o1));
 
         models.forEach(o -> {
-            R value = dictionary.get(ReflectUtil.getFieldValue(o, localField));
+            Model<?> value = dictionary.get(ReflectUtil.getFieldValue(o, localField));
             ReflectUtil.setFieldValue(o, relatedField, value);
         });
     }

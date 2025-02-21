@@ -24,13 +24,13 @@ public abstract class HasOneOrMany extends Relation {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
+    public <T extends Model<?>> List<Model<?>> getEager(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
         if (ObjectUtil.isEmpty(localKeyValueList)) {
             return new ArrayList<>();
         }
 
-        return RelationUtils.hasRelatedRepository((Class<R>) foreignField.getDeclaringClass())
+        return RelationUtils.hasRelatedRepository(foreignField.getDeclaringClass())
                 ? byRelatedRepository(localKeyValueList)
                 : byRelatedMethod(localKeyValueList, RelationUtils.getRelatedMethod(String.format("%s.%s", foreignField.getDeclaringClass().getName(), foreignField.getName()), foreignField));
     }

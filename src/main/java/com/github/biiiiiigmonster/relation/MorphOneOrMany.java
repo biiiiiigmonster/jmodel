@@ -22,17 +22,17 @@ public abstract class MorphOneOrMany extends HasOneOrMany {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
+    public <T extends Model<?>> List<Model<?>> getEager(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
         if (ObjectUtil.isEmpty(localKeyValueList)) {
             return new ArrayList<>();
         }
 
         // 多态只支持从Repository中获取
-        IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
-        QueryChainWrapper<R> wrapper = relatedRepository.query()
+        IService<?> relatedRepository = RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
+        QueryChainWrapper<?> wrapper = relatedRepository.query()
                 .eq(RelationUtils.getColumn(morphType), Relation.getMorphAlias(localField.getDeclaringClass()))
                 .in(RelationUtils.getColumn(foreignField), localKeyValueList);
-        return relatedRepository.list(wrapper);
+        return (List<Model<?>>) wrapper.list();
     }
 }

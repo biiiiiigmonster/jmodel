@@ -9,29 +9,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class HasManyThrough<TR extends Model<?>> extends HasOneOrManyThrough<TR> {
+public class HasManyThrough extends HasOneOrManyThrough {
 
     /**
      * @param relatedField Project.deployments
-     * @param throughClass Environment.class
      * @param foreignField Environment.project_id
      * @param throughForeignField Deployment.environment_id
      * @param localField Project.id
      * @param throughLocalField Environment.id
      */
-    public HasManyThrough(Field relatedField, Class<TR> throughClass, Field foreignField, Field throughForeignField, Field localField, Field throughLocalField) {
-        super(relatedField, throughClass, foreignField, throughForeignField, localField, throughLocalField);
+    public HasManyThrough(Field relatedField, Field foreignField, Field throughForeignField, Field localField, Field throughLocalField) {
+        super(relatedField, foreignField, throughForeignField, localField, throughLocalField);
     }
 
     @Override
-    public <T extends Model<?>, R extends Model<?>> void throughMatch(List<T> models, List<TR> throughs, List<R> results) {
-        Map<?, List<R>> dictionary = results.stream()
+    public <T extends Model<?>> void throughMatch(List<T> models, List<Model<?>> throughs, List<Model<?>> results) {
+        Map<?, List<Model<?>>> dictionary = results.stream()
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, throughForeignField)));
-        Map<?, TR> throughDictionary = throughs.stream()
+        Map<?, Model<?>> throughDictionary = throughs.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (o1, o2) -> o1));
         models.forEach(o -> {
-            List<R> valList = new ArrayList<>();
-            TR through = throughDictionary.get(ReflectUtil.getFieldValue(o, localField));
+            List<Model<?>> valList = new ArrayList<>();
+            Model<?> through = throughDictionary.get(ReflectUtil.getFieldValue(o, localField));
             if (through != null) {
                 valList = dictionary.getOrDefault(ReflectUtil.getFieldValue(through, throughLocalField), new ArrayList<>());
             }
@@ -40,7 +39,5 @@ public class HasManyThrough<TR extends Model<?>> extends HasOneOrManyThrough<TR>
     }
 
     @Override
-    public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
-
-    }
+    public <T extends Model<?>> void match(List<T> models, List<Model<?>> results) {}
 }

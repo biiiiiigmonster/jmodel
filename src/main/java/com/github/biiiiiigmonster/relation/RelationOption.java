@@ -65,7 +65,8 @@ public class RelationOption<T extends Model<?>> {
         return relationType.getRelation(relatedField);
     }
 
-    public boolean isNestedEmpty() {
-        return CollectionUtils.isEmpty(nestedRelations);
+    public boolean isNested() {
+        boolean notSupport = relationType.equals(RelationType.MORPH_TO) || relationType.equals(RelationType.MORPHED_BY_MANY);
+        return !notSupport && !CollectionUtils.isEmpty(nestedRelations);
     }
 }
