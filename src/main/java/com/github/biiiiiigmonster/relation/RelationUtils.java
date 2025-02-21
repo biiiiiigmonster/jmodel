@@ -48,86 +48,158 @@ public class RelationUtils implements BeanPostProcessor {
     private static final Map<Class<?>, Map<String, ColumnCache>> COLUMN_MAP = new HashMap<>();
 
     public static <T extends Model<?>> void load(T obj, String... relations) {
-        load(ListUtil.toList(obj), Arrays.asList(relations), false);
+        if (obj == null) {
+            return;
+        }
+
+        load(ListUtil.toList(obj), processRelations(obj.getClass(), Arrays.asList(relations)), false);
     }
 
     @SafeVarargs
     public static <T extends Model<?>, R> void load(T obj, SerializableFunction<T, R>... relations) {
-        load(ListUtil.toList(obj), SerializedLambda.resolveFieldNames(relations), false);
+        if (obj == null) {
+            return;
+        }
+
+        load(ListUtil.toList(obj), processRelations(obj.getClass(), SerializedLambda.resolveFieldNames(relations)), false);
     }
 
     @SafeVarargs
     public static <T extends Model<?>> void load(T obj, RelationOption<T>... relations) {
+        if (obj == null) {
+            return;
+        }
+
         load(ListUtil.toList(obj), Arrays.asList(relations), false);
     }
 
     public static <T extends Model<?>> void load(List<T> list, String... relations) {
-        load(list, Arrays.asList(relations), false);
+        if (CollectionUtils.isEmpty(list)) {
+            return;
+        }
+
+        load(list, processRelations(list.get(0).getClass(), Arrays.asList(relations)), false);
     }
 
     @SafeVarargs
     public static <T extends Model<?>> void load(List<T> list, SerializableFunction<T, ?>... relations) {
-        load(list, SerializedLambda.resolveFieldNames(relations), false);
+        if (CollectionUtils.isEmpty(list)) {
+            return;
+        }
+
+        load(list, processRelations(list.get(0).getClass(), SerializedLambda.resolveFieldNames(relations)), false);
     }
 
     @SafeVarargs
     public static <T extends Model<?>> void load(List<T> list, RelationOption<T>... relations) {
+        if (CollectionUtils.isEmpty(list)) {
+            return;
+        }
+
         load(list, Arrays.asList(relations), false);
     }
 
     public static <T extends Model<?>> void load(T obj, boolean loadForce, String... relations) {
-        load(ListUtil.toList(obj), Arrays.asList(relations), loadForce);
+        if (obj == null) {
+            return;
+        }
+
+        load(ListUtil.toList(obj), processRelations(obj.getClass(), Arrays.asList(relations)), loadForce);
     }
 
     @SafeVarargs
     public static <T extends Model<?>> void load(T obj, boolean loadForce, SerializableFunction<T, ?>... relations) {
-        load(ListUtil.toList(obj), SerializedLambda.resolveFieldNames(relations), loadForce);
+        if (obj == null) {
+            return;
+        }
+
+        load(ListUtil.toList(obj), processRelations(obj.getClass(), SerializedLambda.resolveFieldNames(relations)), loadForce);
     }
 
     @SafeVarargs
     public static <T extends Model<?>> void load(T obj, boolean loadForce, RelationOption<T>... relations) {
+        if (obj == null) {
+            return;
+        }
+
         load(ListUtil.toList(obj), Arrays.asList(relations), loadForce);
     }
 
     public static <T extends Model<?>> void load(List<T> list, boolean loadForce, String... relations) {
-        load(list, Arrays.asList(relations), loadForce);
+        if (CollectionUtils.isEmpty(list)) {
+            return;
+        }
+
+        load(list, processRelations(list.get(0).getClass(), Arrays.asList(relations)), loadForce);
     }
 
     @SafeVarargs
     public static <T extends Model<?>> void load(List<T> list, boolean loadForce, SerializableFunction<T, ?>... relations) {
-        load(list, SerializedLambda.resolveFieldNames(relations), loadForce);
+        if (CollectionUtils.isEmpty(list)) {
+            return;
+        }
+
+        load(list, processRelations(list.get(0).getClass(), SerializedLambda.resolveFieldNames(relations)), loadForce);
     }
 
     @SafeVarargs
     public static <T extends Model<?>> void load(List<T> list, boolean loadForce, RelationOption<T>... relations) {
+        if (CollectionUtils.isEmpty(list)) {
+            return;
+        }
+
         load(list, Arrays.asList(relations), loadForce);
     }
 
     public static <T extends Model<?>> void loadForce(List<T> list, String... relations) {
-        load(list, Arrays.asList(relations), true);
+        if (CollectionUtils.isEmpty(list)) {
+            return;
+        }
+
+        load(list, processRelations(list.get(0).getClass(), Arrays.asList(relations)), true);
     }
 
     @SafeVarargs
     public static <T extends Model<?>> void loadForce(List<T> list, SerializableFunction<T, ?>... relations) {
-        load(list, SerializedLambda.resolveFieldNames(relations), true);
+        if (CollectionUtils.isEmpty(list)) {
+            return;
+        }
+
+        load(list, processRelations(list.get(0).getClass(), SerializedLambda.resolveFieldNames(relations)), true);
     }
 
     @SafeVarargs
     public static <T extends Model<?>> void loadForce(List<T> list, RelationOption<T>... relations) {
+        if (CollectionUtils.isEmpty(list)) {
+            return;
+        }
+
         load(list, Arrays.asList(relations), true);
     }
 
     public static <T extends Model<?>> void loadForce(T obj, String... relations) {
-        load(ListUtil.toList(obj), Arrays.asList(relations), true);
+        if (obj == null) {
+            return;
+        }
+
+        load(ListUtil.toList(obj), processRelations(obj.getClass(), Arrays.asList(relations)), true);
     }
 
     @SafeVarargs
     public static <T extends Model<?>> void loadForce(T obj, SerializableFunction<T, ?>... relations) {
-        load(ListUtil.toList(obj), SerializedLambda.resolveFieldNames(relations), true);
+        if (obj == null) {
+            return;
+        }
+
+        load(ListUtil.toList(obj), processRelations(obj.getClass(), SerializedLambda.resolveFieldNames(relations)), true);
     }
 
     @SafeVarargs
     public static <T extends Model<?>> void loadForce(T obj, RelationOption<T>... relations) {
+        if (obj == null) {
+            return;
+        }
+
         load(ListUtil.toList(obj), Arrays.asList(relations), true);
     }
 
@@ -138,23 +210,16 @@ public class RelationUtils implements BeanPostProcessor {
      * @param <T>
      */
     @SuppressWarnings("unchecked")
-    private static <T extends Model<?>> void load(List<T> models, List<?> list, boolean loadForce) {
+    private static <T extends Model<?>> void load(List<T> models, List<RelationOption<?>> list, boolean loadForce) {
         if (ObjectUtil.isEmpty(models)) {
             return;
         }
 
-        List<RelationOption<?>> relationOptions;
-        if (list.get(0) instanceof String) {
-            relationOptions = processRelations(models.get(0).getClass(), (List<String>) list);
-        } else {
-            relationOptions = (List<RelationOption<?>>) list;
-        }
-
-        relationOptions.forEach((relationOption) -> handle(models, loadForce, relationOption));
+        list.forEach((relationOption) -> handle(models, relationOption, loadForce));
     }
 
     @SuppressWarnings("unchecked")
-    private static <T extends Model<?>, R extends Model<?>> void handle(List<T> models, boolean loadForce, RelationOption<?> relationOption) {
+    private static <T extends Model<?>, R extends Model<?>> void handle(List<T> models, RelationOption<?> relationOption, boolean loadForce) {
         // 分离
         List<T> eager = new ArrayList<>();
         List<T> exists = new ArrayList<>();
