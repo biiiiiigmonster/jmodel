@@ -271,7 +271,8 @@ public class RelationUtils implements BeanPostProcessor {
         )).values());
     }
 
-    private static List<RelationOption<? extends Model<?>>> processRelations(Class<?> clazz, List<String> relations) {
+    @SuppressWarnings("unchecked")
+    private static <T extends Model<?>, R extends Model<?>> List<RelationOption<? extends Model<?>>> processRelations(Class<T> clazz, List<String> relations) {
         Map<String, List<String>> map = relations.stream()
                 .filter(ObjectUtil::isNotEmpty)
                 .collect(Collectors.toMap(
@@ -290,7 +291,7 @@ public class RelationUtils implements BeanPostProcessor {
         map.forEach((fieldName, nestedRelations) -> {
             RelationOption<?> relationOption = RelationOption.of(clazz, fieldName);
             if (!CollectionUtils.isEmpty(nestedRelations)) {
-                relationOption.nested(processRelations(getGenericType(relationOption.getRelatedField()), nestedRelations));
+                relationOption.nested(processRelations((Class<R>) getGenericType(relationOption.getRelatedField()), nestedRelations));
             }
             list.add(relationOption);
         });
