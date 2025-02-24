@@ -174,14 +174,29 @@ public enum RelationType {
                     ReflectUtil.getField(relation.using(), pivotId),
                     ReflectUtil.getField(relation.using(), relatedPivotKey),
                     ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey),
-                    ReflectUtil.getField(field.getDeclaringClass(), localKey)
+                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
+                    false
             );
         }
     },
     MORPHED_BY_MANY(MorphedByMany.class, true) {
         @Override
-        public Relation getRelation(Field field) {
-            return null;
+        public com.github.biiiiiigmonster.relation.MorphToMany getRelation(Field field) {
+            MorphedByMany relation = field.getAnnotation(MorphedByMany.class);
+            String pivotType = StringUtils.isNotBlank(relation.pivotType()) ? relation.pivotType() : String.format("%sType", relation.name());
+            String pivotId = StringUtils.isNotBlank(relation.pivotId()) ? relation.pivotId() : String.format("%sId", relation.name());
+            String foreignPivotKey = StringUtils.isNotBlank(relation.foreignPivotKey()) ? relation.foreignPivotKey() : RelationUtils.getForeignKey(RelationUtils.getGenericType(field));
+            String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getPrimaryKey(RelationUtils.getGenericType(field));
+            String ownerKey = StringUtils.isNotBlank(relation.ownerKey()) ? relation.ownerKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
+            return new com.github.biiiiiigmonster.relation.MorphToMany(
+                    field,
+                    ReflectUtil.getField(relation.using(), pivotType),
+                    ReflectUtil.getField(relation.using(), foreignPivotKey),
+                    ReflectUtil.getField(relation.using(), pivotId),
+                    ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey),
+                    ReflectUtil.getField(field.getDeclaringClass(), ownerKey),
+                    true
+            );
         }
     },
     ;

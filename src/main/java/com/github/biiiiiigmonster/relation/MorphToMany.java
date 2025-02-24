@@ -15,19 +15,21 @@ import java.util.stream.Collectors;
 
 public class MorphToMany extends BelongsToMany {
     protected Field morphPivotType;
+    protected boolean inverse;
 
     /**
      * @param relatedField      Post.tags                   Tag.posts
      * @param morphPivotType    Taggables.taggable_type     Taggables.taggable_type
-     * @param foreignPivotField Taggables.taggable_id       Taggables.taggable_id
-     * @param relatedPivotField Taggables.tag_id            Taggables.tag_id
+     * @param foreignPivotField Taggables.taggable_id       Taggables.tag_id
+     * @param relatedPivotField Taggables.tag_id            Taggables.taggable_id
      * @param foreignField      Tag.id                      Post.id
      * @param localField        Post.id                     Tag.id
      */
-    public MorphToMany(Field relatedField, Field morphPivotType, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField) {
+    public MorphToMany(Field relatedField, Field morphPivotType, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField, boolean inverse) {
         super(relatedField, foreignPivotField, relatedPivotField, foreignField, localField);
 
         this.morphPivotType = morphPivotType;
+        this.inverse = inverse;
     }
 
     @Override
@@ -39,8 +41,9 @@ public class MorphToMany extends BelongsToMany {
         }
 
         IService<?> morphPivotRepository = RelationUtils.getRelatedRepository(foreignPivotField.getDeclaringClass());
+        Class<?> morphPivotTypeClass = inverse ? foreignField.getDeclaringClass() : localField.getDeclaringClass();
         QueryChainWrapper<?> pivotWrapper = morphPivotRepository.query()
-                .eq(RelationUtils.getColumn(morphPivotType), Relation.getMorphAlias(localField.getDeclaringClass()))
+                .eq(RelationUtils.getColumn(morphPivotType), Relation.getMorphAlias(morphPivotTypeClass)) // localField?
                 .in(RelationUtils.getColumn(foreignPivotField), localKeyValueList);
         List<MorphPivot<?>> morphPivots = (List<MorphPivot<?>>) pivotWrapper.list();
         List<?> relatedPivotKeyValueList = relatedKeyValueList(morphPivots, relatedPivotField);
