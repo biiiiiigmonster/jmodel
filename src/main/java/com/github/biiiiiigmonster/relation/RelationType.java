@@ -142,7 +142,6 @@ public enum RelationType {
             );
         }
     },
-    // todo: 还是要改回来，仿照morphToMany，指定类型
     MORPH_TO(MorphTo.class, false) {
         @Override
         public com.github.biiiiiigmonster.relation.MorphTo getRelation(Field field) {
