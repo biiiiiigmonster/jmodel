@@ -12,6 +12,7 @@ import com.github.biiiiiigmonster.relation.annotation.MorphOne;
 import com.github.biiiiiigmonster.relation.annotation.MorphTo;
 import com.github.biiiiiigmonster.relation.annotation.MorphToMany;
 import com.github.biiiiiigmonster.relation.annotation.MorphedByMany;
+import com.github.biiiiiigmonster.relation.exception.RelationNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -198,7 +199,7 @@ public enum RelationType {
             }
         }
 
-        return null;
+        throw new RelationNotFoundException(RelationUtils.getGenericType(field), field.getName());
     }
 
     public static Annotation getRelationAnnotation(Field field) {

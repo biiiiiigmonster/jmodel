@@ -26,10 +26,6 @@ public class RelationOption<T extends Model<?>> {
 
     public RelationOption(Class<?> clazz, String fieldName) {
         this.relatedField = ReflectUtil.getField(clazz, fieldName);
-        if (this.relatedField == null) {
-            throw new RelationNotFoundException(clazz, fieldName);
-        }
-
         parse();
     }
 

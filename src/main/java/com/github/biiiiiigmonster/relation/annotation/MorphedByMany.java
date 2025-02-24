@@ -1,5 +1,7 @@
 package com.github.biiiiiigmonster.relation.annotation;
 
+import com.github.biiiiiigmonster.relation.MorphPivot;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -9,6 +11,11 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Relation
 public @interface MorphedByMany {
-    String localKey() default "";
+    Class<? extends MorphPivot<?>> using();
+    String name();
+    String pivotType() default "";
+    String pivotId() default "";
+    String foreignPivotKey() default "";
     String foreignKey() default "";
+    String ownerKey() default "";
 }
