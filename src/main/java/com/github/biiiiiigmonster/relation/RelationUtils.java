@@ -223,7 +223,7 @@ public class RelationUtils implements BeanPostProcessor {
         // 分离
         List<T> eager = new ArrayList<>();
         List<T> exists = new ArrayList<>();
-        List<Model<?>> results = new ArrayList<>();
+        List<R> results = new ArrayList<>();
         if (loadForce) {
             eager = models;
         } else {
@@ -235,9 +235,9 @@ public class RelationUtils implements BeanPostProcessor {
                     if (relationOption.isNested()) {
                         exists.add(model);
                         if (relationOption.isRelatedFieldList()) {
-                            results.addAll((List<Model<?>>) value);
+                            results.addAll((List<R>) value);
                         } else {
-                            results.add((Model<?>) value);
+                            results.add((R) value);
                         }
                     }
                 }
@@ -248,7 +248,7 @@ public class RelationUtils implements BeanPostProcessor {
         results = merge(results, relation.getEager(eager));
         // 嵌套处理
         if (relationOption.isNested()) {
-            load((List<R>) results, relationOption.getNestedRelations(), loadForce);
+            load(results, relationOption.getNestedRelations(), loadForce);
         }
 
         // 合并父模型数据
