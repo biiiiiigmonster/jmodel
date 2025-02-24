@@ -2,7 +2,6 @@ package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.biiiiiigmonster.Model;
@@ -15,17 +14,17 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class BelongsToMany extends Relation {
-    protected Field foreignPivotField;// UserRole.user_id
-    protected Field relatedPivotField;// UserRole.role_id
-    protected Field foreignField;// Role.id
-    protected Field localField;// User.id
+    protected Field foreignPivotField;
+    protected Field relatedPivotField;
+    protected Field foreignField;
+    protected Field localField;
 
     /**
-     * @param relatedField User.roles
+     * @param relatedField      User.roles
      * @param foreignPivotField UserRole.user_id
      * @param relatedPivotField UserRole.role_id
-     * @param localField User.id
-     * @param foreignField Role.id
+     * @param localField        User.id
+     * @param foreignField      Role.id
      */
     public BelongsToMany(Field relatedField, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField) {
         super(relatedField);
@@ -38,7 +37,7 @@ public class BelongsToMany extends Relation {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Model<?>> List<Model<?>> getEager(List<T> models) {
+    public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
         if (ObjectUtil.isEmpty(localKeyValueList)) {
             return new ArrayList<>();
@@ -54,15 +53,15 @@ public class BelongsToMany extends Relation {
         }
 
         // 多对多只支持从Repository中获取
-        IService<?> relatedRepository = RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
-        QueryChainWrapper<?> wrapper = relatedRepository.query().in(RelationUtils.getColumn(foreignField), relatedPivotKeyValueList);
-        List<Model<?>> results = (List<Model<?>>) wrapper.list();
-        Map<?, Model<?>> dictionary = results.stream()
+        IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
+        QueryChainWrapper<R> wrapper = relatedRepository.query().in(RelationUtils.getColumn(foreignField), relatedPivotKeyValueList);
+        List<R> results = relatedRepository.list(wrapper);
+        Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (o1, o2) -> o1));
         Map<?, List<Pivot<?>>> pivotDictionary = pivots.stream()
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignPivotField)));
         models.forEach(o -> {
-            List<Model<?>> valList = pivotDictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>())
+            List<R> valList = pivotDictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>())
                     .stream()
                     .map(p -> dictionary.get(ReflectUtil.getFieldValue(p, relatedPivotField)))
                     .filter(Objects::nonNull)
@@ -74,5 +73,6 @@ public class BelongsToMany extends Relation {
     }
 
     @Override
-    public <T extends Model<?>> void match(List<T> models, List<Model<?>> results) {}
+    public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
+    }
 }

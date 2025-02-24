@@ -32,7 +32,7 @@ public class MorphToMany extends BelongsToMany {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Model<?>> List<Model<?>> getEager(List<T> models) {
+    public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
         if (ObjectUtil.isEmpty(localKeyValueList)) {
             return new ArrayList<>();
@@ -48,15 +48,15 @@ public class MorphToMany extends BelongsToMany {
             return new ArrayList<>();
         }
 
-        IService<?> relatedRepository = RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
-        QueryChainWrapper<?> wrapper = relatedRepository.query().in(RelationUtils.getColumn(foreignField), relatedPivotKeyValueList);
-        List<Model<?>> results = (List<Model<?>>) wrapper.list();
-        Map<?, Model<?>> dictionary = results.stream()
+        IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
+        QueryChainWrapper<R> wrapper = relatedRepository.query().in(RelationUtils.getColumn(foreignField), relatedPivotKeyValueList);
+        List<R> results = relatedRepository.list(wrapper);
+        Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (o1, o2) -> o1));
         Map<?, List<MorphPivot<?>>> morphPivotDictionary = morphPivots.stream()
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignPivotField)));
         models.forEach(o -> {
-            List<Model<?>> valList = morphPivotDictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>())
+            List<R> valList = morphPivotDictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>())
                     .stream()
                     .map(p -> dictionary.get(ReflectUtil.getFieldValue(p, relatedPivotField)))
                     .filter(Objects::nonNull)

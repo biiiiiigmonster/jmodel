@@ -150,11 +150,12 @@ public enum RelationType {
             String name = StringUtils.isNotBlank(relation.name()) ? relation.name() : field.getName();
             String type = StringUtils.isNotBlank(relation.type()) ? relation.type() : String.format("%sType", name);
             String id = StringUtils.isNotBlank(relation.id()) ? relation.id() : String.format("%sId", name);
+            String ownerKey = StringUtils.isNotBlank(relation.ownerKey()) ? relation.ownerKey() : RelationUtils.getPrimaryKey(field.getType());
             return new com.github.biiiiiigmonster.relation.MorphTo(
                     field,
                     ReflectUtil.getField(field.getType(), type),
                     ReflectUtil.getField(field.getType(), id),
-                    relation.ownerKey()
+                    ReflectUtil.getField(field.getType(), ownerKey)
             );
         }
     },

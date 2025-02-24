@@ -26,7 +26,7 @@ public abstract class HasOneOrManyThrough extends Relation {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Model<?>> List<Model<?>> getEager(List<T> models) {
+    public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
         if (ObjectUtil.isEmpty(localKeyValueList)) {
             return new ArrayList<>();
@@ -42,14 +42,18 @@ public abstract class HasOneOrManyThrough extends Relation {
         }
 
         // 远程一对多只支持从Repository中获取
-        IService<?> relatedRepository = RelationUtils.getRelatedRepository(throughForeignField.getDeclaringClass());
-        QueryChainWrapper<?> wrapper = relatedRepository.query().in(RelationUtils.getColumn(throughForeignField), throughKeyValueList);
-        List<Model<?>> results = (List<Model<?>>) wrapper.list();
+        IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(throughForeignField.getDeclaringClass());
+        QueryChainWrapper<R> wrapper = relatedRepository.query().in(RelationUtils.getColumn(throughForeignField), throughKeyValueList);
+        List<R> results = relatedRepository.list(wrapper);
         // 预匹配
         throughMatch(models, throughs, results);
 
         return results;
     }
 
-    public abstract <T extends Model<?>> void throughMatch(List<T> models, List<Model<?>> throughs, List<Model<?>> results);
+    public abstract <T extends Model<?>, R extends Model<?>> void throughMatch(List<T> models, List<Model<?>> throughs, List<R> results);
+
+    @Override
+    public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
+    }
 }

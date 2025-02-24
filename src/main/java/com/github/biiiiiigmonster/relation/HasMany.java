@@ -14,23 +14,23 @@ public class HasMany extends HasOneOrMany {
     /**
      * @param relatedField Post.comments
      * @param foreignField Comment.post_id
-     * @param localField Post.id
+     * @param localField   Post.id
      */
     public HasMany(Field relatedField, Field foreignField, Field localField) {
         super(relatedField, foreignField, localField);
     }
 
     @Override
-    public <T extends Model<?>> void match(List<T> models, List<Model<?>> results) {
+    public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
         if (ObjectUtil.isEmpty(results)) {
             return;
         }
 
-        Map<?, List<Model<?>>> dictionary = results.stream()
+        Map<?, List<R>> dictionary = results.stream()
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignField)));
 
         models.forEach(o -> {
-            List<Model<?>> valList = dictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>());
+            List<R> valList = dictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>());
             ReflectUtil.setFieldValue(o, relatedField, valList);
         });
     }

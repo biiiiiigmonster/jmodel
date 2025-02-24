@@ -1,7 +1,6 @@
 package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.biiiiiigmonster.Model;
@@ -9,7 +8,6 @@ import com.github.biiiiiigmonster.Model;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public abstract class HasOneOrMany extends Relation {
     protected Field foreignField;
@@ -24,7 +22,7 @@ public abstract class HasOneOrMany extends Relation {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Model<?>> List<Model<?>> getEager(List<T> models) {
+    public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
         if (ObjectUtil.isEmpty(localKeyValueList)) {
             return new ArrayList<>();

@@ -12,24 +12,24 @@ import java.util.stream.Collectors;
 public class HasManyThrough extends HasOneOrManyThrough {
 
     /**
-     * @param relatedField Project.deployments
-     * @param foreignField Environment.project_id
+     * @param relatedField        Project.deployments
+     * @param foreignField        Environment.project_id
      * @param throughForeignField Deployment.environment_id
-     * @param localField Project.id
-     * @param throughLocalField Environment.id
+     * @param localField          Project.id
+     * @param throughLocalField   Environment.id
      */
     public HasManyThrough(Field relatedField, Field foreignField, Field throughForeignField, Field localField, Field throughLocalField) {
         super(relatedField, foreignField, throughForeignField, localField, throughLocalField);
     }
 
     @Override
-    public <T extends Model<?>> void throughMatch(List<T> models, List<Model<?>> throughs, List<Model<?>> results) {
-        Map<?, List<Model<?>>> dictionary = results.stream()
+    public <T extends Model<?>, R extends Model<?>> void throughMatch(List<T> models, List<Model<?>> throughs, List<R> results) {
+        Map<?, List<R>> dictionary = results.stream()
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, throughForeignField)));
         Map<?, Model<?>> throughDictionary = throughs.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (o1, o2) -> o1));
         models.forEach(o -> {
-            List<Model<?>> valList = new ArrayList<>();
+            List<R> valList = new ArrayList<>();
             Model<?> through = throughDictionary.get(ReflectUtil.getFieldValue(o, localField));
             if (through != null) {
                 valList = dictionary.getOrDefault(ReflectUtil.getFieldValue(through, throughLocalField), new ArrayList<>());
@@ -37,7 +37,4 @@ public class HasManyThrough extends HasOneOrManyThrough {
             ReflectUtil.setFieldValue(o, relatedField, valList);
         });
     }
-
-    @Override
-    public <T extends Model<?>> void match(List<T> models, List<Model<?>> results) {}
 }

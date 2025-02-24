@@ -13,13 +13,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class BelongsTo extends Relation {
-    protected Field foreignField; // Comment.post_id
-    protected Field ownerField; // Post.id
+    protected Field foreignField;
+    protected Field ownerField;
 
     /**
      * @param relatedField Phone.user
      * @param foreignField Phone.user_id
-     * @param ownerField User.id
+     * @param ownerField   User.id
      */
     public BelongsTo(Field relatedField, Field foreignField, Field ownerField) {
         super(relatedField);
@@ -30,7 +30,7 @@ public class BelongsTo extends Relation {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Model<?>> List<Model<?>> getEager(List<T> models) {
+    public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> ownerKeyValueList = relatedKeyValueList(models, foreignField);
         if (ObjectUtil.isEmpty(ownerKeyValueList)) {
             return new ArrayList<>();
@@ -49,16 +49,16 @@ public class BelongsTo extends Relation {
     }
 
     @Override
-    public <T extends Model<?>> void match(List<T> models, List<Model<?>> results) {
+    public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
         if (ObjectUtil.isEmpty(results)) {
             return;
         }
 
-        Map<?, Model<?>> dictionary = results.stream()
+        Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, ownerField), r -> r, (o1, o2) -> o1));
 
         models.forEach(o -> {
-            Model<?> value = dictionary.get(ReflectUtil.getFieldValue(o, foreignField));
+            R value = dictionary.get(ReflectUtil.getFieldValue(o, foreignField));
             ReflectUtil.setFieldValue(o, relatedField, value);
         });
     }

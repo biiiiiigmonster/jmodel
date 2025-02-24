@@ -13,23 +13,23 @@ public class HasOne extends HasOneOrMany {
     /**
      * @param relatedField User.phone
      * @param foreignField Phone.user_id
-     * @param localField User.id
+     * @param localField   User.id
      */
     public HasOne(Field relatedField, Field foreignField, Field localField) {
         super(relatedField, foreignField, localField);
     }
 
     @Override
-    public <T extends Model<?>> void match(List<T> models, List<Model<?>> results) {
+    public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
         if (ObjectUtil.isEmpty(results)) {
             return;
         }
 
-        Map<?, Model<?>> dictionary = results.stream()
+        Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (o1, o2) -> o1));
 
         models.forEach(o -> {
-            Model<?> value = dictionary.get(ReflectUtil.getFieldValue(o, localField));
+            R value = dictionary.get(ReflectUtil.getFieldValue(o, localField));
             ReflectUtil.setFieldValue(o, relatedField, value);
         });
     }
