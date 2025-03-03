@@ -109,7 +109,7 @@ public enum RelationType {
                     field,
                     relation.through(),
                     ReflectUtil.getField(relation.through(), foreignKey),
-                    ReflectUtil.getField(field.getType(), throughForeignKey),
+                    ReflectUtil.getField(RelationUtils.getGenericType(field), throughForeignKey),
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     ReflectUtil.getField(relation.through(), throughLocalKey)
             );
@@ -139,8 +139,8 @@ public enum RelationType {
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
             return new com.github.biiiiiigmonster.relation.MorphMany(
                     field,
-                    ReflectUtil.getField(field.getType(), type),
-                    ReflectUtil.getField(field.getType(), id),
+                    ReflectUtil.getField(RelationUtils.getGenericType(field), type),
+                    ReflectUtil.getField(RelationUtils.getGenericType(field), id),
                     ReflectUtil.getField(field.getDeclaringClass(), localKey)
             );
         }
