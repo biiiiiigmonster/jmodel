@@ -87,8 +87,9 @@ public enum RelationType {
             String throughForeignKey = StringUtils.isNotBlank(relation.throughForeignKey()) ? relation.throughForeignKey() : RelationUtils.getForeignKey(relation.through());
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
             String throughLocalKey = StringUtils.isNotBlank(relation.throughLocalKey()) ? relation.throughLocalKey() : RelationUtils.getPrimaryKey(relation.through());
-            return new com.github.biiiiiigmonster.relation.HasOneThrough(
+            return new com.github.biiiiiigmonster.relation.HasOneThrough<>(
                     field,
+                    relation.through(),
                     ReflectUtil.getField(relation.through(), foreignKey),
                     ReflectUtil.getField(field.getType(), throughForeignKey),
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
@@ -104,8 +105,9 @@ public enum RelationType {
             String throughForeignKey = StringUtils.isNotBlank(relation.throughForeignKey()) ? relation.throughForeignKey() : RelationUtils.getForeignKey(relation.through());
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
             String throughLocalKey = StringUtils.isNotBlank(relation.throughLocalKey()) ? relation.throughLocalKey() : RelationUtils.getPrimaryKey(relation.through());
-            return new com.github.biiiiiigmonster.relation.HasManyThrough(
+            return new com.github.biiiiiigmonster.relation.HasManyThrough<>(
                     field,
+                    relation.through(),
                     ReflectUtil.getField(relation.through(), foreignKey),
                     ReflectUtil.getField(field.getType(), throughForeignKey),
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
@@ -208,7 +210,7 @@ public enum RelationType {
         Annotation relationAnnotation = getRelationAnnotation(field);
         if (relationAnnotation != null) {
             for (RelationType type : values()) {
-                if (type.relationAnnotationClazz.equals(relationAnnotation.getClass())) {
+                if (type.relationAnnotationClazz.equals(relationAnnotation.annotationType())) {
                     return type;
                 }
             }

@@ -1,7 +1,7 @@
 package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.biiiiiigmonster.Model;
 
@@ -28,8 +28,8 @@ public abstract class MorphOneOrMany extends HasOneOrMany {
 
         // 多态只支持从Repository中获取
         IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
-        QueryChainWrapper<R> wrapper = relatedRepository.query()
-                .eq(RelationUtils.getColumn(morphType), Relation.getMorphAlias(localField.getDeclaringClass()))
+        QueryWrapper<R> wrapper = new QueryWrapper<>();
+        wrapper.eq(RelationUtils.getColumn(morphType), Relation.getMorphAlias(localField.getDeclaringClass()))
                 .in(RelationUtils.getColumn(foreignField), localKeyValueList);
         return relatedRepository.list(wrapper);
     }

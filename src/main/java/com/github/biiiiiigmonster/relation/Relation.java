@@ -66,8 +66,13 @@ public abstract class Relation {
         return MORPH_MAP.inverse().computeIfAbsent(clazz, Class::getName);
     }
 
-    @SneakyThrows
     public static Class<?> getMorphClass(String morphAlias) {
-        return MORPH_MAP.computeIfAbsent(morphAlias, Class::forName);
+        return MORPH_MAP.computeIfAbsent(morphAlias, s -> {
+            try {
+                return Class.forName(s);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }

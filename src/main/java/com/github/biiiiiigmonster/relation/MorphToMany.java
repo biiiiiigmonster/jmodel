@@ -2,6 +2,7 @@ package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.biiiiiigmonster.Model;
@@ -52,7 +53,8 @@ public class MorphToMany extends BelongsToMany {
         }
 
         IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
-        QueryChainWrapper<R> wrapper = relatedRepository.query().in(RelationUtils.getColumn(foreignField), relatedPivotKeyValueList);
+        QueryWrapper<R> wrapper = new QueryWrapper<>();
+        wrapper.in(RelationUtils.getColumn(foreignField), relatedPivotKeyValueList);
         List<R> results = relatedRepository.list(wrapper);
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (o1, o2) -> o1));

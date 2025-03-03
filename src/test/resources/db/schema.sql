@@ -1,0 +1,11 @@
+CREATE TABLE user (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
+    email VARCHAR(100)
+);
+
+CREATE TABLE phone (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    number VARCHAR(20) NOT NULL,
+    user_id BIGINT
+);
