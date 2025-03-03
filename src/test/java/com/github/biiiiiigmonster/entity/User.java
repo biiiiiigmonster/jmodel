@@ -13,7 +13,7 @@ import lombok.EqualsAndHashCode;
 import java.util.List;
 
 @Data
-@TableName("user")
+@TableName
 @EqualsAndHashCode(callSuper = false)
 public class User extends Model<User> {
     @TableId

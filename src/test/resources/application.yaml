@@ -1,18 +1,25 @@
 spring:
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/jmodel?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&connectTimeout=5000
-    username: root
-    password: root
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=TRUE
+    username: sa
+    password:
   sql:
     init:
       schema-locations: classpath:db/schema.sql
       data-locations: classpath:db/data.sql
-      mode: always           # 添加这行，确保每次启动都执行 SQL
-      continue-on-error: true    # 添加这行，防止SQL执行错误导致应用启动失败
+      mode: always
+  h2:
+    console:
+      enabled: true
 
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    jdbc-type-for-null: null
   mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.github.biiiiiigmonster.entity
+  global-config:
+    db-config:
+      id-type: auto
+      table-prefix: t_

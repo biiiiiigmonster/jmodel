@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@TableName("history")
+@TableName
 @EqualsAndHashCode(callSuper = false)
 public class History extends Model<History> {
     @TableId

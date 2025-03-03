@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
 import java.util.List;
 
 @Data
-@TableName("phone")
+@TableName
 @EqualsAndHashCode(callSuper = false)
 public class Phone extends Model<Phone> {
     @TableId
