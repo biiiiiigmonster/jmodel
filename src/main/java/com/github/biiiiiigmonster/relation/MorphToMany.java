@@ -3,7 +3,6 @@ package com.github.biiiiiigmonster.relation;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.biiiiiigmonster.Model;
 
@@ -14,7 +13,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class MorphToMany extends BelongsToMany {
+public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
+    protected Class<MP> morphPivotClass;
     protected Field morphPivotType;
     protected boolean inverse;
 
@@ -26,9 +26,10 @@ public class MorphToMany extends BelongsToMany {
      * @param foreignField      Tag.id                      Post.id
      * @param localField        Post.id                     Tag.id
      */
-    public MorphToMany(Field relatedField, Field morphPivotType, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField, boolean inverse) {
-        super(relatedField, foreignPivotField, relatedPivotField, foreignField, localField);
+    public MorphToMany(Field relatedField, Class<MP> morphPivotClass, Field morphPivotType, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField, boolean inverse) {
+        super(relatedField, morphPivotClass, foreignPivotField, relatedPivotField, foreignField, localField);
 
+        this.morphPivotClass = morphPivotClass;
         this.morphPivotType = morphPivotType;
         this.inverse = inverse;
     }
@@ -41,12 +42,12 @@ public class MorphToMany extends BelongsToMany {
             return new ArrayList<>();
         }
 
-        IService<?> morphPivotRepository = RelationUtils.getRelatedRepository(foreignPivotField.getDeclaringClass());
+        IService<MP> morphPivotRepository = (IService<MP>) RelationUtils.getRelatedRepository(morphPivotClass);
         Class<?> morphPivotTypeClass = inverse ? foreignField.getDeclaringClass() : localField.getDeclaringClass();
-        QueryChainWrapper<?> pivotWrapper = morphPivotRepository.query()
-                .eq(RelationUtils.getColumn(morphPivotType), Relation.getMorphAlias(morphPivotTypeClass)) // localField?
+        QueryWrapper<MP> pivotWrapper = new QueryWrapper<>();
+        pivotWrapper.eq(RelationUtils.getColumn(morphPivotType), Relation.getMorphAlias(morphPivotTypeClass))
                 .in(RelationUtils.getColumn(foreignPivotField), localKeyValueList);
-        List<MorphPivot<?>> morphPivots = (List<MorphPivot<?>>) pivotWrapper.list();
+        List<MP> morphPivots = morphPivotRepository.list(pivotWrapper);
         List<?> relatedPivotKeyValueList = relatedKeyValueList(morphPivots, relatedPivotField);
         if (ObjectUtil.isEmpty(relatedPivotKeyValueList)) {
             return new ArrayList<>();
@@ -58,7 +59,7 @@ public class MorphToMany extends BelongsToMany {
         List<R> results = relatedRepository.list(wrapper);
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (o1, o2) -> o1));
-        Map<?, List<MorphPivot<?>>> morphPivotDictionary = morphPivots.stream()
+        Map<?, List<MP>> morphPivotDictionary = morphPivots.stream()
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignPivotField)));
         models.forEach(o -> {
             List<R> valList = morphPivotDictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>())

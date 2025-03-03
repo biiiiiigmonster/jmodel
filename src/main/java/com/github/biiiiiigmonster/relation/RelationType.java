@@ -70,8 +70,9 @@ public enum RelationType {
             String relatedPivotKey = StringUtils.isNotBlank(relation.relatedPivotKey()) ? relation.relatedPivotKey() : RelationUtils.getForeignKey(RelationUtils.getGenericType(field));
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
             String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getPrimaryKey(RelationUtils.getGenericType(field));
-            return new com.github.biiiiiigmonster.relation.BelongsToMany(
+            return new com.github.biiiiiigmonster.relation.BelongsToMany<>(
                     field,
+                    relation.using(),
                     ReflectUtil.getField(relation.using(), foreignPivotKey),
                     ReflectUtil.getField(relation.using(), relatedPivotKey),
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
@@ -170,8 +171,9 @@ public enum RelationType {
             String relatedPivotKey = StringUtils.isNotBlank(relation.relatedPivotKey()) ? relation.relatedPivotKey() : RelationUtils.getForeignKey(RelationUtils.getGenericType(field));
             String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getPrimaryKey(RelationUtils.getGenericType(field));
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
-            return new com.github.biiiiiigmonster.relation.MorphToMany(
+            return new com.github.biiiiiigmonster.relation.MorphToMany<>(
                     field,
+                    relation.using(),
                     ReflectUtil.getField(relation.using(), pivotType),
                     ReflectUtil.getField(relation.using(), pivotId),
                     ReflectUtil.getField(relation.using(), relatedPivotKey),
@@ -190,8 +192,9 @@ public enum RelationType {
             String foreignPivotKey = StringUtils.isNotBlank(relation.foreignPivotKey()) ? relation.foreignPivotKey() : RelationUtils.getForeignKey(RelationUtils.getGenericType(field));
             String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getPrimaryKey(RelationUtils.getGenericType(field));
             String ownerKey = StringUtils.isNotBlank(relation.ownerKey()) ? relation.ownerKey() : RelationUtils.getPrimaryKey(field.getDeclaringClass());
-            return new com.github.biiiiiigmonster.relation.MorphToMany(
+            return new com.github.biiiiiigmonster.relation.MorphToMany<>(
                     field,
+                    relation.using(),
                     ReflectUtil.getField(relation.using(), pivotType),
                     ReflectUtil.getField(relation.using(), foreignPivotKey),
                     ReflectUtil.getField(relation.using(), pivotId),

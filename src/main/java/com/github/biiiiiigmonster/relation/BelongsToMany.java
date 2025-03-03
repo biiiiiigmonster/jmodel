@@ -3,7 +3,6 @@ package com.github.biiiiiigmonster.relation;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.biiiiiigmonster.Model;
 
@@ -14,7 +13,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class BelongsToMany extends Relation {
+public class BelongsToMany<P extends Pivot<?>> extends Relation {
+    protected Class<P> pivotClass;
     protected Field foreignPivotField;
     protected Field relatedPivotField;
     protected Field foreignField;
@@ -27,9 +27,10 @@ public class BelongsToMany extends Relation {
      * @param localField        User.id
      * @param foreignField      Role.id
      */
-    public BelongsToMany(Field relatedField, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField) {
+    public BelongsToMany(Field relatedField, Class<P> pivotClass, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField) {
         super(relatedField);
 
+        this.pivotClass = pivotClass;
         this.foreignPivotField = foreignPivotField;
         this.relatedPivotField = relatedPivotField;
         this.foreignField = foreignField;
@@ -44,10 +45,10 @@ public class BelongsToMany extends Relation {
             return new ArrayList<>();
         }
 
-        IService<?> pivotRepository = RelationUtils.getRelatedRepository(foreignPivotField.getDeclaringClass());
-        QueryChainWrapper<?> pivotWrapper = pivotRepository.query()
-                .in(RelationUtils.getColumn(foreignPivotField), localKeyValueList);
-        List<Pivot<?>> pivots = (List<Pivot<?>>) pivotWrapper.list();
+        IService<P> pivotRepository = (IService<P>) RelationUtils.getRelatedRepository(pivotClass);
+        QueryWrapper<P> pivotWrapper = new QueryWrapper<>();
+        pivotWrapper.in(RelationUtils.getColumn(foreignPivotField), localKeyValueList);
+        List<P> pivots = pivotRepository.list(pivotWrapper);
         List<?> relatedPivotKeyValueList = relatedKeyValueList(pivots, relatedPivotField);
         if (ObjectUtil.isEmpty(relatedPivotKeyValueList)) {
             return new ArrayList<>();
@@ -60,7 +61,7 @@ public class BelongsToMany extends Relation {
         List<R> results = relatedRepository.list(wrapper);
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (o1, o2) -> o1));
-        Map<?, List<Pivot<?>>> pivotDictionary = pivots.stream()
+        Map<?, List<P>> pivotDictionary = pivots.stream()
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignPivotField)));
         models.forEach(o -> {
             List<R> valList = pivotDictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>())
