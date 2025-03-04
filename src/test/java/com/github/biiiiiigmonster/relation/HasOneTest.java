@@ -10,7 +10,10 @@ import static org.junit.Assert.assertNotNull;
 public class HasOneTest extends BaseTest {
 
     @Test
-    public void shouldHasOneNotNull() {
+    public void shouldNotNull() {
         User user = userService.getById(1L);
+        user.load(User::getProfile);
+        assertNotNull(user.getProfile());
+        assertEquals("Happy code, happy life.", user.getProfile().getDescription());
     }
 }

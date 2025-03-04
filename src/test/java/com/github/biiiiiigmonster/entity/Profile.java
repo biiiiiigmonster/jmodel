@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 public class Profile extends Model<Profile> {
     @TableId
     private Long id;
-    private BigDecimal balance;
+    private String description;
     private Long userId;
 
     @TableField(exist = false)
