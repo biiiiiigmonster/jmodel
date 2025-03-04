@@ -58,7 +58,7 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
         wrapper.in(RelationUtils.getColumn(foreignField), relatedPivotKeyValueList);
         List<R> results = relatedRepository.list(wrapper);
         Map<?, R> dictionary = results.stream()
-                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (o1, o2) -> o1));
+                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
         Map<?, List<MP>> morphPivotDictionary = morphPivots.stream()
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignPivotField)));
         models.forEach(o -> {

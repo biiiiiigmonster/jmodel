@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class HasManyThrough<TH extends Model<?>> extends HasOneOrManyThrough<TH> {
@@ -26,14 +27,14 @@ public class HasManyThrough<TH extends Model<?>> extends HasOneOrManyThrough<TH>
     public <T extends Model<?>, R extends Model<?>> void throughMatch(List<T> models, List<TH> throughs, List<R> results) {
         Map<?, List<R>> dictionary = results.stream()
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, throughForeignField)));
-        Map<?, TH> throughDictionary = throughs.stream()
-                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (o1, o2) -> o1));
+        Map<?, List<TH>> throughDictionary = throughs.stream()
+                .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignField)));
         models.forEach(o -> {
-            List<R> valList = new ArrayList<>();
-            TH through = throughDictionary.get(ReflectUtil.getFieldValue(o, localField));
-            if (through != null) {
-                valList = dictionary.getOrDefault(ReflectUtil.getFieldValue(through, throughLocalField), new ArrayList<>());
-            }
+            List<R> valList = throughDictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>())
+                    .stream()
+                    .flatMap(th -> dictionary.get(ReflectUtil.getFieldValue(th, throughLocalField)).stream())
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
             ReflectUtil.setFieldValue(o, relatedField, valList);
         });
     }

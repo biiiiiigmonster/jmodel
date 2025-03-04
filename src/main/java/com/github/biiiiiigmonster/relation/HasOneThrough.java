@@ -24,9 +24,9 @@ public class HasOneThrough<TH extends Model<?>> extends HasOneOrManyThrough<TH> 
     @Override
     public <T extends Model<?>, R extends Model<?>> void throughMatch(List<T> models, List<TH> throughs, List<R> results) {
         Map<?, R> dictionary = results.stream()
-                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, throughForeignField), r -> r, (o1, o2) -> o1));
+                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, throughForeignField), r -> r));
         Map<?, TH> throughDictionary = throughs.stream()
-                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (o1, o2) -> o1));
+                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
         models.forEach(o -> {
             R value = null;
             TH through = throughDictionary.get(ReflectUtil.getFieldValue(o, localField));

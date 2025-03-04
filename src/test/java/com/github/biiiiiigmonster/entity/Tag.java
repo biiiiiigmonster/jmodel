@@ -4,8 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.biiiiiigmonster.Model;
-import com.github.biiiiiigmonster.relation.annotation.BelongsTo;
-import com.github.biiiiiigmonster.relation.annotation.HasMany;
+import com.github.biiiiiigmonster.relation.annotation.MorphedByMany;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -14,17 +13,16 @@ import java.util.List;
 @Data
 @TableName
 @EqualsAndHashCode(callSuper = false)
-public class Phone extends Model<Phone> {
+public class Tag extends Model<Tag> {
     @TableId
     private Long id;
-    private String number;
-    private Long userId;
-    
-    @TableField(exist = false)
-    @BelongsTo
-    private User user;
+    private String name;
 
     @TableField(exist = false)
-    @HasMany
-    private List<History> histories;
+    @MorphedByMany(using = Taggable.class)
+    private List<Post> posts;
+
+    @TableField(exist = false)
+    @MorphedByMany(using = Taggable.class)
+    private List<Video> videos;
 }

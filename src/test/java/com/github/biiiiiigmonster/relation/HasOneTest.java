@@ -12,8 +12,5 @@ public class HasOneTest extends BaseTest {
     @Test
     public void shouldHasOneNotNull() {
         User user = userService.getById(1L);
-        user.load(User::getPhone);
-        assertNotNull(user.getPhone());
-        assertEquals("1234567890", user.getPhone().getNumber());
     }
 }

@@ -60,7 +60,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
         wrapper.in(RelationUtils.getColumn(foreignField), relatedPivotKeyValueList);
         List<R> results = relatedRepository.list(wrapper);
         Map<?, R> dictionary = results.stream()
-                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (o1, o2) -> o1));
+                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
         Map<?, List<P>> pivotDictionary = pivots.stream()
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignPivotField)));
         models.forEach(o -> {

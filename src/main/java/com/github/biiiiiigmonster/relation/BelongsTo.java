@@ -56,7 +56,7 @@ public class BelongsTo extends Relation {
         }
 
         Map<?, R> dictionary = results.stream()
-                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, ownerField), r -> r, (o1, o2) -> o1));
+                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, ownerField), r -> r));
 
         models.forEach(o -> {
             R value = dictionary.get(ReflectUtil.getFieldValue(o, foreignField));

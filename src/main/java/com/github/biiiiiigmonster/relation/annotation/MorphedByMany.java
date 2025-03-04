@@ -12,7 +12,6 @@ import java.lang.annotation.Target;
 @Relation
 public @interface MorphedByMany {
     Class<? extends MorphPivot<?>> using();
-    String name();
     String pivotType() default "";
     String pivotId() default "";
     String foreignPivotKey() default "";
