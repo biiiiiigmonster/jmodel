@@ -15,6 +15,6 @@ public class HasOneTest extends BaseTest {
         User user = userMapper.selectById(1L);
         Profile profile = user.get(User::getProfile);
         assertNotNull(profile);
-        assertEquals("Happy code, happy life.", profile.getDescription());
+        assertEquals("Software Engineer at Tech Corp", profile.getDescription());
     }
 }
