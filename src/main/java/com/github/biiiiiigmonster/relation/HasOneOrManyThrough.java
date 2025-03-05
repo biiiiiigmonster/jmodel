@@ -2,7 +2,7 @@ package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
 
 import java.lang.reflect.Field;
@@ -34,20 +34,20 @@ public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation 
             return new ArrayList<>();
         }
 
-        IService<TH> throughRepository = (IService<TH>) RelationUtils.getRelatedRepository(this.throughClass);
+        BaseMapper<TH> throughRepository = (BaseMapper<TH>) RelationUtils.getRelatedRepository(this.throughClass);
         QueryWrapper<TH> throughWrapper = new QueryWrapper<>();
         throughWrapper.in(RelationUtils.getColumn(foreignField), localKeyValueList);
-        List<TH> throughs = throughRepository.list(throughWrapper);
+        List<TH> throughs = throughRepository.selectList(throughWrapper);
         List<?> throughKeyValueList = relatedKeyValueList(throughs, throughLocalField);
         if (ObjectUtil.isEmpty(throughKeyValueList)) {
             return new ArrayList<>();
         }
 
         // 远程一对多只支持从Repository中获取
-        IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(throughForeignField.getDeclaringClass());
+        BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(throughForeignField.getDeclaringClass());
         QueryWrapper<R> wrapper = new QueryWrapper<>();
         wrapper.in(RelationUtils.getColumn(throughForeignField), throughKeyValueList);
-        List<R> results = relatedRepository.list(wrapper);
+        List<R> results = relatedRepository.selectList(wrapper);
         // 预匹配
         throughMatch(models, throughs, results);
 

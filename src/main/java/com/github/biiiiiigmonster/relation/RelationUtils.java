@@ -4,19 +4,23 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.LambdaUtils;
+import com.baomidou.mybatisplus.core.toolkit.ReflectionKit;
 import com.baomidou.mybatisplus.core.toolkit.support.ColumnCache;
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.SerializableFunction;
 import com.github.biiiiiigmonster.SerializedLambda;
 import com.github.biiiiiigmonster.relation.annotation.Related;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ClassUtils;
+import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -39,7 +43,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class RelationUtils implements BeanPostProcessor {
-    private static final Map<Class<?>, IService<?>> RELATED_REPOSITORY_MAP = new HashMap<>();
+    private static final Map<Class<?>, BaseMapper<?>> RELATED_REPOSITORY_MAP = new HashMap<>();
 
     private static final Map<Class<?>, List<Map<String, Object>>> RELATED_MAP = new HashMap<>();
 
@@ -54,6 +58,9 @@ public class RelationUtils implements BeanPostProcessor {
 
         load(ListUtil.toList(obj), processRelations(obj.getClass(), Arrays.asList(relations)), false);
     }
+
+    @Autowired
+    private ApplicationContext context;
 
     @SafeVarargs
     public static <T extends Model<?>, R> void load(T obj, SerializableFunction<T, R>... relations) {
@@ -315,7 +322,7 @@ public class RelationUtils implements BeanPostProcessor {
         );
     }
 
-    public static IService<?> getRelatedRepository(Class<?> clazz) {
+    public static BaseMapper<?> getRelatedRepository(Class<?> clazz) {
         return RELATED_REPOSITORY_MAP.get(clazz);
     }
 
@@ -392,7 +399,6 @@ public class RelationUtils implements BeanPostProcessor {
      */
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
-        relatedRepository(bean);
         Class<?> clazz = bean.getClass();
         for (Method method : clazz.getDeclaredMethods()) {
             related(bean, method, method.getAnnotation(Related.class));
@@ -401,14 +407,13 @@ public class RelationUtils implements BeanPostProcessor {
         return bean;
     }
 
-    private void relatedRepository(Object bean) {
-        ClassUtils.getAllInterfaces(bean.getClass()).stream()
-                .filter(IService.class::isAssignableFrom)
-                .findFirst()
-                .ifPresent(iClazz -> {
-                    Class<?> typeClass = getTypeClass((ParameterizedType) iClazz.getGenericInterfaces()[0]);
-                    RELATED_REPOSITORY_MAP.put(typeClass, (IService<?>) bean);
-                });
+    @PostConstruct
+    public void init() {
+        context.getBeansOfType(BaseMapper.class).forEach((beanName, mapper) -> {
+            Class<?> mapperClass = AopUtils.isAopProxy(mapper) ? AopUtils.getTargetClass(beanName) : mapper.getClass();
+            Class<?> typeClass = ReflectionKit.getSuperClassGenericType(mapperClass, BaseMapper.class, 0);
+            RELATED_REPOSITORY_MAP.put(typeClass, mapper);
+        });
     }
 
     private void related(Object bean, Method method, Related annotation) {

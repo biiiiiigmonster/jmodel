@@ -4,11 +4,9 @@ spring:
     url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=TRUE
     username: sa
     password:
-  sql:
-    init:
-      schema-locations: classpath:db/schema.sql
-      data-locations: classpath:db/data.sql
-      mode: always
+    initialization-mode: always
+    schema: classpath:db/schema.sql
+    data: classpath:db/data.sql
   h2:
     console:
       enabled: true

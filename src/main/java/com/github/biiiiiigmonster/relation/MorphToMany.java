@@ -3,7 +3,7 @@ package com.github.biiiiiigmonster.relation;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
 
 import java.lang.reflect.Field;
@@ -42,21 +42,21 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
             return new ArrayList<>();
         }
 
-        IService<MP> morphPivotRepository = (IService<MP>) RelationUtils.getRelatedRepository(morphPivotClass);
+        BaseMapper<MP> morphPivotRepository = (BaseMapper<MP>) RelationUtils.getRelatedRepository(morphPivotClass);
         Class<?> morphPivotTypeClass = inverse ? foreignField.getDeclaringClass() : localField.getDeclaringClass();
         QueryWrapper<MP> pivotWrapper = new QueryWrapper<>();
         pivotWrapper.eq(RelationUtils.getColumn(morphPivotType), Relation.getMorphAlias(morphPivotTypeClass))
                 .in(RelationUtils.getColumn(foreignPivotField), localKeyValueList);
-        List<MP> morphPivots = morphPivotRepository.list(pivotWrapper);
+        List<MP> morphPivots = morphPivotRepository.selectList(pivotWrapper);
         List<?> relatedPivotKeyValueList = relatedKeyValueList(morphPivots, relatedPivotField);
         if (ObjectUtil.isEmpty(relatedPivotKeyValueList)) {
             return new ArrayList<>();
         }
 
-        IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
+        BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
         QueryWrapper<R> wrapper = new QueryWrapper<>();
         wrapper.in(RelationUtils.getColumn(foreignField), relatedPivotKeyValueList);
-        List<R> results = relatedRepository.list(wrapper);
+        List<R> results = relatedRepository.selectList(wrapper);
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
         Map<?, List<MP>> morphPivotDictionary = morphPivots.stream()

@@ -1,6 +1,7 @@
 package com.github.biiiiiigmonster.relation;
 
 import com.github.biiiiiigmonster.BaseTest;
+import com.github.biiiiiigmonster.entity.Profile;
 import com.github.biiiiiigmonster.entity.User;
 import org.junit.Test;
 
@@ -11,9 +12,9 @@ public class HasOneTest extends BaseTest {
 
     @Test
     public void shouldNotNull() {
-        User user = userService.getById(1L);
-        user.load(User::getProfile);
-        assertNotNull(user.getProfile());
-        assertEquals("Happy code, happy life.", user.getProfile().getDescription());
+        User user = userMapper.selectById(1L);
+        Profile profile = user.get(User::getProfile);
+        assertNotNull(profile);
+        assertEquals("Happy code, happy life.", profile.getDescription());
     }
 }

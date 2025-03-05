@@ -1,6 +1,6 @@
 package com.github.biiiiiigmonster;
 
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.attribute.AttributeUtils;
 import com.github.biiiiiigmonster.relation.Relation;
 import com.github.biiiiiigmonster.relation.RelationOption;
@@ -41,19 +41,19 @@ public abstract class Model<T extends Model<?>> {
     // wip: event
     @SuppressWarnings("unchecked")
     public Boolean save() {
-        IService<T> relatedRepository = (IService<T>) RelationUtils.getRelatedRepository(this.getClass());
-        boolean result = relatedRepository.saveOrUpdate((T) this);
+        BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(this.getClass());
+        int insert = relatedRepository.insert((T) this);
 
-        return result;
+        return insert > 0;
     }
 
     // wip: event
     @SuppressWarnings("unchecked")
     public Boolean delete() {
-        IService<T> relatedRepository = (IService<T>) RelationUtils.getRelatedRepository(this.getClass());
-        boolean result = relatedRepository.removeById((T) this);
+        BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(this.getClass());
+        int i = relatedRepository.deleteById((T) this);
 
-        return result;
+        return i > 0;
     }
 
     @SafeVarargs

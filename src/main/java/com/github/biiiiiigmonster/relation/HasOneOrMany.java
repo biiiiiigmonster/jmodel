@@ -2,7 +2,7 @@ package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
 
 import java.lang.reflect.Field;
@@ -34,9 +34,9 @@ public abstract class HasOneOrMany extends Relation {
 
     @SuppressWarnings("unchecked")
     private <R extends Model<?>> List<R> byRelatedRepository(List<?> localKeyValueList) {
-        IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
+        BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
         QueryWrapper<R> wrapper = new QueryWrapper<>();
         wrapper.in(RelationUtils.getColumn(foreignField), localKeyValueList);
-        return relatedRepository.list(wrapper);
+        return relatedRepository.selectList(wrapper);
     }
 }

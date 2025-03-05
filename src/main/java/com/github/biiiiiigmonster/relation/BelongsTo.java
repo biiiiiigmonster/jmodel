@@ -3,7 +3,7 @@ package com.github.biiiiiigmonster.relation;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
 
 import java.lang.reflect.Field;
@@ -42,10 +42,10 @@ public class BelongsTo extends Relation {
 
     @SuppressWarnings("unchecked")
     private <R extends Model<?>> List<R> byRelatedRepository(List<?> ownerKeyValueList) {
-        IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(ownerField.getDeclaringClass());
+        BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(ownerField.getDeclaringClass());
         QueryWrapper<R> wrapper = new QueryWrapper<>();
         wrapper.in(RelationUtils.getColumn(ownerField), ownerKeyValueList);
-        return relatedRepository.list(wrapper);
+        return relatedRepository.selectList(wrapper);
     }
 
     @Override

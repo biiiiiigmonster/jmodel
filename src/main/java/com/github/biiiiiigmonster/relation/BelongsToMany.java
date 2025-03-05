@@ -3,7 +3,7 @@ package com.github.biiiiiigmonster.relation;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
 
 import java.lang.reflect.Field;
@@ -45,20 +45,20 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
             return new ArrayList<>();
         }
 
-        IService<P> pivotRepository = (IService<P>) RelationUtils.getRelatedRepository(pivotClass);
+        BaseMapper<P> pivotRepository = (BaseMapper<P>) RelationUtils.getRelatedRepository(pivotClass);
         QueryWrapper<P> pivotWrapper = new QueryWrapper<>();
         pivotWrapper.in(RelationUtils.getColumn(foreignPivotField), localKeyValueList);
-        List<P> pivots = pivotRepository.list(pivotWrapper);
+        List<P> pivots = pivotRepository.selectList(pivotWrapper);
         List<?> relatedPivotKeyValueList = relatedKeyValueList(pivots, relatedPivotField);
         if (ObjectUtil.isEmpty(relatedPivotKeyValueList)) {
             return new ArrayList<>();
         }
 
         // 多对多只支持从Repository中获取
-        IService<R> relatedRepository = (IService<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
+        BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
         QueryWrapper<R> wrapper = new QueryWrapper<>();
         wrapper.in(RelationUtils.getColumn(foreignField), relatedPivotKeyValueList);
-        List<R> results = relatedRepository.list(wrapper);
+        List<R> results = relatedRepository.selectList(wrapper);
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
         Map<?, List<P>> pivotDictionary = pivots.stream()
