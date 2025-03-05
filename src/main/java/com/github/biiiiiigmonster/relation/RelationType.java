@@ -76,8 +76,8 @@ public enum RelationType {
                     relation.using(),
                     ReflectUtil.getField(relation.using(), foreignPivotKey),
                     ReflectUtil.getField(relation.using(), relatedPivotKey),
-                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
-                    ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey)
+                    ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey),
+                    ReflectUtil.getField(field.getDeclaringClass(), localKey)
             );
         }
     },
@@ -151,14 +151,13 @@ public enum RelationType {
         @Override
         public com.github.biiiiiigmonster.relation.MorphTo getRelation(Field field) {
             MorphTo relation = field.getAnnotation(MorphTo.class);
-            String name = StringUtils.isNotBlank(relation.name()) ? relation.name() : field.getName();
-            String type = StringUtils.isNotBlank(relation.type()) ? relation.type() : String.format("%sType", name);
-            String id = StringUtils.isNotBlank(relation.id()) ? relation.id() : String.format("%sId", name);
+            String type = StringUtils.isNotBlank(relation.type()) ? relation.type() : String.format("%sType", relation.name());
+            String id = StringUtils.isNotBlank(relation.id()) ? relation.id() : String.format("%sId", relation.name());
             String ownerKey = StringUtils.isNotBlank(relation.ownerKey()) ? relation.ownerKey() : RelationUtils.getPrimaryKey(field.getType());
             return new com.github.biiiiiigmonster.relation.MorphTo(
                     field,
-                    ReflectUtil.getField(field.getType(), type),
-                    ReflectUtil.getField(field.getType(), id),
+                    ReflectUtil.getField(field.getDeclaringClass(), type),
+                    ReflectUtil.getField(field.getDeclaringClass(), id),
                     ReflectUtil.getField(field.getType(), ownerKey)
             );
         }

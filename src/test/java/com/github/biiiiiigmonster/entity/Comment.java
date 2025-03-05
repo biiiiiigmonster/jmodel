@@ -19,10 +19,10 @@ public class Comment extends Model<Comment> {
     private String commentableType;
 
     @TableField(exist = false)
-    @MorphTo
+    @MorphTo(name = "commentable")
     private Post post;
 
     @TableField(exist = false)
-    @MorphTo
+    @MorphTo(name = "commentable")
     private Video video;
 }

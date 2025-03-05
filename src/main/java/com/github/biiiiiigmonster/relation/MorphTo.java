@@ -29,7 +29,7 @@ public class MorphTo extends BelongsTo {
 
     protected <T extends Model<?>> List<T> filterMorph(List<T> models) {
         return models.stream()
-                .filter(model -> ReflectUtil.getFieldValue(model, morphType) == Relation.getMorphAlias(model.getClass()))
+                .filter(model -> ReflectUtil.getFieldValue(model, morphType).equals(Relation.getMorphAlias(ownerField.getDeclaringClass())))
                 .collect(Collectors.toList());
     }
 

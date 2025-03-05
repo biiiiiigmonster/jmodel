@@ -19,10 +19,10 @@ public class Image extends Model<Image> {
     private String imageableType;
 
     @TableField(exist = false)
-    @MorphTo
+    @MorphTo(name = "imageable")
     private User user;
 
     @TableField(exist = false)
-    @MorphTo
+    @MorphTo(name = "imageable")
     private Post post;
 }
