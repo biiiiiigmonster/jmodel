@@ -23,7 +23,6 @@ public class MorphTo extends BelongsTo {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         return super.getEager(filterMorph(models));
     }
@@ -35,7 +34,6 @@ public class MorphTo extends BelongsTo {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
         super.match(filterMorph(models), results);
     }

@@ -29,7 +29,6 @@ public class BelongsTo extends Relation {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> ownerKeyValueList = relatedKeyValueList(models, foreignField);
         if (ObjectUtil.isEmpty(ownerKeyValueList)) {

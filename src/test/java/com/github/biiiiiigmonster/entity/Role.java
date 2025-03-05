@@ -5,8 +5,6 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.relation.annotation.BelongsToMany;
-import com.github.biiiiiigmonster.relation.annotation.HasManyThrough;
-import com.github.biiiiiigmonster.relation.annotation.HasOne;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

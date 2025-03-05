@@ -21,7 +21,6 @@ public abstract class HasOneOrMany extends Relation {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
         if (ObjectUtil.isEmpty(localKeyValueList)) {

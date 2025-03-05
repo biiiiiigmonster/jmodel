@@ -209,7 +209,6 @@ public class RelationUtils implements BeanPostProcessor {
      * @param loadForce
      * @param <T>
      */
-    @SuppressWarnings("unchecked")
     private static <T extends Model<?>> void load(List<T> models, List<RelationOption<?>> list, boolean loadForce) {
         if (ObjectUtil.isEmpty(models)) {
             return;
