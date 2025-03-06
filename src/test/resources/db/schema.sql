@@ -75,3 +75,10 @@ CREATE TABLE t_video
     title VARCHAR(255),
     url   VARCHAR(255)
 );
+
+CREATE TABLE t_likes
+(
+    id      BIGINT PRIMARY KEY AUTO_INCREMENT,
+    post_id BIGINT,
+    praise  VARCHAR(255)
+);

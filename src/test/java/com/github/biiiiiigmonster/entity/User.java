@@ -40,7 +40,7 @@ public class User extends Model<User> {
 
     @TableField(exist = false)
     @HasManyThrough(through = Post.class)
-    private List<Comment> comments;
+    private List<Likes> commentLikes;
 
     @TableField(exist = false)
     @BelongsToMany(using = UserRole.class)
