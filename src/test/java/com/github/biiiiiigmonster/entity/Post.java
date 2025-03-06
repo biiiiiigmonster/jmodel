@@ -29,11 +29,11 @@ public class Post extends Model<Post> {
     private User user;
 
     @TableField(exist = false)
-    @MorphOne(name = "imageable")
+    @MorphOne
     private Image image;
 
     @TableField(exist = false)
-    @MorphMany(name = "commentable")
+    @MorphMany
     private List<Comment> comments;
 
     @TableField(exist = false)

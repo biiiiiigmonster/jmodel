@@ -47,6 +47,6 @@ public class User extends Model<User> {
     private List<Role> roles;
 
     @TableField(exist = false)
-    @MorphOne(name = "imageable")
+    @MorphOne
     private Image image;
 }

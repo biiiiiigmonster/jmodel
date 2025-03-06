@@ -2,22 +2,20 @@ package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.github.biiiiiigmonster.Model;
+import com.github.biiiiiigmonster.relation.annotation.Morph;
 import com.github.biiiiiigmonster.relation.annotation.MorphAlias;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import com.github.biiiiiigmonster.relation.annotation.MorphName;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -29,7 +27,7 @@ import java.util.stream.Stream;
 public abstract class Relation {
     protected Field relatedField;
 
-    private static final Map<String, String> MORPH_MAP = new HashMap<>();
+    private static final Map<String, String> MORPH_ALIAS_MAP = new HashMap<>();
 
     public Relation(Field relatedField) {
         this.relatedField = relatedField;
@@ -71,10 +69,27 @@ public abstract class Relation {
 
     public static String getMorphAlias(Class<?> clazz, Class<?> with) {
         String key = clazz.getName() + with.getName();
-        return MORPH_MAP.computeIfAbsent(key, k -> Arrays.stream(clazz.getAnnotationsByType(MorphAlias.class))
+        return MORPH_ALIAS_MAP.computeIfAbsent(key, k -> Arrays.stream(clazz.getAnnotationsByType(MorphAlias.class))
                 .filter(m -> m.in().length == 0 || Arrays.stream(m.in()).collect(Collectors.toSet()).contains(with))
                 .max(Comparator.comparingInt(m -> m.in().length))
                 .map(m -> StringUtils.isBlank(m.value()) ? clazz.getSimpleName() : m.value())
                 .orElse(clazz.getName()));
+    }
+
+    public static String[] getMorph(Class<?> clazz) {
+        Morph morph = clazz.getAnnotation(Morph.class);
+        if (morph != null) {
+            return new String[]{morph.type(), morph.id()};
+        }
+
+        String name = StrUtil.lowerFirst(clazz.getSimpleName());
+        MorphName morphName = clazz.getAnnotation(MorphName.class);
+        if (morphName != null && StringUtils.isNotBlank(morphName.value())) {
+            name = morphName.value();
+        }
+
+        String type = String.format("%sType", name);
+        String id = String.format("%sId", name);
+        return new String[]{type, id};
     }
 }

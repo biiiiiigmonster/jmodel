@@ -23,7 +23,7 @@ public class Video extends Model<Video> {
     private String url;
 
     @TableField(exist = false)
-    @MorphMany(name = "commentable")
+    @MorphMany
     private List<Comment> comments;
 
     @TableField(exist = false)

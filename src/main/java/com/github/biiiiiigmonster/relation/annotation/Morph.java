@@ -6,10 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@Relation
-public @interface MorphOne {
-    String type() default "";
-    String id() default "";
-    String localKey() default "";
+@Target(ElementType.TYPE)
+public @interface Morph {
+    String type();
+    String id();
 }
