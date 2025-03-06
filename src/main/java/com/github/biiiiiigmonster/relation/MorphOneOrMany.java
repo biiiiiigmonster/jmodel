@@ -29,8 +29,12 @@ public abstract class MorphOneOrMany extends HasOneOrMany {
         // 多态只支持从Repository中获取
         BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
         QueryWrapper<R> wrapper = new QueryWrapper<>();
-        wrapper.eq(RelationUtils.getColumn(morphType), Relation.getMorphAlias(localField.getDeclaringClass()))
+        wrapper.eq(RelationUtils.getColumn(morphType), getMorphAlias())
                 .in(RelationUtils.getColumn(foreignField), localKeyValueList);
         return relatedRepository.selectList(wrapper);
+    }
+
+    protected String getMorphAlias() {
+        return Relation.getMorphAlias(localField.getDeclaringClass(), foreignField.getDeclaringClass());
     }
 }

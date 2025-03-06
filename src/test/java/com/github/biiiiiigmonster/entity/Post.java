@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.relation.annotation.BelongsTo;
+import com.github.biiiiiigmonster.relation.annotation.MorphAlias;
 import com.github.biiiiiigmonster.relation.annotation.MorphMany;
 import com.github.biiiiiigmonster.relation.annotation.MorphOne;
 import com.github.biiiiiigmonster.relation.annotation.MorphToMany;
@@ -16,6 +17,7 @@ import java.util.List;
 @Data
 @TableName
 @EqualsAndHashCode(callSuper = false)
+@MorphAlias
 public class Post extends Model<Post> {
     @TableId
     private Long id;

@@ -43,9 +43,11 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
         }
 
         BaseMapper<MP> morphPivotRepository = (BaseMapper<MP>) RelationUtils.getRelatedRepository(morphPivotClass);
-        Class<?> morphPivotTypeClass = inverse ? foreignField.getDeclaringClass() : localField.getDeclaringClass();
+        String morphAlias = inverse
+                ? Relation.getMorphAlias(foreignField.getDeclaringClass(), localField.getDeclaringClass())
+                : Relation.getMorphAlias(localField.getDeclaringClass(), foreignField.getDeclaringClass());
         QueryWrapper<MP> pivotWrapper = new QueryWrapper<>();
-        pivotWrapper.eq(RelationUtils.getColumn(morphPivotType), Relation.getMorphAlias(morphPivotTypeClass))
+        pivotWrapper.eq(RelationUtils.getColumn(morphPivotType), morphAlias)
                 .in(RelationUtils.getColumn(foreignPivotField), localKeyValueList);
         List<MP> morphPivots = morphPivotRepository.selectList(pivotWrapper);
         List<?> relatedPivotKeyValueList = relatedKeyValueList(morphPivots, relatedPivotField);

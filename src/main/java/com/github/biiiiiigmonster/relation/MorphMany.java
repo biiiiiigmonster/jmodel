@@ -28,7 +28,7 @@ public class MorphMany extends MorphOneOrMany {
         }
 
         Map<?, List<R>> dictionary = results.stream()
-                .filter(r -> ReflectUtil.getFieldValue(r, morphType).equals(Relation.getMorphAlias(localField.getDeclaringClass())))
+                .filter(r -> ReflectUtil.getFieldValue(r, morphType).equals(getMorphAlias()))
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignField)));
 
         models.forEach(o -> {

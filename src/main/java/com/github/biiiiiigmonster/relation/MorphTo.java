@@ -28,8 +28,9 @@ public class MorphTo extends BelongsTo {
     }
 
     protected <T extends Model<?>> List<T> filterMorph(List<T> models) {
+        String morphAlias = Relation.getMorphAlias(ownerField.getDeclaringClass(), foreignField.getDeclaringClass());
         return models.stream()
-                .filter(model -> ReflectUtil.getFieldValue(model, morphType).equals(Relation.getMorphAlias(ownerField.getDeclaringClass())))
+                .filter(model -> ReflectUtil.getFieldValue(model, morphType).equals(morphAlias))
                 .collect(Collectors.toList());
     }
 

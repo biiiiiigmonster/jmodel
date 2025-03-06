@@ -9,6 +9,7 @@ import com.github.biiiiiigmonster.relation.annotation.HasMany;
 import com.github.biiiiiigmonster.relation.annotation.HasManyThrough;
 import com.github.biiiiiigmonster.relation.annotation.HasOne;
 import com.github.biiiiiigmonster.relation.annotation.HasOneThrough;
+import com.github.biiiiiigmonster.relation.annotation.MorphAlias;
 import com.github.biiiiiigmonster.relation.annotation.MorphOne;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,6 +19,7 @@ import java.util.List;
 @Data
 @TableName
 @EqualsAndHashCode(callSuper = false)
+@MorphAlias
 public class User extends Model<User> {
     @TableId
     private Long id;
