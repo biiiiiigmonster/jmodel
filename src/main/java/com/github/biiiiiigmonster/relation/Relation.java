@@ -29,6 +29,8 @@ public abstract class Relation {
 
     private static final Map<String, String> MORPH_ALIAS_MAP = new HashMap<>();
 
+    private static final Map<String, String[]> MORPH_MAP = new HashMap<>();
+
     public Relation(Field relatedField) {
         this.relatedField = relatedField;
     }
@@ -77,19 +79,22 @@ public abstract class Relation {
     }
 
     public static String[] getMorph(Class<?> clazz) {
-        Morph morph = clazz.getAnnotation(Morph.class);
-        if (morph != null) {
-            return new String[]{morph.type(), morph.id()};
-        }
+        String key = clazz.getName();
+        return MORPH_MAP.computeIfAbsent(key, k -> {
+            Morph morph = clazz.getAnnotation(Morph.class);
+            if (morph != null) {
+                return new String[]{morph.type(), morph.id()};
+            }
 
-        String name = StrUtil.lowerFirst(clazz.getSimpleName());
-        MorphName morphName = clazz.getAnnotation(MorphName.class);
-        if (morphName != null && StringUtils.isNotBlank(morphName.value())) {
-            name = morphName.value();
-        }
+            String name = StrUtil.lowerFirst(clazz.getSimpleName());
+            MorphName morphName = clazz.getAnnotation(MorphName.class);
+            if (morphName != null && StringUtils.isNotBlank(morphName.value())) {
+                name = morphName.value();
+            }
 
-        String type = String.format("%sType", name);
-        String id = String.format("%sId", name);
-        return new String[]{type, id};
+            String type = String.format("%sType", name);
+            String id = String.format("%sId", name);
+            return new String[]{type, id};
+        });
     }
 }
