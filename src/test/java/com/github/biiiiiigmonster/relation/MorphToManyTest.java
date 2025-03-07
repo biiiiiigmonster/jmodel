@@ -6,6 +6,7 @@ import com.github.biiiiiigmonster.entity.Tag;
 import com.github.biiiiiigmonster.entity.Video;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -41,5 +42,30 @@ public class MorphToManyTest extends BaseTest {
         assertEquals(2, tags.size());
         assertEquals("Testing", tags.get(0).getName());
         assertEquals("DevOps", tags.get(1).getName());
+    }
+
+    @Test
+    public void shouldLoadMorphToManyForList() {
+        // 使用selectBatchIds获取文章列表
+        List<Post> postList = postMapper.selectBatchIds(Arrays.asList(1L, 2L));
+        assertEquals(2, postList.size());
+
+        // 使用RelationUtils.load加载关联数据
+        RelationUtils.load(postList, Post::getTags);
+
+        // 直接使用getTags()获取已加载的数据
+        Post post1 = postList.get(0);
+        List<Tag> tags1 = post1.getTags();
+        assertNotNull(tags1);
+        assertEquals(2, tags1.size());
+        assertEquals("Java", tags1.get(0).getName());
+        assertEquals("Spring", tags1.get(1).getName());
+
+        Post post2 = postList.get(1);
+        List<Tag> tags2 = post2.getTags();
+        assertNotNull(tags2);
+        assertEquals(2, tags2.size());
+        assertEquals("JavaScript", tags2.get(0).getName());
+        assertEquals("React", tags2.get(1).getName());
     }
 }
