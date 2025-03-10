@@ -8,13 +8,14 @@ import lombok.Getter;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
 public class RelationOption<T extends Model<?>> {
-    private List<RelationOption<? extends Model<?>>> nestedRelations;
+    private List<RelationOption<? extends Model<?>>> nestedRelations = new ArrayList<>();
     private final Field relatedField;
     private RelationType relationType;
 
@@ -40,12 +41,14 @@ public class RelationOption<T extends Model<?>> {
         return new RelationOption<>(clazz, fieldName);
     }
 
-    public <R extends Model<?>, F> void appendNested(SerializableFunction<R, F>... relations) {
+    public <R extends Model<?>, F> RelationOption<T> appendNested(SerializableFunction<R, F>... relations) {
         nestedRelations.addAll(Arrays.stream(relations).map(RelationOption::of).collect(Collectors.toList()));
+        return this;
     }
 
-    public <R extends Model<?>> void appendNested(RelationOption<R>... relations) {
+    public <R extends Model<?>> RelationOption<T> appendNested(RelationOption<R>... relations) {
         nestedRelations.addAll(Arrays.stream(relations).collect(Collectors.toList()));
+        return this;
     }
 
     public void nested(List<RelationOption<?>> relations) {
