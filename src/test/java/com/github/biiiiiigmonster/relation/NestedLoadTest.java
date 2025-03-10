@@ -58,7 +58,7 @@ public class NestedLoadTest extends BaseTest {
     }
 
     @Test
-    public void shouldLoadPostsWithTagsWhenPostsEmpty() {
+    public void shouldLoadPostsWithTagsWhenOneOfPostsEmpty() {
         // 使用selectBatchIds获取用户列表，包含一个没有关联文章的用户
         List<User> userList = userMapper.selectBatchIds(Arrays.asList(1L, 10L));
         assertEquals(2, userList.size());
@@ -80,6 +80,24 @@ public class NestedLoadTest extends BaseTest {
         assertEquals("Spring", tags1.get(1).getName());
 
         // 验证没有关联文章的用户
+        User user2 = userList.get(1);
+        List<Post> posts2 = user2.getPosts();
+        assertEquals(0, posts2.size());
+    }
+
+    @Test
+    public void shouldLoadPostsWithTagsWhenPostsEmpty() {
+        // 使用selectBatchIds获取用户列表，包含一个没有关联文章的用户
+        List<User> userList = userMapper.selectBatchIds(Arrays.asList(10L, 11L));
+        assertEquals(2, userList.size());
+
+        // 使用RelationUtils.load加载嵌套关联数据
+        RelationUtils.load(userList, "posts.tags");
+
+        User user1 = userList.get(0);
+        List<Post> posts1 = user1.getPosts();
+        assertEquals(0, posts1.size());
+
         User user2 = userList.get(1);
         List<Post> posts2 = user2.getPosts();
         assertEquals(0, posts2.size());
