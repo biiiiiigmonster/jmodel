@@ -16,7 +16,7 @@ import lombok.EqualsAndHashCode;
 public class Comment extends Model<Comment> {
     @TableId
     private Long id;
-    private String context;
+    private String content;
     private String commentableType;
     private Long commentableId;
 

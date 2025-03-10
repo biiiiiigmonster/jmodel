@@ -22,7 +22,7 @@ CREATE TABLE t_address
 CREATE TABLE t_comment
 (
     id               BIGINT PRIMARY KEY AUTO_INCREMENT,
-    context          VARCHAR(255),
+    content          VARCHAR(255),
     commentable_id   BIGINT,
     commentable_type VARCHAR(100)
 );

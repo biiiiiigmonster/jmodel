@@ -21,8 +21,8 @@ public class MorphManyTest extends BaseTest {
         List<Comment> comments = post.get(Post::getComments);
         assertNotNull(comments);
         assertEquals(2, comments.size());
-        assertEquals("Great tutorial!", comments.get(0).getContext());
-        assertEquals("Very helpful content", comments.get(1).getContext());
+        assertEquals("Great tutorial!", comments.get(0).getContent());
+        assertEquals("Very helpful content", comments.get(1).getContent());
     }
 
     @Test
@@ -31,7 +31,7 @@ public class MorphManyTest extends BaseTest {
         List<Comment> comments = video.get(Video::getComments);
         assertNotNull(comments);
         assertEquals(1, comments.size());
-        assertEquals("Excellent video!", comments.get(0).getContext());
+        assertEquals("Excellent video!", comments.get(0).getContent());
     }
 
     @Test
@@ -55,13 +55,13 @@ public class MorphManyTest extends BaseTest {
         List<Comment> comments1 = post1.getComments();
         assertNotNull(comments1);
         assertEquals(2, comments1.size());
-        assertEquals("Great tutorial!", comments1.get(0).getContext());
-        assertEquals("Very helpful content", comments1.get(1).getContext());
+        assertEquals("Great tutorial!", comments1.get(0).getContent());
+        assertEquals("Very helpful content", comments1.get(1).getContent());
 
         Post post2 = postList.get(1);
         List<Comment> comments2 = post2.getComments();
         assertNotNull(comments2);
         assertEquals(1, comments2.size());
-        assertEquals("Nice explanation", comments2.get(0).getContext());
+        assertEquals("Nice explanation", comments2.get(0).getContent());
     }
 }

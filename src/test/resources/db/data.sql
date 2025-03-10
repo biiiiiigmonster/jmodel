@@ -90,7 +90,7 @@ VALUES (1, 'Java'),
        (10, 'DevOps');
 
 -- Comments (基础表 10条，多态关联到Post或Video)
-INSERT INTO t_comment (id, context, commentable_id, commentable_type)
+INSERT INTO t_comment (id, content, commentable_id, commentable_type)
 VALUES (1, 'Great tutorial!', 1, 'Post'),
        (2, 'Very helpful content', 1, 'Post'),
        (3, 'Nice explanation', 2, 'Post'),
