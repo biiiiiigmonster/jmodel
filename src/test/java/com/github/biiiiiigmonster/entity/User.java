@@ -9,7 +9,7 @@ import com.github.biiiiiigmonster.relation.annotation.HasMany;
 import com.github.biiiiiigmonster.relation.annotation.HasManyThrough;
 import com.github.biiiiiigmonster.relation.annotation.HasOne;
 import com.github.biiiiiigmonster.relation.annotation.HasOneThrough;
-import com.github.biiiiiigmonster.relation.annotation.MorphAlias;
+import com.github.biiiiiigmonster.relation.annotation.config.MorphAlias;
 import com.github.biiiiiigmonster.relation.annotation.MorphOne;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

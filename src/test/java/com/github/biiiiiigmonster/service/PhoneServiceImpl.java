@@ -1,7 +1,7 @@
 package com.github.biiiiiigmonster.service;
 
 import com.github.biiiiiigmonster.entity.Phone;
-import com.github.biiiiiigmonster.relation.annotation.Related;
+import com.github.biiiiiigmonster.relation.annotation.config.Related;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

@@ -3,7 +3,7 @@ package com.github.biiiiiigmonster.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.relation.annotation.BelongsTo;
-import com.github.biiiiiigmonster.relation.annotation.MorphAlias;
+import com.github.biiiiiigmonster.relation.annotation.config.MorphAlias;
 import com.github.biiiiiigmonster.relation.annotation.MorphToMany;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

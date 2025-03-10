@@ -228,7 +228,7 @@ public enum RelationType {
 
     public static Annotation getRelationAnnotation(Field field) {
         for (Annotation annotation : field.getAnnotations()) {
-            if (annotation.annotationType().isAnnotationPresent(com.github.biiiiiigmonster.relation.annotation.Relation.class)) {
+            if (annotation.annotationType().isAnnotationPresent(com.github.biiiiiigmonster.relation.annotation.config.Relation.class)) {
                 return annotation;
             }
         }

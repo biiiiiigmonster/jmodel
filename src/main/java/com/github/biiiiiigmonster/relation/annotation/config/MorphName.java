@@ -1,6 +1,4 @@
-package com.github.biiiiiigmonster.relation.annotation;
-
-import com.github.biiiiiigmonster.Model;
+package com.github.biiiiiigmonster.relation.annotation.config;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -9,7 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface MorphAlias {
+public @interface MorphName {
     String value() default "";
-    Class<? extends Model<?>>[] in() default {};
 }

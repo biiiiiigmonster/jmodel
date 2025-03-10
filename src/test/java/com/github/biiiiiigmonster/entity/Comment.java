@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.biiiiiigmonster.Model;
-import com.github.biiiiiigmonster.relation.annotation.Morph;
+import com.github.biiiiiigmonster.relation.annotation.config.Morph;
 import com.github.biiiiiigmonster.relation.annotation.MorphTo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

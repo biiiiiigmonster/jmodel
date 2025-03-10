@@ -1,4 +1,4 @@
-package com.github.biiiiiigmonster.relation.annotation;
+package com.github.biiiiiigmonster.relation.annotation.config;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
