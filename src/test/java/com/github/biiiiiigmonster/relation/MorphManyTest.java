@@ -11,7 +11,6 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 public class MorphManyTest extends BaseTest {
 
@@ -38,7 +37,7 @@ public class MorphManyTest extends BaseTest {
     public void shouldPostMorphManyEmpty() {
         Post post = postMapper.selectById(10L);
         List<Comment> comments = post.get(Post::getComments);
-        assertNull(comments);
+        assertEquals(0, comments.size());
     }
 
     @Test

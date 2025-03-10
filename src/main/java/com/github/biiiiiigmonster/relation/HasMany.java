@@ -1,6 +1,5 @@
 package com.github.biiiiiigmonster.relation;
 
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.github.biiiiiigmonster.Model;
 
@@ -22,10 +21,6 @@ public class HasMany extends HasOneOrMany {
 
     @Override
     public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
-        if (ObjectUtil.isEmpty(results)) {
-            return;
-        }
-
         Map<?, List<R>> dictionary = results.stream()
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignField)));
 

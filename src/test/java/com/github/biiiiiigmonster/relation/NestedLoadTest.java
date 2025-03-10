@@ -1,7 +1,6 @@
 package com.github.biiiiiigmonster.relation;
 
 import com.github.biiiiiigmonster.BaseTest;
-import com.github.biiiiiigmonster.entity.Comment;
 import com.github.biiiiiigmonster.entity.Post;
 import com.github.biiiiiigmonster.entity.Tag;
 import com.github.biiiiiigmonster.entity.User;
@@ -56,5 +55,33 @@ public class NestedLoadTest extends BaseTest {
         assertEquals(2, tags3.size());
         assertEquals("Docker", tags3.get(0).getName());
         assertEquals("Cloud", tags3.get(1).getName());
+    }
+
+    @Test
+    public void shouldLoadPostsWithTagsWhenPostsEmpty() {
+        // 使用selectBatchIds获取用户列表，包含一个没有关联文章的用户
+        List<User> userList = userMapper.selectBatchIds(Arrays.asList(1L, 10L));
+        assertEquals(2, userList.size());
+
+        // 使用RelationUtils.load加载嵌套关联数据
+        RelationUtils.load(userList, "posts.tags");
+
+        // 验证第一个用户的文章标签
+        User user1 = userList.get(0);
+        List<Post> posts1 = user1.getPosts();
+        assertNotNull(posts1);
+        assertEquals(2, posts1.size());
+
+        Post post1 = posts1.get(0);
+        List<Tag> tags1 = post1.getTags();
+        assertNotNull(tags1);
+        assertEquals(2, tags1.size());
+        assertEquals("Java", tags1.get(0).getName());
+        assertEquals("Spring", tags1.get(1).getName());
+
+        // 验证没有关联文章的用户
+        User user2 = userList.get(1);
+        List<Post> posts2 = user2.getPosts();
+        assertEquals(0, posts2.size());
     }
 }

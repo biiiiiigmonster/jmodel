@@ -28,7 +28,7 @@ public class HasManyTest extends BaseTest {
     public void shouldHasManyEmpty() {
         User user = userMapper.selectById(10L);
         List<Post> posts = user.get(User::getPosts);
-        assertNull(posts);
+        assertEquals(0, posts.size());
     }
 
     @Test

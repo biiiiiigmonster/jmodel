@@ -50,10 +50,6 @@ public class BelongsTo extends Relation {
 
     @Override
     public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
-        if (ObjectUtil.isEmpty(results)) {
-            return;
-        }
-
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, ownerField), r -> r));
 
