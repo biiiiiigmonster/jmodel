@@ -63,8 +63,10 @@ public class NestedLoadTest extends BaseTest {
         List<User> userList = userMapper.selectBatchIds(Arrays.asList(1L, 2L));
         assertEquals(2, userList.size());
 
+        // 使用RelationOption.of设置嵌套关联关系
+        RelationOption<User> option = RelationOption.of(User::getPosts).appendNested(Post::getComments, Post::getTags);
         // 使用RelationUtils.load加载嵌套关联数据
-        RelationUtils.load(userList, RelationOption.of(User::getPosts).appendNested(Post::getComments, Post::getTags));
+        RelationUtils.load(userList, option);
 
         // 验证第一个用户的文章标签
         User user1 = userList.get(0);
