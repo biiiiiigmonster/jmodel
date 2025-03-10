@@ -180,7 +180,12 @@ VALUES (1, 1, 1, 'Post'),
        (37, 7, 9, 'Video'),
        (38, 8, 9, 'Video'),
        (39, 9, 10, 'Video'),
-       (40, 10, 10, 'Video');
+       (40, 10, 10, 'Video'),
+       (41, 1, 1, 'Phone'),
+       (42, 2, 1, 'Phone'),
+       (43, 3, 2, 'Phone'),
+       (44, 4, 2, 'Phone'),
+       (45, 5, 3, 'Phone');
 
 -- Likes (基础表 20条，与Post多对一关联)
 INSERT INTO t_likes (id, post_id, praise)

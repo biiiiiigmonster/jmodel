@@ -28,6 +28,10 @@ public class User extends Model<User> {
 
     @TableField(exist = false)
     @HasOne
+    private Phone phone;
+
+    @TableField(exist = false)
+    @HasOne
     private Profile profile;
 
     @TableField(exist = false)

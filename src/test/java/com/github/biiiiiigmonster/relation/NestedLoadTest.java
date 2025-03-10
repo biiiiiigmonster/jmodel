@@ -1,6 +1,7 @@
 package com.github.biiiiiigmonster.relation;
 
 import com.github.biiiiiigmonster.BaseTest;
+import com.github.biiiiiigmonster.entity.Phone;
 import com.github.biiiiiigmonster.entity.Post;
 import com.github.biiiiiigmonster.entity.Tag;
 import com.github.biiiiiigmonster.entity.User;
@@ -146,5 +147,41 @@ public class NestedLoadTest extends BaseTest {
         User user2 = userList.get(1);
         List<Post> posts2 = user2.getPosts();
         assertEquals(0, posts2.size());
+    }
+
+    @Test
+    public void shouldLoadPhoneWithTagsByRelated() {
+        List<User> userList = userMapper.selectBatchIds(Arrays.asList(1L, 3L, 4L));
+        assertEquals(3, userList.size());
+
+        // 使用RelationUtils.load加载嵌套关联数据
+        RelationUtils.load(userList, "phone.tags");
+
+        User user1 = userList.get(0);
+        Phone phone1 = user1.getPhone();
+        assertNotNull(phone1);
+
+        List<Tag> tags1 = phone1.getTags();
+        assertNotNull(tags1);
+        assertEquals(2, tags1.size());
+        assertEquals("Java", tags1.get(0).getName());
+        assertEquals("Spring", tags1.get(1).getName());
+
+        User user3 = userList.get(1);
+        Phone phone3 = user3.getPhone();
+        assertNotNull(phone3);
+
+        List<Tag> tags3 = phone3.getTags();
+        assertNotNull(tags3);
+        assertEquals(1, tags3.size());
+        assertEquals("Docker", tags3.get(0).getName());
+
+        User user4 = userList.get(2);
+        Phone phone4 = user4.getPhone();
+        assertNotNull(phone4);
+
+        List<Tag> tags4 = phone4.getTags();
+        assertNotNull(tags4);
+        assertEquals(0, tags4.size());
     }
 }
