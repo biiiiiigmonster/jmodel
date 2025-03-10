@@ -9,7 +9,8 @@ VALUES (1, 'John Doe', 'john.doe@example.com'),
        (7, 'James Miller', 'james.m@example.com'),
        (8, 'Lisa Anderson', 'lisa.a@example.com'),
        (9, 'Robert Taylor', 'robert.t@example.com'),
-       (10, 'Jennifer White', 'jennifer.w@example.com');
+       (10, 'Jennifer White', 'jennifer.w@example.com'),
+       (11, 'Michael Jordan', 'michael.j@example.com');
 
 -- Profiles (基础表 10条，与User一对一关联)
 INSERT INTO t_profile (id, description, user_id)

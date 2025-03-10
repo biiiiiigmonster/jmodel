@@ -10,6 +10,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class HasOneThroughTest extends BaseTest {
 
@@ -23,10 +24,9 @@ public class HasOneThroughTest extends BaseTest {
 
     @Test
     public void shouldHasOneThroughEmpty() {
-        User user = userMapper.selectById(10L);
+        User user = userMapper.selectById(11L);
         Address address = user.get(User::getProfileAddress);
-        assertNotNull(address);
-        assertEquals("Denver, CO", address.getLocation());
+        assertNull(address);
     }
 
     @Test

@@ -10,6 +10,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class HasOneTest extends BaseTest {
 
@@ -19,6 +20,13 @@ public class HasOneTest extends BaseTest {
         Profile profile = user.get(User::getProfile);
         assertNotNull(profile);
         assertEquals("Software Engineer at Tech Corp", profile.getDescription());
+    }
+
+    @Test
+    public void shouldEmpty() {
+        User user = userMapper.selectById(11L);
+        Profile profile = user.get(User::getProfile);
+        assertNull(profile);
     }
 
     @Test

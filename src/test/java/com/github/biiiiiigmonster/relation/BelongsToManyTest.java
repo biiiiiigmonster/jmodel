@@ -10,6 +10,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class BelongsToManyTest extends BaseTest {
 
@@ -31,6 +32,13 @@ public class BelongsToManyTest extends BaseTest {
         assertNotNull(roles);
         assertEquals(1, roles.size());
         assertEquals("Moderator", roles.get(0).getName());
+    }
+
+    @Test
+    public void shouldBelongsToManyEmpty() {
+        User user = userMapper.selectById(11L);
+        List<Role> roles = user.get(User::getRoles);
+        assertEquals(0, roles.size());
     }
 
     @Test
