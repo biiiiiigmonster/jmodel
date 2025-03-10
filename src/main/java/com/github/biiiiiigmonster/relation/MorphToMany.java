@@ -37,28 +37,28 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
+        List<MP> morphPivots = new ArrayList<>();
+        List<R> results = new ArrayList<>();
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
-        if (ObjectUtil.isEmpty(localKeyValueList)) {
-            return new ArrayList<>();
+        if (ObjectUtil.isNotEmpty(localKeyValueList)) {
+            BaseMapper<MP> morphPivotRepository = (BaseMapper<MP>) RelationUtils.getRelatedRepository(morphPivotClass);
+            String morphAlias = inverse
+                    ? Relation.getMorphAlias(foreignField.getDeclaringClass(), localField.getDeclaringClass())
+                    : Relation.getMorphAlias(localField.getDeclaringClass(), foreignField.getDeclaringClass());
+            QueryWrapper<MP> pivotWrapper = new QueryWrapper<>();
+            pivotWrapper.eq(RelationUtils.getColumn(morphPivotType), morphAlias)
+                    .in(RelationUtils.getColumn(foreignPivotField), localKeyValueList);
+            morphPivots = morphPivotRepository.selectList(pivotWrapper);
         }
 
-        BaseMapper<MP> morphPivotRepository = (BaseMapper<MP>) RelationUtils.getRelatedRepository(morphPivotClass);
-        String morphAlias = inverse
-                ? Relation.getMorphAlias(foreignField.getDeclaringClass(), localField.getDeclaringClass())
-                : Relation.getMorphAlias(localField.getDeclaringClass(), foreignField.getDeclaringClass());
-        QueryWrapper<MP> pivotWrapper = new QueryWrapper<>();
-        pivotWrapper.eq(RelationUtils.getColumn(morphPivotType), morphAlias)
-                .in(RelationUtils.getColumn(foreignPivotField), localKeyValueList);
-        List<MP> morphPivots = morphPivotRepository.selectList(pivotWrapper);
         List<?> relatedPivotKeyValueList = relatedKeyValueList(morphPivots, relatedPivotField);
-        if (ObjectUtil.isEmpty(relatedPivotKeyValueList)) {
-            return new ArrayList<>();
+        if (ObjectUtil.isNotEmpty(relatedPivotKeyValueList)) {
+            BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
+            QueryWrapper<R> wrapper = new QueryWrapper<>();
+            wrapper.in(RelationUtils.getColumn(foreignField), relatedPivotKeyValueList);
+            results = relatedRepository.selectList(wrapper);
         }
 
-        BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
-        QueryWrapper<R> wrapper = new QueryWrapper<>();
-        wrapper.in(RelationUtils.getColumn(foreignField), relatedPivotKeyValueList);
-        List<R> results = relatedRepository.selectList(wrapper);
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
         Map<?, List<MP>> morphPivotDictionary = morphPivots.stream()

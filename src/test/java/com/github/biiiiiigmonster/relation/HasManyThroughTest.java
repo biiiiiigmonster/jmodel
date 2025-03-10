@@ -31,7 +31,7 @@ public class HasManyThroughTest extends BaseTest {
     public void shouldHasManyThroughEmpty() {
         User user = userMapper.selectById(10L);
         List<Likes> likes = user.get(User::getCommentLikes);
-        assertNull(likes);
+        assertEquals(0, likes.size());
     }
 
     @Test

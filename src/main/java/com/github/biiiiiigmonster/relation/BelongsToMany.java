@@ -40,25 +40,24 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
+        List<P> pivots = new ArrayList<>();
+        List<R> results = new ArrayList<>();
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
-        if (ObjectUtil.isEmpty(localKeyValueList)) {
-            return new ArrayList<>();
+        if (ObjectUtil.isNotEmpty(localKeyValueList)) {
+            BaseMapper<P> pivotRepository = (BaseMapper<P>) RelationUtils.getRelatedRepository(pivotClass);
+            QueryWrapper<P> pivotWrapper = new QueryWrapper<>();
+            pivotWrapper.in(RelationUtils.getColumn(foreignPivotField), localKeyValueList);
+            pivots = pivotRepository.selectList(pivotWrapper);
         }
 
-        BaseMapper<P> pivotRepository = (BaseMapper<P>) RelationUtils.getRelatedRepository(pivotClass);
-        QueryWrapper<P> pivotWrapper = new QueryWrapper<>();
-        pivotWrapper.in(RelationUtils.getColumn(foreignPivotField), localKeyValueList);
-        List<P> pivots = pivotRepository.selectList(pivotWrapper);
         List<?> relatedPivotKeyValueList = relatedKeyValueList(pivots, relatedPivotField);
-        if (ObjectUtil.isEmpty(relatedPivotKeyValueList)) {
-            return new ArrayList<>();
+        if (ObjectUtil.isNotEmpty(relatedPivotKeyValueList)) {
+            BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
+            QueryWrapper<R> wrapper = new QueryWrapper<>();
+            wrapper.in(RelationUtils.getColumn(foreignField), relatedPivotKeyValueList);
+            results = relatedRepository.selectList(wrapper);
         }
 
-        // 多对多只支持从Repository中获取
-        BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
-        QueryWrapper<R> wrapper = new QueryWrapper<>();
-        wrapper.in(RelationUtils.getColumn(foreignField), relatedPivotKeyValueList);
-        List<R> results = relatedRepository.selectList(wrapper);
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
         Map<?, List<P>> pivotDictionary = pivots.stream()
