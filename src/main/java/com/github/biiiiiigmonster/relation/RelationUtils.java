@@ -5,6 +5,8 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.TableInfo;
+import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.baomidou.mybatisplus.core.toolkit.LambdaUtils;
 import com.baomidou.mybatisplus.core.toolkit.ReflectionKit;
 import com.baomidou.mybatisplus.core.toolkit.support.ColumnCache;
@@ -381,7 +383,8 @@ public class RelationUtils implements BeanPostProcessor {
      * @return
      */
     public static String getPrimaryKey(Class<?> clazz) {
-        return "id";
+        TableInfo tableInfo = TableInfoHelper.getTableInfo(clazz);
+        return tableInfo == null ? "id" : tableInfo.getKeyColumn();
     }
 
     /**
