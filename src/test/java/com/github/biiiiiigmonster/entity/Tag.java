@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.biiiiiigmonster.Model;
+import com.github.biiiiiigmonster.relation.annotation.BelongsTo;
+import com.github.biiiiiigmonster.relation.annotation.HasMany;
 import com.github.biiiiiigmonster.relation.annotation.MorphedByMany;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,6 +19,15 @@ public class Tag extends Model<Tag> {
     @TableId
     private Long id;
     private String name;
+    private Long parentId;
+
+    @TableField(exist = false)
+    @BelongsTo(foreignKey = "parentId")
+    private Tag parent;
+
+    @TableField(exist = false)
+    @HasMany(foreignKey = "parentId")
+    private List<Tag> children;
 
     @TableField(exist = false)
     @MorphedByMany(using = Taggable.class)

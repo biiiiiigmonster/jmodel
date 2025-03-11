@@ -78,17 +78,17 @@ VALUES (1, 'Administrator'),
        (10, 'Guest');
 
 -- Tags (基础表 10条)
-INSERT INTO t_tag (id, name)
-VALUES (1, 'Java'),
-       (2, 'Spring'),
-       (3, 'JavaScript'),
-       (4, 'React'),
-       (5, 'Docker'),
-       (6, 'Cloud'),
-       (7, 'Database'),
-       (8, 'Security'),
-       (9, 'Testing'),
-       (10, 'DevOps');
+INSERT INTO t_tag (id, name, parent_id)
+VALUES (1, 'Java', 0),
+       (2, 'Spring', 1),
+       (3, 'JavaScript', 0),
+       (4, 'React', 3),
+       (5, 'Docker', 0),
+       (6, 'Cloud', 5),
+       (7, 'Database', 1),
+       (8, 'Security', 2),
+       (9, 'Testing', 0),
+       (10, 'DevOps', 6);
 
 -- Comments (基础表 10条，多态关联到Post或Video)
 INSERT INTO t_comment (id, content, commentable_id, commentable_type)

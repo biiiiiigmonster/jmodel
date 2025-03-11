@@ -2,7 +2,6 @@ package com.github.biiiiiigmonster.relation;
 
 import com.github.biiiiiigmonster.BaseTest;
 import com.github.biiiiiigmonster.entity.Phone;
-import com.github.biiiiiigmonster.entity.Profile;
 import com.github.biiiiiigmonster.entity.User;
 import org.junit.Test;
 

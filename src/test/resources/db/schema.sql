@@ -50,8 +50,9 @@ CREATE TABLE t_role
 
 CREATE TABLE t_tag
 (
-    id   BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(50)
+    id        BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name      VARCHAR(50),
+    parent_id BIGINT
 );
 
 CREATE TABLE t_taggable
