@@ -69,10 +69,10 @@ public abstract class Relation {
                 .collect(Collectors.toList());
     }
 
-    public static String getMorphAlias(Class<?> clazz, Class<?> with) {
-        String key = clazz.getName() + with.getName();
+    public static String getMorphAlias(Class<?> clazz, Class<?> within) {
+        String key = clazz.getName() + within.getName();
         return MORPH_ALIAS_MAP.computeIfAbsent(key, k -> Arrays.stream(clazz.getAnnotationsByType(MorphAlias.class))
-                .filter(m -> m.in().length == 0 || Arrays.stream(m.in()).collect(Collectors.toSet()).contains(with))
+                .filter(m -> m.in().length == 0 || Arrays.stream(m.in()).collect(Collectors.toSet()).contains(within))
                 .max(Comparator.comparingInt(m -> m.in().length))
                 .map(m -> StringUtils.isBlank(m.value()) ? clazz.getSimpleName() : m.value())
                 .orElse(clazz.getName()));
