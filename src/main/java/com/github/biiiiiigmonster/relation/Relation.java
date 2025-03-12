@@ -1,5 +1,6 @@
 package com.github.biiiiiigmonster.relation;
 
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -53,15 +54,15 @@ public abstract class Relation {
     }
 
     @SuppressWarnings("unchecked")
-    protected <R extends Model<?>> List<R> byRelatedMethod(List<?> localKeyValueList, Map<Object, Method> relatedMethod) {
+    protected <R extends Model<?>> List<R> byRelatedMethod(List<?> localKeyValueList, Map<Object, Method> relatedMethod, Object... args) {
         Object bean = relatedMethod.keySet().iterator().next();
         Method method = relatedMethod.values().iterator().next();
         if (List.class.isAssignableFrom(method.getParameterTypes()[0])) {
-            return ReflectUtil.invoke(bean, method, localKeyValueList);
+            return ReflectUtil.invoke(bean, method, additionalRelatedMethodArgs(localKeyValueList));
         } else {
             log.warn("{}存在N + 1查询隐患，建议{}实现List参数的仓库方法", bean.getClass().getName(), method.getName());
             return localKeyValueList.stream()
-                    .map(param -> ReflectUtil.invoke(bean, method, param))
+                    .map(param -> ReflectUtil.invoke(bean, method, additionalRelatedMethodArgs(param)))
                     .filter(Objects::nonNull)
                     .flatMap(r -> {
                         if (List.class.isAssignableFrom(method.getReturnType())) {
@@ -72,6 +73,10 @@ public abstract class Relation {
                     })
                     .collect(Collectors.toList());
         }
+    }
+
+    protected Object[] additionalRelatedMethodArgs(Object obj) {
+        return new Object[]{obj};
     }
 
     public static <T extends Model<?>> List<?> relatedKeyValueList(List<T> models, Field field) {

@@ -1,12 +1,10 @@
 package com.github.biiiiiigmonster.relation;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 
 public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
@@ -31,19 +29,23 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
     }
 
     protected <T extends Model<?>> List<MP> getPivotResult(List<T> models) {
-        List<MP> morphPivots = new ArrayList<>();
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
-        if (ObjectUtil.isNotEmpty(localKeyValueList)) {
+        return getResult(localKeyValueList, foreignPivotField, keys -> {
             BaseMapper<MP> morphPivotRepository = (BaseMapper<MP>) RelationUtils.getRelatedRepository(morphPivotClass);
-            String morphAlias = inverse
-                    ? Relation.getMorphAlias(foreignField.getDeclaringClass(), localField.getDeclaringClass())
-                    : Relation.getMorphAlias(localField.getDeclaringClass(), foreignField.getDeclaringClass());
             QueryWrapper<MP> pivotWrapper = new QueryWrapper<>();
             pivotWrapper.in(RelationUtils.getColumn(foreignPivotField), localKeyValueList)
-                    .eq(RelationUtils.getColumn(morphPivotType), morphAlias);
-            morphPivots = morphPivotRepository.selectList(pivotWrapper);
-        }
+                    .eq(RelationUtils.getColumn(morphPivotType), getMorphAlias());
+            return morphPivotRepository.selectList(pivotWrapper);
+        });
+    }
 
-        return morphPivots;
+    protected Object[] additionalRelatedMethodArgs(Object obj) {
+        return new Object[]{obj, getMorphAlias()};
+    }
+
+    protected String getMorphAlias() {
+        return inverse
+                ? Relation.getMorphAlias(foreignField.getDeclaringClass(), localField.getDeclaringClass())
+                : Relation.getMorphAlias(localField.getDeclaringClass(), foreignField.getDeclaringClass());
     }
 }
