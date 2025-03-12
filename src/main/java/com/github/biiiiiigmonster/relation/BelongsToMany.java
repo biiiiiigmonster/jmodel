@@ -37,24 +37,35 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
+        List<P> pivots = getPivotResult(models);
+        List<R> results = getForeignResult(pivots);
+        pivotMatch(models, pivots, results);
+
+        return results;
+    }
+
+    protected <T extends Model<?>> List<P> getPivotResult(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
-        List<P> pivots = getResult(localKeyValueList, foreignPivotField, keys -> {
+        return getResult(localKeyValueList, foreignPivotField, keys -> {
             BaseMapper<P> pivotRepository = (BaseMapper<P>) RelationUtils.getRelatedRepository(pivotClass);
             QueryWrapper<P> pivotWrapper = new QueryWrapper<>();
             pivotWrapper.in(RelationUtils.getColumn(foreignPivotField), keys);
             return pivotRepository.selectList(pivotWrapper);
         });
+    }
 
+    protected <R extends Model<?>> List<R> getForeignResult(List<P> pivots) {
         List<?> relatedPivotKeyValueList = relatedKeyValueList(pivots, relatedPivotField);
-        List<R> results = getResult(relatedPivotKeyValueList, foreignField, keys -> {
+        return getResult(relatedPivotKeyValueList, foreignField, keys -> {
             BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
             QueryWrapper<R> wrapper = new QueryWrapper<>();
             wrapper.in(RelationUtils.getColumn(foreignField), keys);
             return relatedRepository.selectList(wrapper);
         });
+    }
 
+    protected <T extends Model<?>, R extends Model<?>> void pivotMatch(List<T> models, List<P> pivots, List<R> results) {
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
         Map<?, List<P>> pivotDictionary = pivots.stream()
@@ -67,8 +78,6 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
                     .collect(Collectors.toList());
             ReflectUtil.setFieldValue(o, relatedField, valList);
         });
-
-        return results;
     }
 
     @Override

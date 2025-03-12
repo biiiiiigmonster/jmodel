@@ -25,7 +25,7 @@ public abstract class HasOneOrMany extends Relation {
     }
 
     @SuppressWarnings("unchecked")
-    private <R extends Model<?>> List<R> byRelatedRepository(List<?> localKeyValueList) {
+    protected <R extends Model<?>> List<R> byRelatedRepository(List<?> localKeyValueList) {
         BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
         QueryWrapper<R> wrapper = new QueryWrapper<>();
         wrapper.in(RelationUtils.getColumn(foreignField), localKeyValueList);
