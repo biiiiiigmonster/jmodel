@@ -1,12 +1,10 @@
 package com.github.biiiiiigmonster.relation;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class HasOneOrMany extends Relation {
@@ -23,13 +21,7 @@ public abstract class HasOneOrMany extends Relation {
     @Override
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
-        if (ObjectUtil.isEmpty(localKeyValueList)) {
-            return new ArrayList<>();
-        }
-
-        return RelationUtils.hasRelatedRepository(foreignField.getDeclaringClass())
-                ? byRelatedRepository(localKeyValueList)
-                : byRelatedMethod(localKeyValueList, RelationUtils.getRelatedMethod(String.format("%s.%s", foreignField.getDeclaringClass().getName(), foreignField.getName()), foreignField));
+        return getResult(localKeyValueList, foreignField, this::byRelatedRepository);
     }
 
     @SuppressWarnings("unchecked")

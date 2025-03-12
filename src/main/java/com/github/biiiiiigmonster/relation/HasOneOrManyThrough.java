@@ -1,12 +1,10 @@
 package com.github.biiiiiigmonster.relation;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation {
@@ -29,23 +27,21 @@ public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation 
     @Override
     @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
-        List<TH> throughs = new ArrayList<>();
-        List<R> results = new ArrayList<>();
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
-        if (ObjectUtil.isNotEmpty(localKeyValueList)) {
+        List<TH> throughs = getResult(localKeyValueList, foreignField, keys -> {
             BaseMapper<TH> throughRepository = (BaseMapper<TH>) RelationUtils.getRelatedRepository(this.throughClass);
             QueryWrapper<TH> throughWrapper = new QueryWrapper<>();
             throughWrapper.in(RelationUtils.getColumn(foreignField), localKeyValueList);
-            throughs = throughRepository.selectList(throughWrapper);
-        }
+            return throughRepository.selectList(throughWrapper);
+        });
 
         List<?> throughKeyValueList = relatedKeyValueList(throughs, throughLocalField);
-        if (ObjectUtil.isNotEmpty(throughKeyValueList)) {
+        List<R> results = getResult(throughKeyValueList, throughForeignField, keys -> {
             BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(throughForeignField.getDeclaringClass());
             QueryWrapper<R> wrapper = new QueryWrapper<>();
             wrapper.in(RelationUtils.getColumn(throughForeignField), throughKeyValueList);
-            results = relatedRepository.selectList(wrapper);
-        }
+            return relatedRepository.selectList(wrapper);
+        });
 
         // 预匹配
         throughMatch(models, throughs, results);

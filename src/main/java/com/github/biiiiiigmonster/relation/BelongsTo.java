@@ -1,13 +1,11 @@
 package com.github.biiiiiigmonster.relation;
 
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,13 +29,7 @@ public class BelongsTo extends Relation {
     @Override
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> ownerKeyValueList = relatedKeyValueList(models, foreignField);
-        if (ObjectUtil.isEmpty(ownerKeyValueList)) {
-            return new ArrayList<>();
-        }
-
-        return RelationUtils.hasRelatedRepository(ownerField.getDeclaringClass())
-                ? byRelatedRepository(ownerKeyValueList)
-                : byRelatedMethod(ownerKeyValueList, RelationUtils.getRelatedMethod(String.format("%s.%s", ownerField.getDeclaringClass().getName(), ownerField.getName()), ownerField));
+        return getResult(ownerKeyValueList, ownerField, this::byRelatedRepository);
     }
 
     @SuppressWarnings("unchecked")

@@ -1,6 +1,5 @@
 package com.github.biiiiiigmonster.relation;
 
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -40,23 +39,21 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
-        List<P> pivots = new ArrayList<>();
-        List<R> results = new ArrayList<>();
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
-        if (ObjectUtil.isNotEmpty(localKeyValueList)) {
+        List<P> pivots = getResult(localKeyValueList, foreignPivotField, keys -> {
             BaseMapper<P> pivotRepository = (BaseMapper<P>) RelationUtils.getRelatedRepository(pivotClass);
             QueryWrapper<P> pivotWrapper = new QueryWrapper<>();
-            pivotWrapper.in(RelationUtils.getColumn(foreignPivotField), localKeyValueList);
-            pivots = pivotRepository.selectList(pivotWrapper);
-        }
+            pivotWrapper.in(RelationUtils.getColumn(foreignPivotField), keys);
+            return pivotRepository.selectList(pivotWrapper);
+        });
 
         List<?> relatedPivotKeyValueList = relatedKeyValueList(pivots, relatedPivotField);
-        if (ObjectUtil.isNotEmpty(relatedPivotKeyValueList)) {
+        List<R> results = getResult(relatedPivotKeyValueList, foreignField, keys -> {
             BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
             QueryWrapper<R> wrapper = new QueryWrapper<>();
-            wrapper.in(RelationUtils.getColumn(foreignField), relatedPivotKeyValueList);
-            results = relatedRepository.selectList(wrapper);
-        }
+            wrapper.in(RelationUtils.getColumn(foreignField), keys);
+            return relatedRepository.selectList(wrapper);
+        });
 
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));

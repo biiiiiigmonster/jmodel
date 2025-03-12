@@ -13,12 +13,14 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -38,6 +40,17 @@ public abstract class Relation {
     public abstract <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models);
 
     public abstract <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results);
+
+    protected <T extends Model<?>> List<T> getResult(List<?> keys, Field relatedField, Function<List<?>, List<T>> func) {
+        if (ObjectUtil.isEmpty(keys)) {
+            return new ArrayList<>();
+        }
+
+        String relatedKey = String.format("%s.%s", relatedField.getDeclaringClass().getName(), relatedField.getName());
+        return RelationUtils.hasRelatedRepository(relatedField.getDeclaringClass())
+                ? func.apply(keys)
+                : byRelatedMethod(keys, RelationUtils.getRelatedMethod(relatedKey, relatedField));
+    }
 
     @SuppressWarnings("unchecked")
     protected <R extends Model<?>> List<R> byRelatedMethod(List<?> localKeyValueList, Map<Object, Method> relatedMethod) {
