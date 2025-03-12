@@ -33,10 +33,10 @@ public class BelongsTo extends Relation {
     }
 
     @SuppressWarnings("unchecked")
-    private <R extends Model<?>> List<R> byRelatedRepository(List<?> ownerKeyValueList) {
+    private <R extends Model<?>> List<R> byRelatedRepository(List<?> keys) {
         BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(ownerField.getDeclaringClass());
         QueryWrapper<R> wrapper = new QueryWrapper<>();
-        wrapper.in(RelationUtils.getColumn(ownerField), ownerKeyValueList);
+        wrapper.in(RelationUtils.getColumn(ownerField), keys);
         return relatedRepository.selectList(wrapper);
     }
 

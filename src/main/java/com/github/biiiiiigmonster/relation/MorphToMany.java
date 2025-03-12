@@ -2,7 +2,6 @@ package com.github.biiiiiigmonster.relation;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.github.biiiiiigmonster.Model;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -28,15 +27,13 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
         this.inverse = inverse;
     }
 
-    protected <T extends Model<?>> List<MP> getPivotResult(List<T> models) {
-        List<?> localKeyValueList = relatedKeyValueList(models, localField);
-        return getResult(localKeyValueList, foreignPivotField, keys -> {
-            BaseMapper<MP> morphPivotRepository = (BaseMapper<MP>) RelationUtils.getRelatedRepository(morphPivotClass);
-            QueryWrapper<MP> pivotWrapper = new QueryWrapper<>();
-            pivotWrapper.in(RelationUtils.getColumn(foreignPivotField), localKeyValueList)
-                    .eq(RelationUtils.getColumn(morphPivotType), getMorphAlias());
-            return morphPivotRepository.selectList(pivotWrapper);
-        });
+    @SuppressWarnings("unchecked")
+    protected List<MP> byPivotRelatedRepository(List<?> keys) {
+        BaseMapper<MP> morphPivotRepository = (BaseMapper<MP>) RelationUtils.getRelatedRepository(morphPivotClass);
+        QueryWrapper<MP> pivotWrapper = new QueryWrapper<>();
+        pivotWrapper.in(RelationUtils.getColumn(foreignPivotField), keys)
+                .eq(RelationUtils.getColumn(morphPivotType), getMorphAlias());
+        return morphPivotRepository.selectList(pivotWrapper);
     }
 
     protected Object[] additionalRelatedMethodArgs(Object obj) {

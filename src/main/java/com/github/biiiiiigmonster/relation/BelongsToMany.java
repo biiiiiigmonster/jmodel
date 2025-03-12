@@ -47,22 +47,28 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
 
     protected <T extends Model<?>> List<P> getPivotResult(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
-        return getResult(localKeyValueList, foreignPivotField, keys -> {
-            BaseMapper<P> pivotRepository = (BaseMapper<P>) RelationUtils.getRelatedRepository(pivotClass);
-            QueryWrapper<P> pivotWrapper = new QueryWrapper<>();
-            pivotWrapper.in(RelationUtils.getColumn(foreignPivotField), keys);
-            return pivotRepository.selectList(pivotWrapper);
-        });
+        return getResult(localKeyValueList, foreignPivotField, this::byPivotRelatedRepository);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected List<P> byPivotRelatedRepository(List<?> keys) {
+        BaseMapper<P> pivotRepository = (BaseMapper<P>) RelationUtils.getRelatedRepository(pivotClass);
+        QueryWrapper<P> pivotWrapper = new QueryWrapper<>();
+        pivotWrapper.in(RelationUtils.getColumn(foreignPivotField), keys);
+        return pivotRepository.selectList(pivotWrapper);
     }
 
     protected <R extends Model<?>> List<R> getForeignResult(List<P> pivots) {
         List<?> relatedPivotKeyValueList = relatedKeyValueList(pivots, relatedPivotField);
-        return getResult(relatedPivotKeyValueList, foreignField, keys -> {
-            BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
-            QueryWrapper<R> wrapper = new QueryWrapper<>();
-            wrapper.in(RelationUtils.getColumn(foreignField), keys);
-            return relatedRepository.selectList(wrapper);
-        });
+        return getResult(relatedPivotKeyValueList, foreignField, this::byRelatedRepository);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <R extends Model<?>> List<R> byRelatedRepository(List<?> keys) {
+        BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
+        QueryWrapper<R> wrapper = new QueryWrapper<>();
+        wrapper.in(RelationUtils.getColumn(foreignField), keys);
+        return relatedRepository.selectList(wrapper);
     }
 
     protected <T extends Model<?>, R extends Model<?>> void pivotMatch(List<T> models, List<P> pivots, List<R> results) {

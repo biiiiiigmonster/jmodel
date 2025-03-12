@@ -25,28 +25,33 @@ public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation 
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
-        List<TH> throughs = getResult(localKeyValueList, foreignField, keys -> {
-            BaseMapper<TH> throughRepository = (BaseMapper<TH>) RelationUtils.getRelatedRepository(this.throughClass);
-            QueryWrapper<TH> throughWrapper = new QueryWrapper<>();
-            throughWrapper.in(RelationUtils.getColumn(foreignField), localKeyValueList);
-            return throughRepository.selectList(throughWrapper);
-        });
+        List<TH> throughs = getResult(localKeyValueList, foreignField, this::byThroughRelatedRepository);
 
         List<?> throughKeyValueList = relatedKeyValueList(throughs, throughLocalField);
-        List<R> results = getResult(throughKeyValueList, throughForeignField, keys -> {
-            BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(throughForeignField.getDeclaringClass());
-            QueryWrapper<R> wrapper = new QueryWrapper<>();
-            wrapper.in(RelationUtils.getColumn(throughForeignField), throughKeyValueList);
-            return relatedRepository.selectList(wrapper);
-        });
+        List<R> results = getResult(throughKeyValueList, throughForeignField, this::byRelatedRepository);
 
         // 预匹配
         throughMatch(models, throughs, results);
 
         return results;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected List<TH> byThroughRelatedRepository(List<?> keys) {
+        BaseMapper<TH> throughRepository = (BaseMapper<TH>) RelationUtils.getRelatedRepository(throughClass);
+        QueryWrapper<TH> throughWrapper = new QueryWrapper<>();
+        throughWrapper.in(RelationUtils.getColumn(foreignField), keys);
+        return throughRepository.selectList(throughWrapper);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <R extends Model<?>> List<R> byRelatedRepository(List<?> keys) {
+        BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(throughForeignField.getDeclaringClass());
+        QueryWrapper<R> wrapper = new QueryWrapper<>();
+        wrapper.in(RelationUtils.getColumn(throughForeignField), keys);
+        return relatedRepository.selectList(wrapper);
     }
 
     public abstract <T extends Model<?>, R extends Model<?>> void throughMatch(List<T> models, List<TH> throughs, List<R> results);
