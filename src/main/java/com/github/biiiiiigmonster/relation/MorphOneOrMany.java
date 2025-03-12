@@ -1,10 +1,12 @@
 package com.github.biiiiiigmonster.relation;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class MorphOneOrMany extends HasOneOrMany {
@@ -16,11 +18,19 @@ public abstract class MorphOneOrMany extends HasOneOrMany {
         this.morphType = morphType;
     }
 
-    protected <R extends Model<?>> List<R> byRelatedRepository(List<?> localKeyValueList) {
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
+        List<?> localKeyValueList = relatedKeyValueList(models, localField);
+        if (ObjectUtil.isEmpty(localKeyValueList)) {
+            return new ArrayList<>();
+        }
+
+        // 多态只支持从Repository中获取
         BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
         QueryWrapper<R> wrapper = new QueryWrapper<>();
-        wrapper.eq(RelationUtils.getColumn(morphType), getMorphAlias())
-                .in(RelationUtils.getColumn(foreignField), localKeyValueList);
+        wrapper.in(RelationUtils.getColumn(foreignField), localKeyValueList)
+                .eq(RelationUtils.getColumn(morphType), getMorphAlias());
         return relatedRepository.selectList(wrapper);
     }
 

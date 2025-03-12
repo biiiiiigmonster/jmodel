@@ -39,8 +39,8 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
                     ? Relation.getMorphAlias(foreignField.getDeclaringClass(), localField.getDeclaringClass())
                     : Relation.getMorphAlias(localField.getDeclaringClass(), foreignField.getDeclaringClass());
             QueryWrapper<MP> pivotWrapper = new QueryWrapper<>();
-            pivotWrapper.eq(RelationUtils.getColumn(morphPivotType), morphAlias)
-                    .in(RelationUtils.getColumn(foreignPivotField), localKeyValueList);
+            pivotWrapper.in(RelationUtils.getColumn(foreignPivotField), localKeyValueList)
+                    .eq(RelationUtils.getColumn(morphPivotType), morphAlias);
             morphPivots = morphPivotRepository.selectList(pivotWrapper);
         }
 
