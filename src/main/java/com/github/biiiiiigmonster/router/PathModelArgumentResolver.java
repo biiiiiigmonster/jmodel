@@ -1,5 +1,6 @@
 package com.github.biiiiiigmonster.router;
 
+import com.github.biiiiiigmonster.Model;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -10,7 +11,9 @@ public class PathModelArgumentResolver implements HandlerMethodArgumentResolver 
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.hasParameterAnnotation(PathModel.class);
+        boolean hasAnnotation = parameter.hasParameterAnnotation(PathModel.class);
+        boolean isModel = Model.class.isAssignableFrom(parameter.getParameterType());
+        return hasAnnotation && isModel;
     }
 
     @Override
