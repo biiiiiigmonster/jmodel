@@ -1,5 +1,6 @@
 package com.github.biiiiiigmonster;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.attribute.AttributeUtils;
 import com.github.biiiiiigmonster.relation.Relation;
@@ -7,7 +8,9 @@ import com.github.biiiiiigmonster.relation.RelationOption;
 import com.github.biiiiiigmonster.relation.RelationType;
 import com.github.biiiiiigmonster.relation.RelationUtils;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.Random;
 
 /**
  * <p>
@@ -38,10 +41,27 @@ public abstract class Model<T extends Model<?>> {
         return RelationOption.of(column).getRelation();
     }
 
+    @SuppressWarnings("unchecked")
+    public T find(Serializable id) {
+        BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(getClass());
+        return relatedRepository.selectById(id);
+    }
+
+    @SuppressWarnings("unchecked")
+    public T first(Wrapper<?> queryWrapper) {
+        BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(getClass());
+        return relatedRepository.selectList((Wrapper<T> )queryWrapper).get(0);
+    }
+
+    public <R extends Model<?>> boolean isAssociate(Model<?> model) {
+        Random random = new Random();
+        return random.nextBoolean();
+    }
+
     // wip: event
     @SuppressWarnings("unchecked")
     public Boolean save() {
-        BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(this.getClass());
+        BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(getClass());
         int insert = relatedRepository.insert((T) this);
 
         return insert > 0;
@@ -50,7 +70,7 @@ public abstract class Model<T extends Model<?>> {
     // wip: event
     @SuppressWarnings("unchecked")
     public Boolean delete() {
-        BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(this.getClass());
+        BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(getClass());
         int i = relatedRepository.deleteById((T) this);
 
         return i > 0;
