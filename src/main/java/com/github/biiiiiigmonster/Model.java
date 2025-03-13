@@ -50,10 +50,10 @@ public abstract class Model<T extends Model<?>> {
     @SuppressWarnings("unchecked")
     public T first(Wrapper<?> queryWrapper) {
         BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(getClass());
-        return relatedRepository.selectList((Wrapper<T> )queryWrapper).get(0);
+        return relatedRepository.selectList((Wrapper<T>) queryWrapper).get(0);
     }
 
-    public <R extends Model<?>> boolean isAssociate(Model<?> model) {
+    public boolean isAssociate(Model<?> model) {
         Random random = new Random();
         return random.nextBoolean();
     }
