@@ -11,6 +11,7 @@ import com.github.biiiiiigmonster.relation.RelationUtils;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.List;
 
 /**
  * <p>
@@ -50,7 +51,11 @@ public abstract class Model<T extends Model<?>> {
     @SuppressWarnings("unchecked")
     public T first(Wrapper<Model<?>> queryWrapper) {
         BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(getClass());
-        return relatedRepository.selectList((Wrapper<T>) queryWrapper).get(0);
+        List<T> list = relatedRepository.selectList((Wrapper<T>) queryWrapper);
+        if (list.isEmpty()) {
+            return null;
+        }
+        return list.get(0);
     }
 
     // wip: event
@@ -116,14 +121,14 @@ public abstract class Model<T extends Model<?>> {
         RelationUtils.loadForce((T) this, relations);
     }
 
-    public Object getKey() {
+    public Object primaryKeyValue() {
         return ReflectUtil.getFieldValue(this, RelationUtils.getPrimaryKey(getClass()));
     }
 
     public boolean is(Model<?> model) {
         return model != null
                 && model.getClass() == getClass()
-                && getKey().equals(model.getKey());
+                && primaryKeyValue().equals(model.primaryKeyValue());
     }
 
     public boolean isNot(Model<?> model) {

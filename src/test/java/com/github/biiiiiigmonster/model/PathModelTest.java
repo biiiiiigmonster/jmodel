@@ -1,7 +1,9 @@
 package com.github.biiiiiigmonster.model;
 
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.biiiiiigmonster.BaseTest;
+import com.github.biiiiiigmonster.entity.Post;
 import com.github.biiiiiigmonster.entity.User;
 import org.junit.Test;
 import org.springframework.http.MediaType;
@@ -20,7 +22,7 @@ public class PathModelTest extends BaseTest {
     protected MockMvc mockMvc;
 
     @Test
-    public void userPathModelTest() throws Exception {
+    public void pathModelTest() throws Exception {
         Long userId = 1L;
         String response = mockMvc.perform(
                         MockMvcRequestBuilders.get("/users/{user}", userId)
@@ -33,5 +35,54 @@ public class PathModelTest extends BaseTest {
         assertNotNull(respUser);
         User user = userMapper.selectById(userId);
         assertTrue(respUser.is(user));
+    }
+
+    @Test
+    public void pathModelRouteKeyTest() throws Exception {
+        String name = "John Doe";
+        String response = mockMvc.perform(
+                        MockMvcRequestBuilders.get("/users/byName/{user}", name)
+                                .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+        User respUser = JSONUtil.toBean(response, User.class);
+        assertNotNull(respUser);
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("name", name);
+        User user = userMapper.selectOne(queryWrapper);
+        assertTrue(respUser.is(user));
+    }
+
+    @Test
+    public void multiPathModelTest() throws Exception {
+        Long userId = 1L;
+        Long postId = 5L;
+        String response = mockMvc.perform(
+                        MockMvcRequestBuilders.get("/users/{user}/posts/{post}", userId, postId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+        User respUser = JSONUtil.parseArray(response).get(0 ,User.class);
+        assertNotNull(respUser);
+        User user = userMapper.selectById(userId);
+        assertTrue(respUser.is(user));
+
+        Post respPost = JSONUtil.parseArray(response).get(1 ,Post.class);
+        assertNotNull(respPost);
+        Post post = postMapper.selectById(postId);
+        assertTrue(respPost.is(post));
+    }
+
+    @Test
+    public void pathModelNotFoundTest() throws Exception {
+        Long userId = 1000L;
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/users/{user}", userId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 }
