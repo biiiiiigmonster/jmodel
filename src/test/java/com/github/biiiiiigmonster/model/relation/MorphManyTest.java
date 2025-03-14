@@ -1,9 +1,10 @@
-package com.github.biiiiiigmonster.relation;
+package com.github.biiiiiigmonster.model.relation;
 
 import com.github.biiiiiigmonster.BaseTest;
 import com.github.biiiiiigmonster.entity.Comment;
 import com.github.biiiiiigmonster.entity.Post;
 import com.github.biiiiiigmonster.entity.Video;
+import com.github.biiiiiigmonster.relation.RelationUtils;
 import org.junit.Test;
 
 import java.util.Arrays;

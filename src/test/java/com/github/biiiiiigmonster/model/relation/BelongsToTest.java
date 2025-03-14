@@ -1,4 +1,4 @@
-package com.github.biiiiiigmonster.relation;
+package com.github.biiiiiigmonster.model.relation;
 
 import com.github.biiiiiigmonster.BaseTest;
 import com.github.biiiiiigmonster.entity.Comment;

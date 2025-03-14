@@ -1,5 +1,6 @@
 package com.github.biiiiiigmonster;
 
+import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.attribute.AttributeUtils;
@@ -48,7 +49,7 @@ public abstract class Model<T extends Model<?>> {
     }
 
     @SuppressWarnings("unchecked")
-    public T first(Wrapper<?> queryWrapper) {
+    public T first(Wrapper<Model<?>> queryWrapper) {
         BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(getClass());
         return relatedRepository.selectList((Wrapper<T>) queryWrapper).get(0);
     }
@@ -119,5 +120,19 @@ public abstract class Model<T extends Model<?>> {
     @SuppressWarnings("unchecked")
     public final void loadForce(String... relations) {
         RelationUtils.loadForce((T) this, relations);
+    }
+
+    public Object getKey() {
+        return ReflectUtil.getFieldValue(this, RelationUtils.getPrimaryKey(getClass()));
+    }
+
+    public boolean is(Model<?> model) {
+        return model != null
+                && model.getClass() == getClass()
+                && getKey().equals(model.getKey());
+    }
+
+    public boolean isNot(Model<?> model) {
+        return !is(model);
     }
 }

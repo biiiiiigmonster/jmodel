@@ -2,6 +2,7 @@ package com.github.biiiiiigmonster.router;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.biiiiiigmonster.Model;
+import com.github.biiiiiigmonster.ModelNotFoundException;
 import com.github.biiiiiigmonster.relation.RelationUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.lang.Nullable;
@@ -20,9 +21,9 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        boolean hasAnnotation = parameter.hasParameterAnnotation(PathModel.class);
+        boolean hasAnn = parameter.hasParameterAnnotation(PathModel.class);
         boolean isModel = Model.class.isAssignableFrom(parameter.getParameterType());
-        return hasAnnotation && isModel;
+        return hasAnn && isModel;
     }
 
     @Override
@@ -44,7 +45,7 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
 
         PathModel ann = parameter.getParameterAnnotation(PathModel.class);
         Model<?> model = (Model<?>) parameter.getParameterType().getDeclaredConstructor().newInstance();
-        QueryWrapper<?> queryWrapper = new QueryWrapper<>(model.getClass());
+        QueryWrapper<Model<?>> queryWrapper = new QueryWrapper<>(model);
         queryWrapper.eq(ann.routeKey().isEmpty() ? RelationUtils.getPrimaryKey(parameter.getParameterType()) : ann.routeKey(), value);
         model = model.first(queryWrapper);
 
@@ -55,7 +56,7 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
             if (pathVars != null) {
                 Model<?> parent = (Model<?>) pathVars.values().toArray()[pathVars.size() - 1];
                 if (!model.isAssociate(parent)) {
-                    // 抛出异常，不是关联关系
+                    throw new ModelNotFoundException(parameter.getParameterType());
                 }
             }
         }
@@ -63,9 +64,8 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         return model;
     }
 
-    protected void handleMissingValue(String name, MethodParameter parameter, NativeWebRequest request)
-            throws Exception {
-        // 抛出异常
+    protected void handleMissingValue(String name, MethodParameter parameter, NativeWebRequest request) {
+        throw new ModelNotFoundException(parameter.getParameterType());
     }
 
     @Override

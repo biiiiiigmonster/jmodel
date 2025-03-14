@@ -1,8 +1,9 @@
-package com.github.biiiiiigmonster.relation;
+package com.github.biiiiiigmonster.model.relation;
 
 import com.github.biiiiiigmonster.BaseTest;
 import com.github.biiiiiigmonster.entity.Role;
 import com.github.biiiiiigmonster.entity.User;
+import com.github.biiiiiigmonster.relation.RelationUtils;
 import org.junit.Test;
 
 import java.util.Arrays;
