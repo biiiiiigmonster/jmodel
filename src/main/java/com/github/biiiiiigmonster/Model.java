@@ -11,7 +11,6 @@ import com.github.biiiiiigmonster.relation.RelationUtils;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.Random;
 
 /**
  * <p>
@@ -52,11 +51,6 @@ public abstract class Model<T extends Model<?>> {
     public T first(Wrapper<Model<?>> queryWrapper) {
         BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(getClass());
         return relatedRepository.selectList((Wrapper<T>) queryWrapper).get(0);
-    }
-
-    public boolean isAssociate(Model<?> model) {
-        Random random = new Random();
-        return random.nextBoolean();
     }
 
     // wip: event

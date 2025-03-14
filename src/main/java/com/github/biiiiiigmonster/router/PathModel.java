@@ -17,6 +17,5 @@ public @interface PathModel {
     @AliasFor("value")
     String name() default "";
     String routeKey() default "";
-    boolean scopeBinding() default false;
     boolean required() default true;
 }

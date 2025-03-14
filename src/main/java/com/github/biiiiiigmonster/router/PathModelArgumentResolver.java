@@ -5,16 +5,12 @@ import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.ModelNotFoundException;
 import com.github.biiiiiigmonster.relation.RelationUtils;
 import org.springframework.core.MethodParameter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.method.annotation.AbstractNamedValueMethodArgumentResolver;
-import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.servlet.HandlerMapping;
-import org.springframework.web.servlet.View;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentResolver {
@@ -49,37 +45,11 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         queryWrapper.eq(ann.routeKey().isEmpty() ? RelationUtils.getPrimaryKey(parameter.getParameterType()) : ann.routeKey(), value);
         model = model.first(queryWrapper);
 
-        if (model != null && ann.scopeBinding()) {
-            String key = View.PATH_VARIABLES;
-            int scope = RequestAttributes.SCOPE_REQUEST;
-            Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(key, scope);
-            if (pathVars != null) {
-                Model<?> parent = (Model<?>) pathVars.values().toArray()[pathVars.size() - 1];
-                if (!model.isAssociate(parent)) {
-                    throw new ModelNotFoundException(parameter.getParameterType());
-                }
-            }
-        }
-
         return model;
     }
 
     protected void handleMissingValue(String name, MethodParameter parameter, NativeWebRequest request) {
         throw new ModelNotFoundException(parameter.getParameterType());
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    protected void handleResolvedValue(@Nullable Object arg, String name, MethodParameter parameter,
-                                       @Nullable ModelAndViewContainer mavContainer, NativeWebRequest request) {
-        String key = View.PATH_VARIABLES;
-        int scope = RequestAttributes.SCOPE_REQUEST;
-        Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(key, scope);
-        if (pathVars == null) {
-            pathVars = new HashMap<>();
-            request.setAttribute(key, pathVars, scope);
-        }
-        pathVars.put(name, arg);
     }
 
     private static final class PathModelNamedValueInfo extends NamedValueInfo {
