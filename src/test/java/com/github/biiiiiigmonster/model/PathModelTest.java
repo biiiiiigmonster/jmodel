@@ -3,6 +3,7 @@ package com.github.biiiiiigmonster.model;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.biiiiiigmonster.BaseTest;
+import com.github.biiiiiigmonster.ModelNotFoundException;
 import com.github.biiiiiigmonster.entity.Post;
 import com.github.biiiiiigmonster.entity.User;
 import org.junit.Test;
@@ -14,6 +15,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -66,12 +68,12 @@ public class PathModelTest extends BaseTest {
                 .andReturn()
                 .getResponse()
                 .getContentAsString(StandardCharsets.UTF_8);
-        User respUser = JSONUtil.parseArray(response).get(0 ,User.class);
+        User respUser = JSONUtil.parseArray(response).get(0, User.class);
         assertNotNull(respUser);
         User user = userMapper.selectById(userId);
         assertTrue(respUser.is(user));
 
-        Post respPost = JSONUtil.parseArray(response).get(1 ,Post.class);
+        Post respPost = JSONUtil.parseArray(response).get(1, Post.class);
         assertNotNull(respPost);
         Post post = postMapper.selectById(postId);
         assertTrue(respPost.is(post));
@@ -80,9 +82,13 @@ public class PathModelTest extends BaseTest {
     @Test
     public void pathModelNotFoundTest() throws Exception {
         Long userId = 1000L;
-        mockMvc.perform(
+        String response = mockMvc.perform(
                         MockMvcRequestBuilders.get("/users/{user}", userId)
                                 .contentType(MediaType.APPLICATION_JSON)
-                ).andExpect(MockMvcResultMatchers.status().isBadRequest());
+                ).andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+        assertEquals(response, new ModelNotFoundException(User.class).getMessage());
     }
 }
