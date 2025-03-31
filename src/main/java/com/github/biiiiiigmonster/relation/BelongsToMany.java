@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unchecked")
 public class BelongsToMany<P extends Pivot<?>> extends Relation {
     protected Class<P> pivotClass;
     protected Field foreignPivotField;
@@ -50,7 +51,6 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
         return getResult(localKeyValueList, foreignPivotField, this::byPivotRelatedRepository);
     }
 
-    @SuppressWarnings("unchecked")
     protected List<P> byPivotRelatedRepository(List<?> keys) {
         BaseMapper<P> pivotRepository = (BaseMapper<P>) RelationUtils.getRelatedRepository(pivotClass);
         QueryWrapper<P> pivotWrapper = new QueryWrapper<>();
@@ -63,7 +63,6 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
         return getResult(relatedPivotKeyValueList, foreignField, this::byRelatedRepository);
     }
 
-    @SuppressWarnings("unchecked")
     protected <R extends Model<?>> List<R> byRelatedRepository(List<?> keys) {
         BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
         QueryWrapper<R> wrapper = new QueryWrapper<>();

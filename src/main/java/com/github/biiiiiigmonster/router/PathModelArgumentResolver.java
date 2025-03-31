@@ -13,6 +13,7 @@ import org.springframework.web.servlet.HandlerMapping;
 
 import java.util.Map;
 
+@SuppressWarnings("unchecked")
 public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentResolver {
 
     @Override
@@ -30,7 +31,6 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected Object resolveName(String name, MethodParameter parameter, NativeWebRequest request) throws Exception {
         Map<String, String> uriTemplateVars = (Map<String, String>) request.getAttribute(
                 HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);

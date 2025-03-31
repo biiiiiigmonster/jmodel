@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
+@SuppressWarnings("unchecked")
 public class RelationUtils implements BeanPostProcessor {
     private static final Map<Class<?>, BaseMapper<?>> RELATED_REPOSITORY_MAP = new HashMap<>();
 
@@ -64,7 +65,6 @@ public class RelationUtils implements BeanPostProcessor {
     @Autowired
     private ApplicationContext context;
 
-    @SafeVarargs
     public static <T extends Model<?>, R> void load(T obj, SerializableFunction<T, R>... relations) {
         if (obj == null) {
             return;
@@ -73,7 +73,6 @@ public class RelationUtils implements BeanPostProcessor {
         load(ListUtil.toList(obj), processRelations(obj.getClass(), SerializedLambda.resolveFieldNames(relations)), false);
     }
 
-    @SafeVarargs
     public static <T extends Model<?>> void load(T obj, RelationOption<T>... relations) {
         if (obj == null) {
             return;
@@ -90,7 +89,6 @@ public class RelationUtils implements BeanPostProcessor {
         load(list, processRelations(list.get(0).getClass(), Arrays.asList(relations)), false);
     }
 
-    @SafeVarargs
     public static <T extends Model<?>> void load(List<T> list, SerializableFunction<T, ?>... relations) {
         if (CollectionUtils.isEmpty(list)) {
             return;
@@ -99,7 +97,6 @@ public class RelationUtils implements BeanPostProcessor {
         load(list, processRelations(list.get(0).getClass(), SerializedLambda.resolveFieldNames(relations)), false);
     }
 
-    @SafeVarargs
     public static <T extends Model<?>> void load(List<T> list, RelationOption<T>... relations) {
         if (CollectionUtils.isEmpty(list)) {
             return;
@@ -116,7 +113,6 @@ public class RelationUtils implements BeanPostProcessor {
         load(ListUtil.toList(obj), processRelations(obj.getClass(), Arrays.asList(relations)), loadForce);
     }
 
-    @SafeVarargs
     public static <T extends Model<?>> void load(T obj, boolean loadForce, SerializableFunction<T, ?>... relations) {
         if (obj == null) {
             return;
@@ -125,7 +121,6 @@ public class RelationUtils implements BeanPostProcessor {
         load(ListUtil.toList(obj), processRelations(obj.getClass(), SerializedLambda.resolveFieldNames(relations)), loadForce);
     }
 
-    @SafeVarargs
     public static <T extends Model<?>> void load(T obj, boolean loadForce, RelationOption<T>... relations) {
         if (obj == null) {
             return;
@@ -142,7 +137,6 @@ public class RelationUtils implements BeanPostProcessor {
         load(list, processRelations(list.get(0).getClass(), Arrays.asList(relations)), loadForce);
     }
 
-    @SafeVarargs
     public static <T extends Model<?>> void load(List<T> list, boolean loadForce, SerializableFunction<T, ?>... relations) {
         if (CollectionUtils.isEmpty(list)) {
             return;
@@ -151,7 +145,6 @@ public class RelationUtils implements BeanPostProcessor {
         load(list, processRelations(list.get(0).getClass(), SerializedLambda.resolveFieldNames(relations)), loadForce);
     }
 
-    @SafeVarargs
     public static <T extends Model<?>> void load(List<T> list, boolean loadForce, RelationOption<T>... relations) {
         if (CollectionUtils.isEmpty(list)) {
             return;
@@ -168,7 +161,6 @@ public class RelationUtils implements BeanPostProcessor {
         load(list, processRelations(list.get(0).getClass(), Arrays.asList(relations)), true);
     }
 
-    @SafeVarargs
     public static <T extends Model<?>> void loadForce(List<T> list, SerializableFunction<T, ?>... relations) {
         if (CollectionUtils.isEmpty(list)) {
             return;
@@ -177,7 +169,6 @@ public class RelationUtils implements BeanPostProcessor {
         load(list, processRelations(list.get(0).getClass(), SerializedLambda.resolveFieldNames(relations)), true);
     }
 
-    @SafeVarargs
     public static <T extends Model<?>> void loadForce(List<T> list, RelationOption<T>... relations) {
         if (CollectionUtils.isEmpty(list)) {
             return;
@@ -194,7 +185,6 @@ public class RelationUtils implements BeanPostProcessor {
         load(ListUtil.toList(obj), processRelations(obj.getClass(), Arrays.asList(relations)), true);
     }
 
-    @SafeVarargs
     public static <T extends Model<?>> void loadForce(T obj, SerializableFunction<T, ?>... relations) {
         if (obj == null) {
             return;
@@ -203,7 +193,6 @@ public class RelationUtils implements BeanPostProcessor {
         load(ListUtil.toList(obj), processRelations(obj.getClass(), SerializedLambda.resolveFieldNames(relations)), true);
     }
 
-    @SafeVarargs
     public static <T extends Model<?>> void loadForce(T obj, RelationOption<T>... relations) {
         if (obj == null) {
             return;
@@ -226,7 +215,6 @@ public class RelationUtils implements BeanPostProcessor {
         list.forEach((relationOption) -> handle(models, relationOption, loadForce));
     }
 
-    @SuppressWarnings("unchecked")
     private static <T extends Model<?>, R extends Model<?>> void handle(List<T> models, RelationOption<?> relationOption, boolean loadForce) {
         // 分离
         List<T> eager = new ArrayList<>();
@@ -279,7 +267,6 @@ public class RelationUtils implements BeanPostProcessor {
         )).values());
     }
 
-    @SuppressWarnings("unchecked")
     private static <T extends Model<?>, R extends Model<?>> List<RelationOption<? extends Model<?>>> processRelations(Class<T> clazz, List<String> relations) {
         Map<String, List<String>> map = relations.stream()
                 .filter(ObjectUtil::isNotEmpty)

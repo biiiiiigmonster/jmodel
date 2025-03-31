@@ -7,6 +7,7 @@ import com.github.biiiiiigmonster.Model;
 import java.lang.reflect.Field;
 import java.util.List;
 
+@SuppressWarnings("unchecked")
 public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation {
     protected Class<TH> throughClass;
     protected Field foreignField;
@@ -38,7 +39,6 @@ public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation 
         return results;
     }
 
-    @SuppressWarnings("unchecked")
     protected List<TH> byThroughRelatedRepository(List<?> keys) {
         BaseMapper<TH> throughRepository = (BaseMapper<TH>) RelationUtils.getRelatedRepository(throughClass);
         QueryWrapper<TH> throughWrapper = new QueryWrapper<>();
@@ -46,7 +46,6 @@ public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation 
         return throughRepository.selectList(throughWrapper);
     }
 
-    @SuppressWarnings("unchecked")
     protected <R extends Model<?>> List<R> byRelatedRepository(List<?> keys) {
         BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(throughForeignField.getDeclaringClass());
         QueryWrapper<R> wrapper = new QueryWrapper<>();

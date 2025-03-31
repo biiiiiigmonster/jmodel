@@ -7,6 +7,7 @@ import com.github.biiiiiigmonster.Model;
 import java.lang.reflect.Field;
 import java.util.List;
 
+@SuppressWarnings("unchecked")
 public abstract class HasOneOrMany extends Relation {
     protected Field foreignField;
     protected Field localField;
@@ -24,7 +25,6 @@ public abstract class HasOneOrMany extends Relation {
         return getResult(localKeyValueList, foreignField, this::byRelatedRepository);
     }
 
-    @SuppressWarnings("unchecked")
     protected <R extends Model<?>> List<R> byRelatedRepository(List<?> localKeyValueList) {
         BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
         QueryWrapper<R> wrapper = new QueryWrapper<>();

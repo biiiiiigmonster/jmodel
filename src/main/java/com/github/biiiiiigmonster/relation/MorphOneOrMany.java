@@ -7,6 +7,7 @@ import com.github.biiiiiigmonster.Model;
 import java.lang.reflect.Field;
 import java.util.List;
 
+@SuppressWarnings("unchecked")
 public abstract class MorphOneOrMany extends HasOneOrMany {
     protected Field morphType;
 
@@ -16,7 +17,6 @@ public abstract class MorphOneOrMany extends HasOneOrMany {
         this.morphType = morphType;
     }
 
-    @SuppressWarnings("unchecked")
     protected <R extends Model<?>> List<R> byRelatedRepository(List<?> localKeyValueList) {
         BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
         QueryWrapper<R> wrapper = new QueryWrapper<>();

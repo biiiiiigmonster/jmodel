@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import java.lang.reflect.Field;
 import java.util.List;
 
+@SuppressWarnings("unchecked")
 public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
     protected Class<MP> morphPivotClass;
     protected Field morphPivotType;
@@ -27,7 +28,6 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
         this.inverse = inverse;
     }
 
-    @SuppressWarnings("unchecked")
     protected List<MP> byPivotRelatedRepository(List<?> keys) {
         BaseMapper<MP> morphPivotRepository = (BaseMapper<MP>) RelationUtils.getRelatedRepository(morphPivotClass);
         QueryWrapper<MP> pivotWrapper = new QueryWrapper<>();

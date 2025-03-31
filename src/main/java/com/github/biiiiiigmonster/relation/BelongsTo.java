@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unchecked")
 public class BelongsTo extends Relation {
     protected Field foreignField;
     protected Field ownerField;
@@ -32,7 +33,6 @@ public class BelongsTo extends Relation {
         return getResult(ownerKeyValueList, ownerField, this::byRelatedRepository);
     }
 
-    @SuppressWarnings("unchecked")
     private <R extends Model<?>> List<R> byRelatedRepository(List<?> keys) {
         BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(ownerField.getDeclaringClass());
         QueryWrapper<R> wrapper = new QueryWrapper<>();

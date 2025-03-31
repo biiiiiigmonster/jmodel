@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 
 @Getter
 @Slf4j
+@SuppressWarnings("unchecked")
 public abstract class Relation {
     protected Field relatedField;
 
@@ -52,7 +53,6 @@ public abstract class Relation {
                 : byRelatedMethod(keys, RelationUtils.getRelatedMethod(relatedKey, relatedField));
     }
 
-    @SuppressWarnings("unchecked")
     protected <R extends Model<?>> List<R> byRelatedMethod(List<?> localKeyValueList, Map<Object, Method> relatedMethod, Object... args) {
         Object bean = relatedMethod.keySet().iterator().next();
         Method method = relatedMethod.values().iterator().next();
