@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 @SuppressWarnings("unchecked")
 public abstract class Relation {
     protected Field relatedField;
+    protected Model<?> model;
 
     private static final Map<String, String> MORPH_ALIAS_MAP = new HashMap<>();
 
@@ -113,5 +114,10 @@ public abstract class Relation {
             String id = String.format("%sId", name);
             return new String[]{type, id};
         });
+    }
+
+    public Relation setModel(Model<?> model) {
+        this.model = model;
+        return this;
     }
 }

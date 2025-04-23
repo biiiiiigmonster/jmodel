@@ -38,8 +38,12 @@ public abstract class Model<T extends Model<?>> {
         return column.apply((T) this);
     }
 
-    public <R> Relation relation(SerializableFunction<T, R> column) {
-        return RelationOption.of(column).getRelation();
+    public Relation relation(SerializableFunction<T, ?> column) {
+        return RelationOption.of(column).getRelation().setModel(this);
+    }
+
+    public Relation relation(String relation) {
+        return RelationOption.of(getClass(), relation).getRelation().setModel(this);
     }
 
     public T find(Serializable id) {
