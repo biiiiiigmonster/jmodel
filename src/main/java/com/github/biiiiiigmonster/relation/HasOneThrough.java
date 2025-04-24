@@ -12,6 +12,7 @@ public class HasOneThrough<TH extends Model<?>> extends HasOneOrManyThrough<TH> 
 
     /**
      * @param relatedField        Mechanic.carOwner
+     * @param throughClass        Through class
      * @param foreignField        Car.mechanic_id
      * @param throughForeignField Owner.car_id
      * @param localField          Mechanic.id

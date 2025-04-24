@@ -13,6 +13,7 @@ public class ModelCreatedEvent<T extends Model<?>> extends ApplicationEvent {
      *
      * @param source the object on which the event initially occurred or with
      *               which the event is associated (never {@code null})
+     * @param model model
      */
     public ModelCreatedEvent(Object source, T model) {
         super(source);

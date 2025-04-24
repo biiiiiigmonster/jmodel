@@ -13,6 +13,7 @@ public class ModelUpdatingEvent<T extends Model<?>> extends ApplicationEvent {
      *
      * @param source the object on which the event initially occurred or with
      *               which the event is associated (never {@code null})
+     * @param model model
      */
     public ModelUpdatingEvent(Object source, T model) {
         super(source);

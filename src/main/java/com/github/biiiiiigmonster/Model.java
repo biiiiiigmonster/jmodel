@@ -14,12 +14,8 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 /**
- * <p>
- *
- * </p>
  *
  * @author v-luyunfeng
- * @date 2023/10/26 9:52
  */
 @SuppressWarnings("unchecked")
 public abstract class Model<T extends Model<?>> {

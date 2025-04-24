@@ -14,6 +14,7 @@ public class HasManyThrough<TH extends Model<?>> extends HasOneOrManyThrough<TH>
 
     /**
      * @param relatedField        Project.deployments
+     * @param throughClass        Through class
      * @param foreignField        Environment.project_id
      * @param throughForeignField Deployment.environment_id
      * @param localField          Project.id

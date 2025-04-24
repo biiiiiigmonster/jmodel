@@ -35,12 +35,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * <p>
- *
- * </p>
  *
  * @author v-luyunfeng
- * @date 2023/10/9 20:03
  */
 @Slf4j
 @Component
@@ -366,8 +362,7 @@ public class RelationUtils implements BeanPostProcessor {
     /**
      * 模型默认本地键名
      *
-     * @param clazz
-     * @return
+     * @param clazz model class
      */
     public static String getPrimaryKey(Class<?> clazz) {
         TableInfo tableInfo = TableInfoHelper.getTableInfo(clazz);
@@ -377,8 +372,7 @@ public class RelationUtils implements BeanPostProcessor {
     /**
      * 模型默认外地键名
      *
-     * @param clazz
-     * @return
+     * @param clazz model class
      */
     public static String getForeignKey(Class<?> clazz) {
         return StrUtil.lowerFirst(clazz.getSimpleName()) + StrUtil.upperFirst(getPrimaryKey(clazz));

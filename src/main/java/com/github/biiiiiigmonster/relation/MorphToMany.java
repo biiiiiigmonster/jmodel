@@ -14,11 +14,13 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
 
     /**
      * @param relatedField      Post.tags                   Tag.posts
+     * @param morphPivotClass   Morph pivot class
      * @param morphPivotType    Taggables.taggable_type     Taggables.taggable_type
      * @param foreignPivotField Taggables.taggable_id       Taggables.tag_id
      * @param relatedPivotField Taggables.tag_id            Taggables.taggable_id
      * @param foreignField      Tag.id                      Post.id
      * @param localField        Post.id                     Tag.id
+     * @param inverse           inverse
      */
     public MorphToMany(Field relatedField, Class<MP> morphPivotClass, Field morphPivotType, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField, boolean inverse) {
         super(relatedField, morphPivotClass, foreignPivotField, relatedPivotField, foreignField, localField);
