@@ -14,8 +14,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 /**
- *
- * @author v-luyunfeng
+ * @author luyunfeng
  */
 @SuppressWarnings("unchecked")
 public abstract class Model<T extends Model<?>> {
