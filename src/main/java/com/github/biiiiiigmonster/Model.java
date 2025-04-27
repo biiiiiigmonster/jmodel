@@ -1,6 +1,7 @@
 package com.github.biiiiiigmonster;
 
 import cn.hutool.core.util.ReflectUtil;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.attribute.AttributeUtils;
@@ -21,6 +22,7 @@ import java.util.List;
 @Getter
 @SuppressWarnings("unchecked")
 public abstract class Model<T extends Model<?>> {
+    @TableField(exist = false)
     private Pivot<?> pivot;
 
     public <R> R get(SerializableFunction<T, R> column) {
@@ -75,6 +77,7 @@ public abstract class Model<T extends Model<?>> {
         return i > 0;
     }
 
+    @SafeVarargs
     public final <R> void append(SerializableFunction<T, R>... attributes) {
         AttributeUtils.append((T) this, attributes);
     }
@@ -83,10 +86,12 @@ public abstract class Model<T extends Model<?>> {
         AttributeUtils.append((T) this, attributes);
     }
 
+    @SafeVarargs
     public final <R> void load(SerializableFunction<T, R>... relations) {
         RelationUtils.load((T) this, relations);
     }
 
+    @SafeVarargs
     public final void load(RelationOption<T>... relations) {
         RelationUtils.load((T) this, relations);
     }
@@ -95,10 +100,12 @@ public abstract class Model<T extends Model<?>> {
         RelationUtils.load((T) this, relations);
     }
 
+    @SafeVarargs
     public final <R> void loadForce(SerializableFunction<T, R>... relations) {
         RelationUtils.loadForce((T) this, relations);
     }
 
+    @SafeVarargs
     public final void loadForce(RelationOption<T>... relations) {
         RelationUtils.loadForce((T) this, relations);
     }

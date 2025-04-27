@@ -43,12 +43,20 @@ public class User extends Model<User> {
     private List<Post> posts;
 
     @TableField(exist = false)
+    @HasMany(chaperone = true)
+    private List<Post> postChaperones;
+
+    @TableField(exist = false)
     @HasManyThrough(through = Post.class)
     private List<Likes> commentLikes;
 
     @TableField(exist = false)
     @BelongsToMany(using = UserRole.class)
     private List<Role> roles;
+
+    @TableField(exist = false)
+    @BelongsToMany(using = UserRole.class, withPivot = true)
+    private List<Role> roleWithPivots;
 
     @TableField(exist = false)
     @MorphOne

@@ -42,12 +42,11 @@ public abstract class HasOneOrMany extends Relation {
             return;
         }
 
-        for (Field field : result.getClass().getFields()) {
-            if (field.getAnnotation(BelongsTo.class) == null || field.getAnnotation(MorphTo.class) == null) {
-                continue;
-            }
-            if (field.getDeclaringClass() == model.getClass()) {
-                ReflectUtil.setFieldValue(result, field, model);
+        for (Field field : ReflectUtil.getFields(result.getClass())) {
+            if (field.getType() == model.getClass()) {
+                if (field.getAnnotation(BelongsTo.class) != null || field.getAnnotation(MorphTo.class) != null) {
+                    ReflectUtil.setFieldValue(result, field, model);
+                }
             }
         }
     }
