@@ -14,4 +14,5 @@ public @interface MorphOne {
     String type() default "";
     String id() default "";
     String localKey() default "";
+    boolean chaperone() default false;
 }

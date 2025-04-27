@@ -1,8 +1,11 @@
 package com.github.biiiiiigmonster.relation;
 
+import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
+import com.github.biiiiiigmonster.relation.annotation.BelongsTo;
+import com.github.biiiiiigmonster.relation.annotation.MorphTo;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -11,12 +14,14 @@ import java.util.List;
 public abstract class HasOneOrMany extends Relation {
     protected Field foreignField;
     protected Field localField;
+    protected boolean chaperone;
 
-    public HasOneOrMany(Field relatedField, Field foreignField, Field localField) {
+    public HasOneOrMany(Field relatedField, Field foreignField, Field localField, boolean chaperone) {
         super(relatedField);
 
         this.foreignField = foreignField;
         this.localField = localField;
+        this.chaperone = chaperone;
     }
 
     @Override
@@ -30,5 +35,20 @@ public abstract class HasOneOrMany extends Relation {
         QueryWrapper<R> wrapper = new QueryWrapper<>();
         wrapper.in(RelationUtils.getColumn(foreignField), localKeyValueList);
         return relatedRepository.selectList(wrapper);
+    }
+
+    protected <T extends Model<?>, R extends Model<?>> void inverseMatch(R result, T model) {
+        if (!chaperone || result == null) {
+            return;
+        }
+
+        for (Field field : result.getClass().getFields()) {
+            if (field.getAnnotation(BelongsTo.class) == null || field.getAnnotation(MorphTo.class) == null) {
+                continue;
+            }
+            if (field.getDeclaringClass() == model.getClass()) {
+                ReflectUtil.setFieldValue(result, field, model);
+            }
+        }
     }
 }

@@ -18,4 +18,5 @@ public @interface MorphedByMany {
     String foreignPivotKey() default "";
     String foreignKey() default "";
     String ownerKey() default "";
+    boolean withPivot() default false;
 }

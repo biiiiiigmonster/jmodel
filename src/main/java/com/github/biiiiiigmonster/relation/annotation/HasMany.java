@@ -13,4 +13,5 @@ import java.lang.annotation.Target;
 public @interface HasMany {
     String foreignKey() default "";
     String localKey() default "";
+    boolean chaperone() default false;
 }

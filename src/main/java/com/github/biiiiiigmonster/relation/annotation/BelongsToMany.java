@@ -17,4 +17,5 @@ public @interface BelongsToMany {
     String relatedPivotKey() default "";
     String localKey() default "";
     String foreignKey() default "";
+    boolean withPivot() default false;
 }

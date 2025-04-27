@@ -11,8 +11,8 @@ import java.util.List;
 public abstract class MorphOneOrMany extends HasOneOrMany {
     protected Field morphType;
 
-    public MorphOneOrMany(Field relatedField, Field morphType, Field foreignField, Field localField) {
-        super(relatedField, foreignField, localField);
+    public MorphOneOrMany(Field relatedField, Field morphType, Field foreignField, Field localField, boolean chaperone) {
+        super(relatedField, foreignField, localField, chaperone);
 
         this.morphType = morphType;
     }

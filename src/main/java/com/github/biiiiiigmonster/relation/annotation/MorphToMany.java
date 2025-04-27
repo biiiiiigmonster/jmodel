@@ -18,4 +18,5 @@ public @interface MorphToMany {
     String relatedPivotKey() default "";
     String foreignKey() default "";
     String localKey() default "";
+    boolean withPivot() default false;
 }

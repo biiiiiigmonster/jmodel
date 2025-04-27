@@ -16,8 +16,8 @@ public class MorphMany extends MorphOneOrMany {
      * @param foreignField Comment.commentable_id
      * @param localField   (Post|Video).id
      */
-    public MorphMany(Field relatedField, Field morphType, Field foreignField, Field localField) {
-        super(relatedField, morphType, foreignField, localField);
+    public MorphMany(Field relatedField, Field morphType, Field foreignField, Field localField, boolean chaperone) {
+        super(relatedField, morphType, foreignField, localField, chaperone);
     }
 
     @Override
@@ -28,6 +28,7 @@ public class MorphMany extends MorphOneOrMany {
 
         models.forEach(o -> {
             List<R> valList = dictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>());
+            valList.forEach(r -> inverseMatch(r, o));
             ReflectUtil.setFieldValue(o, relatedField, valList);
         });
     }

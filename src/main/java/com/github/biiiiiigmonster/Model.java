@@ -4,10 +4,12 @@ import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.attribute.AttributeUtils;
+import com.github.biiiiiigmonster.relation.Pivot;
 import com.github.biiiiiigmonster.relation.Relation;
 import com.github.biiiiiigmonster.relation.RelationOption;
 import com.github.biiiiiigmonster.relation.RelationType;
 import com.github.biiiiiigmonster.relation.RelationUtils;
+import lombok.Getter;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -16,8 +18,10 @@ import java.util.List;
 /**
  * @author luyunfeng
  */
+@Getter
 @SuppressWarnings("unchecked")
 public abstract class Model<T extends Model<?>> {
+    private Pivot<?> pivot;
 
     public <R> R get(SerializableFunction<T, R> column) {
         R value = column.apply((T) this);

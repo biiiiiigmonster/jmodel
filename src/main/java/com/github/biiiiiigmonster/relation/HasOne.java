@@ -14,8 +14,8 @@ public class HasOne extends HasOneOrMany {
      * @param foreignField Phone.user_id
      * @param localField   User.id
      */
-    public HasOne(Field relatedField, Field foreignField, Field localField) {
-        super(relatedField, foreignField, localField);
+    public HasOne(Field relatedField, Field foreignField, Field localField, boolean chaperone) {
+        super(relatedField, foreignField, localField, chaperone);
     }
 
     @Override
@@ -25,6 +25,7 @@ public class HasOne extends HasOneOrMany {
 
         models.forEach(o -> {
             R value = dictionary.get(ReflectUtil.getFieldValue(o, localField));
+            inverseMatch(value, o);
             ReflectUtil.setFieldValue(o, relatedField, value);
         });
     }

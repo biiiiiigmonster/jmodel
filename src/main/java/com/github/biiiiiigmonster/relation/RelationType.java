@@ -32,7 +32,8 @@ public enum RelationType {
             return new com.github.biiiiiigmonster.relation.HasOne(
                     field,
                     ReflectUtil.getField(field.getType(), foreignKey),
-                    ReflectUtil.getField(field.getDeclaringClass(), localKey)
+                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
+                    relation.chaperone()
             );
         }
     },
@@ -45,7 +46,8 @@ public enum RelationType {
             return new com.github.biiiiiigmonster.relation.HasMany(
                     field,
                     ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey),
-                    ReflectUtil.getField(field.getDeclaringClass(), localKey)
+                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
+                    relation.chaperone()
             );
         }
     },
@@ -76,7 +78,8 @@ public enum RelationType {
                     ReflectUtil.getField(relation.using(), foreignPivotKey),
                     ReflectUtil.getField(relation.using(), relatedPivotKey),
                     ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey),
-                    ReflectUtil.getField(field.getDeclaringClass(), localKey)
+                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
+                    relation.withPivot()
             );
         }
     },
@@ -128,7 +131,8 @@ public enum RelationType {
                     field,
                     ReflectUtil.getField(field.getType(), type),
                     ReflectUtil.getField(field.getType(), id),
-                    ReflectUtil.getField(field.getDeclaringClass(), localKey)
+                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
+                    relation.chaperone()
             );
         }
     },
@@ -144,7 +148,8 @@ public enum RelationType {
                     field,
                     ReflectUtil.getField(RelationUtils.getGenericType(field), type),
                     ReflectUtil.getField(RelationUtils.getGenericType(field), id),
-                    ReflectUtil.getField(field.getDeclaringClass(), localKey)
+                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
+                    relation.chaperone()
             );
         }
     },
@@ -182,7 +187,8 @@ public enum RelationType {
                     ReflectUtil.getField(relation.using(), relatedPivotKey),
                     ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey),
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
-                    false
+                    false,
+                    relation.withPivot()
             );
         }
     },
@@ -204,7 +210,8 @@ public enum RelationType {
                     ReflectUtil.getField(relation.using(), pivotId),
                     ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey),
                     ReflectUtil.getField(field.getDeclaringClass(), ownerKey),
-                    true
+                    true,
+                    relation.withPivot()
             );
         }
     },

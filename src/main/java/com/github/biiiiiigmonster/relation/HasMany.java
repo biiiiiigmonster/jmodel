@@ -2,6 +2,7 @@ package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ReflectUtil;
 import com.github.biiiiiigmonster.Model;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -15,8 +16,8 @@ public class HasMany extends HasOneOrMany {
      * @param foreignField Comment.post_id
      * @param localField   Post.id
      */
-    public HasMany(Field relatedField, Field foreignField, Field localField) {
-        super(relatedField, foreignField, localField);
+    public HasMany(Field relatedField, Field foreignField, Field localField, boolean chaperone) {
+        super(relatedField, foreignField, localField, chaperone);
     }
 
     @Override
@@ -26,6 +27,7 @@ public class HasMany extends HasOneOrMany {
 
         models.forEach(o -> {
             List<R> valList = dictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>());
+            valList.forEach(r -> inverseMatch(r, o));
             ReflectUtil.setFieldValue(o, relatedField, valList);
         });
     }

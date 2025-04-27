@@ -19,6 +19,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
     protected Field relatedPivotField;
     protected Field foreignField;
     protected Field localField;
+    protected boolean withPivot;
 
     /**
      * @param relatedField      User.roles
@@ -28,7 +29,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
      * @param localField        User.id
      * @param foreignField      Role.id
      */
-    public BelongsToMany(Field relatedField, Class<P> pivotClass, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField) {
+    public BelongsToMany(Field relatedField, Class<P> pivotClass, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField, boolean withPivot) {
         super(relatedField);
 
         this.pivotClass = pivotClass;
@@ -36,6 +37,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
         this.relatedPivotField = relatedPivotField;
         this.foreignField = foreignField;
         this.localField = localField;
+        this.withPivot = withPivot;
     }
 
     @Override
@@ -79,11 +81,21 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
         models.forEach(o -> {
             List<R> valList = pivotDictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>())
                     .stream()
-                    .map(p -> dictionary.get(ReflectUtil.getFieldValue(p, relatedPivotField)))
+                    .map(p -> {
+                        R r = dictionary.get(ReflectUtil.getFieldValue(p, relatedPivotField));
+                        withPivot(r, p);
+                        return r;
+                    })
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
             ReflectUtil.setFieldValue(o, relatedField, valList);
         });
+    }
+
+    private <T extends Model<?>> void withPivot(T model, P pivot) {
+        if (withPivot && model != null) {
+            ReflectUtil.setFieldValue(model, "pivot", pivot);
+        }
     }
 
     @Override

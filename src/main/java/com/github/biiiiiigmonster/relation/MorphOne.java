@@ -15,8 +15,8 @@ public class MorphOne extends MorphOneOrMany {
      * @param foreignField Image.imageable_id
      * @param localField   (Post|User).id
      */
-    public MorphOne(Field relatedField, Field morphType, Field foreignField, Field localField) {
-        super(relatedField, morphType, foreignField, localField);
+    public MorphOne(Field relatedField, Field morphType, Field foreignField, Field localField, boolean chaperone) {
+        super(relatedField, morphType, foreignField, localField, chaperone);
     }
 
     @Override
@@ -27,6 +27,7 @@ public class MorphOne extends MorphOneOrMany {
 
         models.forEach(o -> {
             R value = dictionary.get(ReflectUtil.getFieldValue(o, localField));
+            inverseMatch(value, o);
             ReflectUtil.setFieldValue(o, relatedField, value);
         });
     }
