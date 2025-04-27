@@ -301,7 +301,12 @@ public class RelationUtils implements BeanPostProcessor {
         return list;
     }
 
-    public static Map<Object, Method> getRelatedMethod(String key, Field field) {
+    public static String relatedMethodCacheKey(Field field) {
+        return String.format("%s.%s", field.getDeclaringClass().getName(), field.getName());
+    }
+
+    public static Map<Object, Method> getRelatedMethod(Field field) {
+        String key = relatedMethodCacheKey(field);
         return MAP_CACHE.computeIfAbsent(key, k ->
                 RELATED_MAP.get(field.getDeclaringClass()).stream()
                         .filter(map -> {
@@ -322,8 +327,8 @@ public class RelationUtils implements BeanPostProcessor {
         return RELATED_REPOSITORY_MAP.get(clazz);
     }
 
-    public static boolean hasRelatedRepository(Class<?> clazz) {
-        return RELATED_REPOSITORY_MAP.containsKey(clazz);
+    public static boolean hasRelatedRepository(Field field) {
+        return RELATED_REPOSITORY_MAP.containsKey(field.getDeclaringClass());
     }
 
     public static String getColumn(Field foreignField) {

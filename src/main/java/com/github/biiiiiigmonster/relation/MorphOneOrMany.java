@@ -25,8 +25,8 @@ public abstract class MorphOneOrMany extends HasOneOrMany {
         return relatedRepository.selectList(wrapper);
     }
 
-    protected Object[] additionalRelatedMethodArgs(Object obj) {
-        return new Object[]{obj, getMorphAlias()};
+    protected Object[] additionalRelatedMethodArgs() {
+        return new Object[]{getMorphAlias()};
     }
 
     protected String getMorphAlias() {

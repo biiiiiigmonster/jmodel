@@ -43,40 +43,40 @@ public abstract class Relation {
 
     public abstract <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results);
 
-    protected <T extends Model<?>> List<T> getResult(List<?> keys, Field relatedField, Function<List<?>, List<T>> func) {
+    public <T extends Model<?>> List<T> getResult(List<?> keys, Field relatedField, Function<List<?>, List<T>> func) {
         if (ObjectUtil.isEmpty(keys)) {
             return new ArrayList<>();
         }
 
-        String relatedKey = String.format("%s.%s", relatedField.getDeclaringClass().getName(), relatedField.getName());
-        return RelationUtils.hasRelatedRepository(relatedField.getDeclaringClass())
+        return RelationUtils.hasRelatedRepository(relatedField)
                 ? func.apply(keys)
-                : byRelatedMethod(keys, RelationUtils.getRelatedMethod(relatedKey, relatedField));
+                : byRelatedMethod(keys, relatedField, additionalRelatedMethodArgs());
     }
 
-    protected <R extends Model<?>> List<R> byRelatedMethod(List<?> localKeyValueList, Map<Object, Method> relatedMethod, Object... args) {
+    public static <T extends Model<?>> List<T> byRelatedMethod(List<?> localKeyValueList, Field relatedField, Object... args) {
+        Map<Object, Method> relatedMethod = RelationUtils.getRelatedMethod(relatedField);
         Object bean = relatedMethod.keySet().iterator().next();
         Method method = relatedMethod.values().iterator().next();
         if (List.class.isAssignableFrom(method.getParameterTypes()[0])) {
-            return ReflectUtil.invoke(bean, method, additionalRelatedMethodArgs(localKeyValueList));
+            return ReflectUtil.invoke(bean, method, localKeyValueList, args);
         } else {
             log.warn("{}存在N + 1查询隐患，建议{}实现List参数的仓库方法", bean.getClass().getName(), method.getName());
             return localKeyValueList.stream()
-                    .map(param -> ReflectUtil.invoke(bean, method, additionalRelatedMethodArgs(param)))
+                    .map(param -> ReflectUtil.invoke(bean, method, param, args))
                     .filter(Objects::nonNull)
                     .flatMap(r -> {
                         if (List.class.isAssignableFrom(method.getReturnType())) {
-                            return ((List<R>) r).stream();
+                            return ((List<T>) r).stream();
                         } else {
-                            return Stream.of((R) r);
+                            return Stream.of((T) r);
                         }
                     })
                     .collect(Collectors.toList());
         }
     }
 
-    protected Object[] additionalRelatedMethodArgs(Object obj) {
-        return new Object[]{obj};
+    protected Object[] additionalRelatedMethodArgs() {
+        return new Object[]{};
     }
 
     public static <T extends Model<?>> List<?> relatedKeyValueList(List<T> models, Field field) {

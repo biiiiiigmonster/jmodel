@@ -38,8 +38,8 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
         return morphPivotRepository.selectList(pivotWrapper);
     }
 
-    protected Object[] additionalRelatedMethodArgs(Object obj) {
-        return new Object[]{obj, getMorphAlias()};
+    protected Object[] additionalRelatedMethodArgs() {
+        return new Object[]{getMorphAlias()};
     }
 
     protected String getMorphAlias() {
