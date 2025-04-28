@@ -15,6 +15,7 @@ public class MorphMany extends MorphOneOrMany {
      * @param morphType    Comment.commentable_type
      * @param foreignField Comment.commentable_id
      * @param localField   (Post|Video).id
+     * @param chaperone    chaperone
      */
     public MorphMany(Field relatedField, Field morphType, Field foreignField, Field localField, boolean chaperone) {
         super(relatedField, morphType, foreignField, localField, chaperone);

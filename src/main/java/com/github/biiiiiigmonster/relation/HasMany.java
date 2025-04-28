@@ -15,6 +15,7 @@ public class HasMany extends HasOneOrMany {
      * @param relatedField Post.comments
      * @param foreignField Comment.post_id
      * @param localField   Post.id
+     * @param chaperone    chaperone
      */
     public HasMany(Field relatedField, Field foreignField, Field localField, boolean chaperone) {
         super(relatedField, foreignField, localField, chaperone);

@@ -21,6 +21,7 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
      * @param foreignField      Tag.id                      Post.id
      * @param localField        Post.id                     Tag.id
      * @param inverse           inverse
+     * @param withPivot         with pivot
      */
     public MorphToMany(Field relatedField, Class<MP> morphPivotClass, Field morphPivotType, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField, boolean inverse, boolean withPivot) {
         super(relatedField, morphPivotClass, foreignPivotField, relatedPivotField, foreignField, localField, withPivot);

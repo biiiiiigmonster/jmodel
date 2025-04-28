@@ -1,7 +1,5 @@
 package com.github.biiiiiigmonster;
 
-import com.github.biiiiiigmonster.entity.Post;
-import com.github.biiiiiigmonster.entity.User;
 import com.github.biiiiiigmonster.mapper.AddressMapper;
 import com.github.biiiiiigmonster.mapper.CommentMapper;
 import com.github.biiiiiigmonster.mapper.ImageMapper;
@@ -13,19 +11,17 @@ import com.github.biiiiiigmonster.mapper.TaggableMapper;
 import com.github.biiiiiigmonster.mapper.UserMapper;
 import com.github.biiiiiigmonster.mapper.UserRoleMapper;
 import com.github.biiiiiigmonster.mapper.VideoMapper;
-import org.junit.Test;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 @AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@Ignore
 public class BaseTest {
     @Autowired
     protected UserMapper userMapper;
@@ -49,9 +45,4 @@ public class BaseTest {
     protected TagMapper tagMapper;
     @Autowired
     protected TaggableMapper taggableMapper;
-
-    @Test
-    public void test() {
-
-    }
 }

@@ -28,6 +28,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
      * @param relatedPivotField UserRole.role_id
      * @param localField        User.id
      * @param foreignField      Role.id
+     * @param withPivot         with pivot
      */
     public BelongsToMany(Field relatedField, Class<P> pivotClass, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField, boolean withPivot) {
         super(relatedField);

@@ -44,7 +44,7 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
     }
 
     @Override
-    protected Object resolveName(String name, MethodParameter parameter, NativeWebRequest request) throws Exception {
+    protected Object resolveName(String name, MethodParameter parameter, NativeWebRequest request) {
         Map<String, String> uriTemplateVars = (Map<String, String>) request.getAttribute(
                 HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
         String value;
@@ -57,11 +57,11 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         Field field = ReflectUtil.getField(parameter.getParameterType(), fieldName);
         Model<?> model;
         if (RelationUtils.hasRelatedRepository(field)) {
+            model = byRelatedRepository(value, field);
+        } else {
             List<String> values = Lists.newArrayList(value);
             List<Model<?>> results = Relation.byRelatedMethod(values, field);
             model = CollectionUtils.isEmpty(results) ? null : results.get(0);
-        } else {
-            model = byRelatedRepository(value, field);
         }
         if (model != null && ann.scopeBinding()) {
             scopeBinding(model, parameter, request);

@@ -91,4 +91,42 @@ public class PathModelTest extends BaseTest {
                 .getContentAsString(StandardCharsets.UTF_8);
         assertEquals(response, new ModelNotFoundException(User.class).getMessage());
     }
+
+    @Test
+    public void shouldScopeBindingModelTest() throws Exception {
+        Long userId = 1L;
+        Long postId = 2L;
+        String response = mockMvc.perform(
+                        MockMvcRequestBuilders.get("/users/{user}/posts/{post}/scopeBinding", userId, postId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+        User respUser = JSONUtil.parseArray(response).get(0, User.class);
+        assertNotNull(respUser);
+        User user = userMapper.selectById(userId);
+        assertTrue(respUser.is(user));
+
+        Post respPost = JSONUtil.parseArray(response).get(1, Post.class);
+        assertNotNull(respPost);
+        Post post = postMapper.selectById(postId);
+        assertTrue(respPost.is(post));
+
+        assertEquals(post.getUserId(), user.getId());
+    }
+
+    @Test
+    public void shouldScopeBindingNotFoundTest() throws Exception {
+        Long userId = 1L;
+        Long postId = 5L;
+        String response = mockMvc.perform(
+                        MockMvcRequestBuilders.get("/users/{user}/posts/{post}/scopeBinding", userId, postId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+        assertEquals(response, new ModelNotFoundException(Post.class).getMessage());
+    }
 }

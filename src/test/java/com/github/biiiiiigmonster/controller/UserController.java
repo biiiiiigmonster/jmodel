@@ -23,4 +23,9 @@ public class UserController {
     public Object[] multiModel(@PathModel User user, @PathModel Post post) {
         return new Object[]{user, post};
     }
+
+    @RequestMapping("/users/{user}/posts/{post}/scopeBinding")
+    public Object[] multiScopeBindingModel(@PathModel User user, @PathModel(scopeBinding = true) Post post) {
+        return new Object[]{user, post};
+    }
 }

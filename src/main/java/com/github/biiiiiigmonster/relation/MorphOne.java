@@ -14,6 +14,7 @@ public class MorphOne extends MorphOneOrMany {
      * @param morphType    Image.imageable_type
      * @param foreignField Image.imageable_id
      * @param localField   (Post|User).id
+     * @param chaperone    chaperone
      */
     public MorphOne(Field relatedField, Field morphType, Field foreignField, Field localField, boolean chaperone) {
         super(relatedField, morphType, foreignField, localField, chaperone);
