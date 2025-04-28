@@ -18,4 +18,5 @@ public @interface PathModel {
     String name() default "";
     String routeKey() default "";
     boolean required() default true;
+    boolean scopeBinding() default false;
 }

@@ -14,14 +14,20 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.method.annotation.AbstractNamedValueMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.servlet.View;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
 public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentResolver {
+
+    String PATH_MODEL_VARIABLES = View.class.getName() + ".pathModelVariables";
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
@@ -49,19 +55,58 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         PathModel ann = parameter.getParameterAnnotation(PathModel.class);
         String fieldName = ann.routeKey().isEmpty() ? RelationUtils.getPrimaryKey(parameter.getParameterType()) : ann.routeKey();
         Field field = ReflectUtil.getField(parameter.getParameterType(), fieldName);
-        List<String> values = Lists.newArrayList(value);
-        List<?> results = RelationUtils.hasRelatedRepository(field)
-                ? byRelatedRepository(values, field)
-                : Relation.byRelatedMethod(values, field);
+        Model<?> model;
+        if (RelationUtils.hasRelatedRepository(field)) {
+            List<String> values = Lists.newArrayList(value);
+            List<Model<?>> results = Relation.byRelatedMethod(values, field);
+            model = CollectionUtils.isEmpty(results) ? null : results.get(0);
+        } else {
+            model = byRelatedRepository(value, field);
+        }
+        if (model != null && ann.scopeBinding()) {
+            scopeBinding(model, parameter, request);
+        }
 
-        return CollectionUtils.isEmpty(results) ? null : results.get(0);
+        return model;
     }
 
-    private <T extends Model<?>> List<T> byRelatedRepository(List<String> values, Field routeField) {
+    protected void scopeBinding(Model<?> model, MethodParameter parameter, NativeWebRequest request) {
+        String key = PATH_MODEL_VARIABLES;
+        int scope = RequestAttributes.SCOPE_REQUEST;
+        Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(key, scope);
+        if (pathVars == null) {
+            return;
+        }
+
+        Model<?> parent = (Model<?>) pathVars.values().toArray()[pathVars.size() - 1];
+        if (parent == null) {
+            return;
+        }
+
+        // todo: 完成判定
+//        if (!model.isAssociate(parent)) {
+//            throw new ModelNotFoundException(parameter.getParameterType());
+//        }
+    }
+
+    protected <T extends Model<?>> T byRelatedRepository(String value, Field routeField) {
         BaseMapper<T> repository = (BaseMapper<T>) RelationUtils.getRelatedRepository(routeField.getDeclaringClass());
         QueryWrapper<T> wrapper = new QueryWrapper<>();
-        wrapper.in(RelationUtils.getColumn(routeField), values);
-        return repository.selectList(wrapper);
+        wrapper.eq(RelationUtils.getColumn(routeField), value).last("limit 1");
+        return repository.selectOne(wrapper);
+    }
+
+    @Override
+    protected void handleResolvedValue(@Nullable Object arg, String name, MethodParameter parameter,
+                                       @Nullable ModelAndViewContainer mavContainer, NativeWebRequest request) {
+        String key = PATH_MODEL_VARIABLES;
+        int scope = RequestAttributes.SCOPE_REQUEST;
+        Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(key, scope);
+        if (pathVars == null) {
+            pathVars = new HashMap<>();
+            request.setAttribute(key, pathVars, scope);
+        }
+        pathVars.put(name, arg);
     }
 
     protected void handleMissingValue(String name, MethodParameter parameter, NativeWebRequest request) {
