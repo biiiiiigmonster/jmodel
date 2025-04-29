@@ -5,7 +5,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.ModelNotFoundException;
+import com.github.biiiiiigmonster.relation.BelongsTo;
 import com.github.biiiiiigmonster.relation.Relation;
+import com.github.biiiiiigmonster.relation.RelationType;
 import com.github.biiiiiigmonster.relation.RelationUtils;
 import com.google.common.collect.Lists;
 import org.springframework.core.MethodParameter;
@@ -21,8 +23,10 @@ import org.springframework.web.servlet.View;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @SuppressWarnings("unchecked")
 public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentResolver {
@@ -73,20 +77,24 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
     protected void scopeBinding(Model<?> model, MethodParameter parameter, NativeWebRequest request) {
         String key = PATH_MODEL_VARIABLES;
         int scope = RequestAttributes.SCOPE_REQUEST;
-        Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(key, scope);
+        LinkedHashMap<String, Object> pathVars = (LinkedHashMap<String, Object>) request.getAttribute(key, scope);
         if (pathVars == null) {
             return;
         }
 
-        Model<?> parent = (Model<?>) pathVars.values().toArray()[pathVars.size() - 1];
+        Map.Entry<String, Object> parent = null;
+        for (Map.Entry<String, Object> entry : pathVars.entrySet()) {
+            parent = entry;
+        }
         if (parent == null) {
             return;
         }
 
-        // todo: 完成判定
-//        if (!model.isAssociate(parent)) {
-//            throw new ModelNotFoundException(parameter.getParameterType());
-//        }
+        RelationUtils.load(model, parent.getKey());
+        Model<?> associate = (Model<?>) ReflectUtil.getFieldValue(model, parent.getKey());
+        if (associate.isNot((Model<?>) parent.getValue())) {
+            throw new ModelNotFoundException(parameter.getParameterType());
+        }
     }
 
     protected <T extends Model<?>> T byRelatedRepository(String value, Field routeField) {
@@ -101,9 +109,9 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
                                        @Nullable ModelAndViewContainer mavContainer, NativeWebRequest request) {
         String key = PATH_MODEL_VARIABLES;
         int scope = RequestAttributes.SCOPE_REQUEST;
-        Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(key, scope);
+        LinkedHashMap<String, Object> pathVars = (LinkedHashMap<String, Object>) request.getAttribute(key, scope);
         if (pathVars == null) {
-            pathVars = new HashMap<>();
+            pathVars = new LinkedHashMap<>();
             request.setAttribute(key, pathVars, scope);
         }
         pathVars.put(name, arg);

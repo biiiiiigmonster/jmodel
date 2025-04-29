@@ -120,7 +120,7 @@ public abstract class Model<T extends Model<?>> {
 
     public boolean is(Model<?> model) {
         return model != null
-                && model.getClass() == getClass()
+                && getClass().equals(model.getClass())
                 && primaryKeyValue().equals(model.primaryKeyValue());
     }
 
