@@ -4,14 +4,12 @@ import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
-import lombok.Getter;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Getter
 @SuppressWarnings("unchecked")
 public class BelongsTo extends Relation {
     protected Field foreignField;
