@@ -41,12 +41,14 @@ public class RelationOption<T extends Model<?>> {
         return new RelationOption<>(clazz, fieldName);
     }
 
-    public <R extends Model<?>, F> RelationOption<T> appendNested(SerializableFunction<R, F>... relations) {
+    @SafeVarargs
+    public final <R extends Model<?>, F> RelationOption<T> appendNested(SerializableFunction<R, F>... relations) {
         nestedRelations.addAll(Arrays.stream(relations).map(RelationOption::of).collect(Collectors.toList()));
         return this;
     }
 
-    public <R extends Model<?>> RelationOption<T> appendNested(RelationOption<R>... relations) {
+    @SafeVarargs
+    public final <R extends Model<?>> RelationOption<T> appendNested(RelationOption<R>... relations) {
         nestedRelations.addAll(Arrays.stream(relations).collect(Collectors.toList()));
         return this;
     }

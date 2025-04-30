@@ -66,7 +66,7 @@ public enum RelationType {
     },
     BELONGS_TO_MANY(BelongsToMany.class, true) {
         @Override
-        public com.github.biiiiiigmonster.relation.BelongsToMany getRelation(Field field) {
+        public com.github.biiiiiigmonster.relation.BelongsToMany<?> getRelation(Field field) {
             BelongsToMany relation = field.getAnnotation(BelongsToMany.class);
             String foreignPivotKey = StringUtils.isNotBlank(relation.foreignPivotKey()) ? relation.foreignPivotKey() : RelationUtils.getForeignKey(field.getDeclaringClass());
             String relatedPivotKey = StringUtils.isNotBlank(relation.relatedPivotKey()) ? relation.relatedPivotKey() : RelationUtils.getForeignKey(RelationUtils.getGenericType(field));
@@ -85,7 +85,7 @@ public enum RelationType {
     },
     HAS_ONE_THROUGH(HasOneThrough.class, false) {
         @Override
-        public com.github.biiiiiigmonster.relation.HasOneThrough getRelation(Field field) {
+        public com.github.biiiiiigmonster.relation.HasOneThrough<?> getRelation(Field field) {
             HasOneThrough relation = field.getAnnotation(HasOneThrough.class);
             String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getForeignKey(field.getDeclaringClass());
             String throughForeignKey = StringUtils.isNotBlank(relation.throughForeignKey()) ? relation.throughForeignKey() : RelationUtils.getForeignKey(relation.through());
@@ -103,7 +103,7 @@ public enum RelationType {
     },
     HAS_MANY_THROUGH(HasManyThrough.class, true) {
         @Override
-        public com.github.biiiiiigmonster.relation.HasManyThrough getRelation(Field field) {
+        public com.github.biiiiiigmonster.relation.HasManyThrough<?> getRelation(Field field) {
             HasManyThrough relation = field.getAnnotation(HasManyThrough.class);
             String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getForeignKey(field.getDeclaringClass());
             String throughForeignKey = StringUtils.isNotBlank(relation.throughForeignKey()) ? relation.throughForeignKey() : RelationUtils.getForeignKey(relation.through());
@@ -171,7 +171,7 @@ public enum RelationType {
     },
     MORPH_TO_MANY(MorphToMany.class, true) {
         @Override
-        public com.github.biiiiiigmonster.relation.MorphToMany getRelation(Field field) {
+        public com.github.biiiiiigmonster.relation.MorphToMany<?> getRelation(Field field) {
             MorphToMany relation = field.getAnnotation(MorphToMany.class);
             String[] morph = Relation.getMorph(relation.using());
             String pivotType = StringUtils.isNotBlank(relation.pivotType()) ? relation.pivotType() : morph[0];
@@ -194,7 +194,7 @@ public enum RelationType {
     },
     MORPHED_BY_MANY(MorphedByMany.class, true) {
         @Override
-        public com.github.biiiiiigmonster.relation.MorphToMany getRelation(Field field) {
+        public com.github.biiiiiigmonster.relation.MorphToMany<?> getRelation(Field field) {
             MorphedByMany relation = field.getAnnotation(MorphedByMany.class);
             String[] morph = Relation.getMorph(relation.using());
             String pivotType = StringUtils.isNotBlank(relation.pivotType()) ? relation.pivotType() : morph[0];

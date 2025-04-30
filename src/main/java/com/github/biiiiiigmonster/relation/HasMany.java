@@ -2,7 +2,6 @@ package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ReflectUtil;
 import com.github.biiiiiigmonster.Model;
-import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
