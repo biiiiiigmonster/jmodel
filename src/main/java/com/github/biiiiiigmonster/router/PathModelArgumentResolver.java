@@ -87,8 +87,11 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         }
 
         RelationUtils.load(model, parent.getKey());
-        Model<?> associate = (Model<?>) ReflectUtil.getFieldValue(model, parent.getKey());
-        if (associate.isNot((Model<?>) parent.getValue())) {
+        Object associate = ReflectUtil.getFieldValue(model, parent.getKey());
+        if (associate instanceof List) {
+            throw new ModelNotFoundException(parameter.getParameterType());
+        }
+        if (((Model<?>) associate).isNot((Model<?>) parent.getValue())) {
             throw new ModelNotFoundException(parameter.getParameterType());
         }
     }

@@ -26,9 +26,12 @@ public class MorphOne extends MorphOneOrMany {
                 .filter(r -> ReflectUtil.getFieldValue(r, morphType).equals(getMorphAlias()))
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
 
+        Field chaperoneField = chaperoneField();
         models.forEach(o -> {
             R value = dictionary.get(ReflectUtil.getFieldValue(o, localField));
-            inverseMatch(value, o);
+            if (chaperone && value != null) {
+                ReflectUtil.setFieldValue(value, chaperoneField, o);
+            }
             ReflectUtil.setFieldValue(o, relatedField, value);
         });
     }

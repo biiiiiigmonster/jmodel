@@ -24,9 +24,12 @@ public class HasOne extends HasOneOrMany {
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
 
+        Field chaperoneField = chaperoneField();
         models.forEach(o -> {
             R value = dictionary.get(ReflectUtil.getFieldValue(o, localField));
-            inverseMatch(value, o);
+            if (chaperone && value != null) {
+                ReflectUtil.setFieldValue(value, chaperoneField, o);
+            }
             ReflectUtil.setFieldValue(o, relatedField, value);
         });
     }

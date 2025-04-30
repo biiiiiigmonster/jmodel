@@ -79,12 +79,16 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
         Map<?, List<P>> pivotDictionary = pivots.stream()
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignPivotField)));
+
+        Field withPivotField = withPivotField();
         models.forEach(o -> {
             List<R> valList = pivotDictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>())
                     .stream()
                     .map(p -> {
                         R r = dictionary.get(ReflectUtil.getFieldValue(p, relatedPivotField));
-                        withPivot(r, p);
+                        if (withPivot && r != null) {
+                            ReflectUtil.setFieldValue(r, withPivotField, p);
+                        }
                         return r;
                     })
                     .filter(Objects::nonNull)
@@ -93,10 +97,8 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
         });
     }
 
-    private <T extends Model<?>> void withPivot(T model, P pivot) {
-        if (withPivot && model != null) {
-            ReflectUtil.setFieldValue(model, "pivot", pivot);
-        }
+    protected Field withPivotField() {
+        return ReflectUtil.getField(foreignField.getDeclaringClass(), "pivot");
     }
 
     @Override

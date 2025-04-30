@@ -26,9 +26,12 @@ public class HasMany extends HasOneOrMany {
         Map<?, List<R>> dictionary = results.stream()
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignField)));
 
+        Field chaperoneField = chaperoneField();
         models.forEach(o -> {
             List<R> valList = dictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>());
-            valList.forEach(r -> inverseMatch(r, o));
+            if (chaperone) {
+                valList.forEach(value -> ReflectUtil.setFieldValue(value, chaperoneField, o));
+            }
             ReflectUtil.setFieldValue(o, relatedField, valList);
         });
     }

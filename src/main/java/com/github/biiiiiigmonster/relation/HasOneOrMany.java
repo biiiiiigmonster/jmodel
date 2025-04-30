@@ -37,17 +37,15 @@ public abstract class HasOneOrMany extends Relation {
         return relatedRepository.selectList(wrapper);
     }
 
-    protected <T extends Model<?>, R extends Model<?>> void inverseMatch(R result, T model) {
-        if (!chaperone || result == null) {
-            return;
-        }
-
-        for (Field field : ReflectUtil.getFields(result.getClass())) {
-            if (field.getType() == model.getClass()) {
+    protected Field chaperoneField() {
+        for (Field field : ReflectUtil.getFields(foreignField.getDeclaringClass())) {
+            if (field.getType() == localField.getDeclaringClass()) {
                 if (field.getAnnotation(BelongsTo.class) != null || field.getAnnotation(MorphTo.class) != null) {
-                    ReflectUtil.setFieldValue(result, field, model);
+                    return field;
                 }
             }
         }
+
+        return null;
     }
 }
