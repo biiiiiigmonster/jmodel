@@ -97,6 +97,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
         });
     }
 
+    // todo: pivot custom
     protected Field withPivotField() {
         return ReflectUtil.getField(foreignField.getDeclaringClass(), "pivot");
     }
