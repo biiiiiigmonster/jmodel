@@ -97,8 +97,9 @@ List<User> users = userMapper.selectBatchIds(Arrays.asList(1L, 2L));
 RelationUtils.load(users, User::getPosts);
 
 // 现在可以直接访问已加载的关联
-User user = users.get(0);
-List<Post> posts = user.getPosts();
+for(User user : users) {
+    List<Post> posts = user.getPosts();
+}
 ```
 
 #### 自动为子级添加父级模型（Chaperone）
@@ -244,7 +245,9 @@ private List<Role> roles;
 User user = userMapper.selectById(1L);
 List<Role> roles = user.get(User::getRoles);
 // 访问中间表数据
-UserRole pivot = roles.get(0).getPivot();
+for (Role role : roles) {
+    UserRole pivot = role.getPivot();
+}
 ```
 
 ### 一对一（多态）
@@ -415,7 +418,7 @@ List<Post> posts = user.get(User::getPosts);
 
 ### 预加载
 
-为了避免N+1查询问题，您可以使用`load`方法预加载关联：
+您也可以使用`load`方法预加载关联：
 
 ```java
 User user = userMapper.selectById(1L);
@@ -423,7 +426,7 @@ user.load(User::getPosts);
 List<Post> posts = user.getPosts();
 ```
 
-对于集合，您可以使用`RelationUtils.load`方法：
+对于集合，为了避免`N+1`查询问题，您可以使用`RelationUtils.load`方法：
 
 ```java
 List<User> users = userMapper.selectBatchIds(Arrays.asList(1L, 2L));
@@ -439,4 +442,4 @@ User user = userMapper.selectById(1L);
 user.load("posts.comments");
 ```
 
-这将加载用户的所有文章及其评论。
+这将加载用户的所有帖子及其评论数据。
