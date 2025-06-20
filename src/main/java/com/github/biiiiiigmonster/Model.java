@@ -27,16 +27,34 @@ public abstract class Model<T extends Model<?>> {
 
     public <R> R get(SerializableFunction<T, R> column) {
         R value = column.apply((T) this);
-        if (value == null) {
-            Field field = SerializedLambda.getField(column);
-            if (RelationType.hasRelationAnnotation(field)) {
-                load(column);
-            } else if (AttributeUtils.hasAttributeAnnotation(field)) {
-                append(column);
-            }
+        if (value != null) {
+            return value;
+        }
+
+        Field field = SerializedLambda.getField(column);
+        if (RelationType.hasRelationAnnotation(field)) {
+            load(column);
+        } else if (AttributeUtils.hasAttributeAnnotation(field)) {
+            append(column);
         }
 
         return column.apply((T) this);
+    }
+
+    public Object get(String column) {
+        Object value = ReflectUtil.getFieldValue(this, column);
+        if (value != null) {
+            return value;
+        }
+
+        Field field = ReflectUtil.getField(getClass(), column);
+        if (RelationType.hasRelationAnnotation(field)) {
+            load(column);
+        } else if (AttributeUtils.hasAttributeAnnotation(field)) {
+            append(column);
+        }
+
+        return ReflectUtil.getFieldValue(this, column);
     }
 
     public Relation relation(SerializableFunction<T, ?> column) {
