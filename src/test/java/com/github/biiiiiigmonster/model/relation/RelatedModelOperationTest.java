@@ -249,22 +249,28 @@ public class RelatedModelOperationTest extends BaseTest {
         user.setEmail("test@example.com");
         user.save();
 
-        // 创建个人资料
+        // 创建个人资料并设置关联
         Profile profile = new Profile();
         profile.setDescription("Initial Description");
-        profileMapper.insert(profile);
+        profile.setUserId(user.getId());
 
-        // 设置关联
+        // 设置关联并保存
         user.setProfile(profile);
         user.save(User::getProfile);
 
+        // 验证初始状态
+        User savedUser = userMapper.selectById(user.getId());
+        Profile savedProfile = savedUser.get(User::getProfile);
+        assertNotNull(savedProfile);
+        assertEquals("Initial Description", savedProfile.getDescription());
+
         // 更新个人资料
-        profile.setDescription("Updated Description");
-        user.update(User::getProfile, profile);
+        savedProfile.setDescription("Updated Description");
+        user.update(User::getProfile, savedProfile);
 
         // 验证更新
-        User savedUser = userMapper.selectById(user.getId());
-        Profile updatedProfile = savedUser.get(User::getProfile);
+        User updatedUser = userMapper.selectById(user.getId());
+        Profile updatedProfile = updatedUser.get(User::getProfile);
 
         assertEquals("Updated Description", updatedProfile.getDescription());
     }
