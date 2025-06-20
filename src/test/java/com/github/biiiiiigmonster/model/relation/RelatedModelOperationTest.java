@@ -1,23 +1,21 @@
 package com.github.biiiiiigmonster.model.relation;
 
 import com.github.biiiiiigmonster.BaseTest;
-import com.github.biiiiiigmonster.entity.Phone;
+import com.github.biiiiiigmonster.entity.Profile;
 import com.github.biiiiiigmonster.entity.Post;
 import com.github.biiiiiigmonster.entity.Role;
 import com.github.biiiiiigmonster.entity.User;
-import com.github.biiiiiigmonster.mapper.PhoneMapper;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class RelatedModelOperationTest extends BaseTest {
-
-    @Autowired
-    protected PhoneMapper phoneMapper;
 
     @Test
     public void shouldSaveHasOneRelation() {
@@ -27,23 +25,23 @@ public class RelatedModelOperationTest extends BaseTest {
         user.setEmail("test@example.com");
         user.save();
 
-        // 创建电话并设置关联
-        Phone phone = new Phone();
-        phone.setNumber("1234567890");
-        
+        // 创建个人资料并设置关联
+        Profile profile = new Profile();
+        profile.setDescription("Test Profile Description");
+
         // 设置关联
-        user.setPhone(phone);
-        
+        user.setProfile(profile);
+
         // 保存关联
-        user.save(User::getPhone);
-        
+        user.save(User::getProfile);
+
         // 验证关联已保存
         User savedUser = userMapper.selectById(user.getId());
-        Phone savedPhone = savedUser.get(User::getPhone);
-        
-        assertNotNull(savedPhone);
-        assertEquals("1234567890", savedPhone.getNumber());
-        assertEquals(user.getId(), savedPhone.getUserId());
+        Profile savedProfile = savedUser.get(User::getProfile);
+
+        assertNotNull(savedProfile);
+        assertEquals("Test Profile Description", savedProfile.getDescription());
+        assertEquals(user.getId(), savedProfile.getUserId());
     }
 
     @Test
@@ -57,22 +55,22 @@ public class RelatedModelOperationTest extends BaseTest {
         // 创建帖子列表
         Post post1 = new Post();
         post1.setTitle("First Post");
-        
+
         Post post2 = new Post();
         post2.setTitle("Second Post");
-        
+
         List<Post> posts = Arrays.asList(post1, post2);
-        
+
         // 设置关联
         user.setPosts(posts);
-        
+
         // 保存关联
         user.save(User::getPosts);
-        
+
         // 验证关联已保存
         User savedUser = userMapper.selectById(user.getId());
         List<Post> savedPosts = savedUser.get(User::getPosts);
-        
+
         assertNotNull(savedPosts);
         assertEquals(2, savedPosts.size());
         assertEquals("First Post", savedPosts.get(0).getTitle());
@@ -89,14 +87,14 @@ public class RelatedModelOperationTest extends BaseTest {
         user.setEmail("test@example.com");
         user.save();
 
-        // 创建并保存电话关联
-        Phone phone = new Phone();
-        phone.setNumber("1234567890");
-        phone = user.create(User::getPhone, phone);
-        
-        assertNotNull(phone);
-        assertEquals("1234567890", phone.getNumber());
-        assertEquals(user.getId(), phone.getUserId());
+        // 创建并保存个人资料关联
+        Profile profile = new Profile();
+        profile.setDescription("Test Profile Description");
+        profile = user.create(User::getProfile, profile);
+
+        assertNotNull(profile);
+        assertEquals("Test Profile Description", profile.getDescription());
+        assertEquals(user.getId(), profile.getUserId());
     }
 
     @Test
@@ -111,18 +109,18 @@ public class RelatedModelOperationTest extends BaseTest {
         Role role1 = new Role();
         role1.setName("admin");
         roleMapper.insert(role1);
-        
+
         Role role2 = new Role();
         role2.setName("user");
         roleMapper.insert(role2);
-        
+
         // 附加角色关联
         user.attach(User::getRoles, role1, role2);
-        
+
         // 验证关联已创建
         User savedUser = userMapper.selectById(user.getId());
         List<Role> roles = savedUser.get(User::getRoles);
-        
+
         assertNotNull(roles);
         assertEquals(2, roles.size());
         assertTrue(roles.stream().anyMatch(r -> "admin".equals(r.getName())));
@@ -141,26 +139,26 @@ public class RelatedModelOperationTest extends BaseTest {
         Role role1 = new Role();
         role1.setName("admin");
         roleMapper.insert(role1);
-        
+
         Role role2 = new Role();
         role2.setName("user");
         roleMapper.insert(role2);
-        
+
         Role role3 = new Role();
         role3.setName("guest");
         roleMapper.insert(role3);
-        
+
         // 先附加所有角色
         user.attach(User::getRoles, role1, role2, role3);
-        
+
         // 验证初始状态
         User savedUser = userMapper.selectById(user.getId());
         List<Role> initialRoles = savedUser.get(User::getRoles);
         assertEquals(3, initialRoles.size());
-        
+
         // 分离指定角色
         user.detach(User::getRoles, role1, role2);
-        
+
         // 验证分离后的状态
         User updatedUser = userMapper.selectById(user.getId());
         List<Role> remainingRoles = updatedUser.get(User::getRoles);
@@ -180,22 +178,22 @@ public class RelatedModelOperationTest extends BaseTest {
         Role role1 = new Role();
         role1.setName("admin");
         roleMapper.insert(role1);
-        
+
         Role role2 = new Role();
         role2.setName("user");
         roleMapper.insert(role2);
-        
+
         // 先附加角色
         user.attach(User::getRoles, role1, role2);
-        
+
         // 验证初始状态
         User savedUser = userMapper.selectById(user.getId());
         List<Role> initialRoles = savedUser.get(User::getRoles);
         assertEquals(2, initialRoles.size());
-        
+
         // 分离所有角色
         user.detach(User::getRoles);
-        
+
         // 验证分离后的状态
         User updatedUser = userMapper.selectById(user.getId());
         List<Role> remainingRoles = updatedUser.get(User::getRoles);
@@ -214,26 +212,26 @@ public class RelatedModelOperationTest extends BaseTest {
         Role role1 = new Role();
         role1.setName("admin");
         roleMapper.insert(role1);
-        
+
         Role role2 = new Role();
         role2.setName("user");
         roleMapper.insert(role2);
-        
+
         Role role3 = new Role();
         role3.setName("guest");
         roleMapper.insert(role3);
-        
+
         // 先附加角色1和2
         user.attach(User::getRoles, role1, role2);
-        
+
         // 验证初始状态
         User savedUser = userMapper.selectById(user.getId());
         List<Role> initialRoles = savedUser.get(User::getRoles);
         assertEquals(2, initialRoles.size());
-        
+
         // 同步为角色2和3
         user.sync(User::getRoles, role2, role3);
-        
+
         // 验证同步后的状态
         User updatedUser = userMapper.selectById(user.getId());
         List<Role> syncedRoles = updatedUser.get(User::getRoles);
@@ -251,24 +249,24 @@ public class RelatedModelOperationTest extends BaseTest {
         user.setEmail("test@example.com");
         user.save();
 
-        // 创建电话
-        Phone phone = new Phone();
-        phone.setNumber("1234567890");
-        phoneMapper.insert(phone);
-        
+        // 创建个人资料
+        Profile profile = new Profile();
+        profile.setDescription("Initial Description");
+        profileMapper.insert(profile);
+
         // 设置关联
-        user.setPhone(phone);
-        user.save(User::getPhone);
-        
-        // 更新电话
-        phone.setNumber("9876543210");
-        user.update(User::getPhone, phone);
-        
+        user.setProfile(profile);
+        user.save(User::getProfile);
+
+        // 更新个人资料
+        profile.setDescription("Updated Description");
+        user.update(User::getProfile, profile);
+
         // 验证更新
         User savedUser = userMapper.selectById(user.getId());
-        Phone updatedPhone = savedUser.get(User::getPhone);
-        
-        assertEquals("9876543210", updatedPhone.getNumber());
+        Profile updatedProfile = savedUser.get(User::getProfile);
+
+        assertEquals("Updated Description", updatedProfile.getDescription());
     }
 
     @Test
@@ -279,23 +277,23 @@ public class RelatedModelOperationTest extends BaseTest {
         user.setEmail("test@example.com");
         user.save();
 
-        // 创建电话
-        Phone phone = new Phone();
-        phone.setNumber("1234567890");
-        
+        // 创建个人资料
+        Profile profile = new Profile();
+        profile.setDescription("Test Profile Description");
+
         // 设置关联
-        user.setPhone(phone);
-        
+        user.setProfile(profile);
+
         // 使用字符串方式保存关联
-        user.save("phone");
-        
+        user.save("profile");
+
         // 验证关联已保存
         User savedUser = userMapper.selectById(user.getId());
-        Phone savedPhone = savedUser.get(User::getPhone);
-        
-        assertNotNull(savedPhone);
-        assertEquals("1234567890", savedPhone.getNumber());
-        assertEquals(user.getId(), savedPhone.getUserId());
+        Profile savedProfile = savedUser.get(User::getProfile);
+
+        assertNotNull(savedProfile);
+        assertEquals("Test Profile Description", savedProfile.getDescription());
+        assertEquals(user.getId(), savedProfile.getUserId());
     }
 
     @Test
@@ -306,14 +304,14 @@ public class RelatedModelOperationTest extends BaseTest {
         user.setEmail("test@example.com");
         user.save();
 
-        // 使用字符串方式创建并保存电话关联
-        Phone phone = new Phone();
-        phone.setNumber("1234567890");
-        phone = user.create("phone", phone);
-        
-        assertNotNull(phone);
-        assertEquals("1234567890", phone.getNumber());
-        assertEquals(user.getId(), phone.getUserId());
+        // 使用字符串方式创建并保存个人资料关联
+        Profile profile = new Profile();
+        profile.setDescription("Test Profile Description");
+        profile = user.create("profile", profile);
+
+        assertNotNull(profile);
+        assertEquals("Test Profile Description", profile.getDescription());
+        assertEquals(user.getId(), profile.getUserId());
     }
 
     @Test
@@ -328,14 +326,14 @@ public class RelatedModelOperationTest extends BaseTest {
         Role role = new Role();
         role.setName("admin");
         roleMapper.insert(role);
-        
+
         // 使用字符串方式附加角色关联
         user.attach("roles", role);
-        
+
         // 验证关联已创建
         User savedUser = userMapper.selectById(user.getId());
         List<Role> roles = savedUser.get(User::getRoles);
-        
+
         assertNotNull(roles);
         assertEquals(1, roles.size());
         assertEquals("admin", roles.get(0).getName());
