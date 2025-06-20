@@ -105,4 +105,24 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
     @Override
     public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
     }
+
+    public Class<P> getPivotClass() {
+        return pivotClass;
+    }
+
+    public Field getForeignPivotField() {
+        return foreignPivotField;
+    }
+
+    public Field getRelatedPivotField() {
+        return relatedPivotField;
+    }
+
+    public Field getForeignField() {
+        return foreignField;
+    }
+
+    public Field getLocalField() {
+        return localField;
+    }
 }

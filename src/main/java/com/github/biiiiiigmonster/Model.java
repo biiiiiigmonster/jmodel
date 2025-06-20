@@ -145,4 +145,94 @@ public abstract class Model<T extends Model<?>> {
     public boolean isNot(Model<?> model) {
         return !is(model);
     }
+
+    /**
+     * 保存关联模型
+     * 支持一对一、一对多关联
+     */
+    @SafeVarargs
+    public final <R> void save(SerializableFunction<T, R>... relations) {
+        RelationUtils.saveRelations((T) this, relations);
+    }
+
+    /**
+     * 保存关联模型（字符串方式）
+     */
+    public final void save(String... relations) {
+        RelationUtils.saveRelations((T) this, relations);
+    }
+
+    /**
+     * 创建并保存关联模型
+     * 支持一对一、一对多关联
+     */
+    public final <R> R create(SerializableFunction<T, R> relation, R model) {
+        return RelationUtils.createRelation((T) this, relation, model);
+    }
+
+    /**
+     * 创建并保存关联模型（字符串方式）
+     */
+    public final <R> R create(String relation, R model) {
+        return RelationUtils.createRelation((T) this, relation, model);
+    }
+
+    /**
+     * 附加关联（多对多）
+     */
+    @SafeVarargs
+    public final <R> void attach(SerializableFunction<T, List<R>> relation, R... models) {
+        RelationUtils.attachRelations((T) this, relation, models);
+    }
+
+    /**
+     * 附加关联（多对多，字符串方式）
+     */
+    public final <R> void attach(String relation, R... models) {
+        RelationUtils.attachRelations((T) this, relation, models);
+    }
+
+    /**
+     * 分离关联（多对多）
+     */
+    @SafeVarargs
+    public final <R> void detach(SerializableFunction<T, List<R>> relation, R... models) {
+        RelationUtils.detachRelations((T) this, relation, models);
+    }
+
+    /**
+     * 分离关联（多对多，字符串方式）
+     */
+    public final <R> void detach(String relation, R... models) {
+        RelationUtils.detachRelations((T) this, relation, models);
+    }
+
+    /**
+     * 同步关联（多对多）
+     */
+    @SafeVarargs
+    public final <R> void sync(SerializableFunction<T, List<R>> relation, R... models) {
+        RelationUtils.syncRelations((T) this, relation, models);
+    }
+
+    /**
+     * 同步关联（多对多，字符串方式）
+     */
+    public final <R> void sync(String relation, R... models) {
+        RelationUtils.syncRelations((T) this, relation, models);
+    }
+
+    /**
+     * 更新关联模型
+     */
+    public final <R> void update(SerializableFunction<T, R> relation, R model) {
+        RelationUtils.updateRelation((T) this, relation, model);
+    }
+
+    /**
+     * 更新关联模型（字符串方式）
+     */
+    public final <R> void update(String relation, R model) {
+        RelationUtils.updateRelation((T) this, relation, model);
+    }
 }

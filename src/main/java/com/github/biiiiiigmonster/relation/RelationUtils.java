@@ -4,6 +4,9 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
@@ -16,6 +19,7 @@ import com.github.biiiiiigmonster.SerializedLambda;
 import com.github.biiiiiigmonster.relation.annotation.config.Related;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
@@ -428,5 +432,401 @@ public class RelationUtils implements BeanPostProcessor {
         map.put("annotation", annotation);
         Class<?> foreignClazz = getGenericReturnType(method);
         RELATED_MAP.computeIfAbsent(foreignClazz, k -> new ArrayList<>()).add(map);
+    }
+
+    /**
+     * 保存关联模型
+     * 支持一对一、一对多关联
+     */
+    @SafeVarargs
+    public static <T extends Model<?>, R> void saveRelations(T model, SerializableFunction<T, R>... relations) {
+        if (model == null || relations == null || relations.length == 0) {
+            return;
+        }
+
+        for (SerializableFunction<T, R> relation : relations) {
+            Field field = SerializedLambda.getField(relation);
+            R relatedModel = relation.apply(model);
+            
+            if (relatedModel != null) {
+                RelationType relationType = RelationType.of(field);
+                if (relationType == RelationType.HAS_ONE || relationType == RelationType.HAS_MANY) {
+                    saveRelatedModel(model, field, relatedModel);
+                }
+            }
+        }
+    }
+
+    /**
+     * 保存关联模型（字符串方式）
+     */
+    public static <T extends Model<?>> void saveRelations(T model, String... relations) {
+        if (model == null || relations == null || relations.length == 0) {
+            return;
+        }
+
+        for (String relation : relations) {
+            Field field = ReflectUtil.getField(model.getClass(), relation);
+            if (field != null) {
+                Object relatedModel = ReflectUtil.getFieldValue(model, field);
+                if (relatedModel != null) {
+                    RelationType relationType = RelationType.of(field);
+                    if (relationType == RelationType.HAS_ONE || relationType == RelationType.HAS_MANY) {
+                        saveRelatedModel(model, field, relatedModel);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 创建并保存关联模型
+     */
+    public static <T extends Model<?>, R> R createRelation(T model, SerializableFunction<T, R> relation, R relatedModel) {
+        if (model == null || relation == null || relatedModel == null) {
+            return null;
+        }
+
+        Field field = SerializedLambda.getField(relation);
+        RelationType relationType = RelationType.of(field);
+        
+        if (relationType == RelationType.HAS_ONE || relationType == RelationType.HAS_MANY) {
+            saveRelatedModel(model, field, relatedModel);
+            return relatedModel;
+        }
+        
+        return null;
+    }
+
+    /**
+     * 创建并保存关联模型（字符串方式）
+     */
+    public static <T extends Model<?>, R> R createRelation(T model, String relation, R relatedModel) {
+        if (model == null || relation == null || relatedModel == null) {
+            return null;
+        }
+
+        Field field = ReflectUtil.getField(model.getClass(), relation);
+        if (field != null) {
+            RelationType relationType = RelationType.of(field);
+            if (relationType == RelationType.HAS_ONE || relationType == RelationType.HAS_MANY) {
+                saveRelatedModel(model, field, relatedModel);
+                return relatedModel;
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * 附加关联（多对多）
+     */
+    @SafeVarargs
+    public static <T extends Model<?>, R> void attachRelations(T model, SerializableFunction<T, List<R>> relation, R... models) {
+        if (model == null || relation == null || models == null || models.length == 0) {
+            return;
+        }
+
+        Field field = SerializedLambda.getField(relation);
+        RelationType relationType = RelationType.of(field);
+        
+        if (relationType == RelationType.BELONGS_TO_MANY) {
+            attachManyToMany(model, field, Arrays.asList(models));
+        }
+    }
+
+    /**
+     * 附加关联（多对多，字符串方式）
+     */
+    public static <T extends Model<?>, R> void attachRelations(T model, String relation, R... models) {
+        if (model == null || relation == null || models == null || models.length == 0) {
+            return;
+        }
+
+        Field field = ReflectUtil.getField(model.getClass(), relation);
+        if (field != null) {
+            RelationType relationType = RelationType.of(field);
+            if (relationType == RelationType.BELONGS_TO_MANY) {
+                attachManyToMany(model, field, Arrays.asList(models));
+            }
+        }
+    }
+
+    /**
+     * 分离关联（多对多）
+     */
+    @SafeVarargs
+    public static <T extends Model<?>, R> void detachRelations(T model, SerializableFunction<T, List<R>> relation, R... models) {
+        if (model == null || relation == null) {
+            return;
+        }
+
+        Field field = SerializedLambda.getField(relation);
+        RelationType relationType = RelationType.of(field);
+        
+        if (relationType == RelationType.BELONGS_TO_MANY) {
+            if (models == null || models.length == 0) {
+                // 分离所有关联
+                detachAllManyToMany(model, field);
+            } else {
+                // 分离指定关联
+                detachManyToMany(model, field, Arrays.asList(models));
+            }
+        }
+    }
+
+    /**
+     * 分离关联（多对多，字符串方式）
+     */
+    public static <T extends Model<?>, R> void detachRelations(T model, String relation, R... models) {
+        if (model == null || relation == null) {
+            return;
+        }
+
+        Field field = ReflectUtil.getField(model.getClass(), relation);
+        if (field != null) {
+            RelationType relationType = RelationType.of(field);
+            if (relationType == RelationType.BELONGS_TO_MANY) {
+                if (models == null || models.length == 0) {
+                    // 分离所有关联
+                    detachAllManyToMany(model, field);
+                } else {
+                    // 分离指定关联
+                    detachManyToMany(model, field, Arrays.asList(models));
+                }
+            }
+        }
+    }
+
+    /**
+     * 同步关联（多对多）
+     */
+    @SafeVarargs
+    public static <T extends Model<?>, R> void syncRelations(T model, SerializableFunction<T, List<R>> relation, R... models) {
+        if (model == null || relation == null) {
+            return;
+        }
+
+        Field field = SerializedLambda.getField(relation);
+        RelationType relationType = RelationType.of(field);
+        
+        if (relationType == RelationType.BELONGS_TO_MANY) {
+            // 先分离所有关联，再附加新的关联
+            detachAllManyToMany(model, field);
+            if (models != null && models.length > 0) {
+                attachManyToMany(model, field, Arrays.asList(models));
+            }
+        }
+    }
+
+    /**
+     * 同步关联（多对多，字符串方式）
+     */
+    public static <T extends Model<?>, R> void syncRelations(T model, String relation, R... models) {
+        if (model == null || relation == null) {
+            return;
+        }
+
+        Field field = ReflectUtil.getField(model.getClass(), relation);
+        if (field != null) {
+            RelationType relationType = RelationType.of(field);
+            if (relationType == RelationType.BELONGS_TO_MANY) {
+                // 先分离所有关联，再附加新的关联
+                detachAllManyToMany(model, field);
+                if (models != null && models.length > 0) {
+                    attachManyToMany(model, field, Arrays.asList(models));
+                }
+            }
+        }
+    }
+
+    /**
+     * 更新关联模型
+     */
+    public static <T extends Model<?>, R> void updateRelation(T model, SerializableFunction<T, R> relation, R relatedModel) {
+        if (model == null || relation == null || relatedModel == null) {
+            return;
+        }
+
+        Field field = SerializedLambda.getField(relation);
+        RelationType relationType = RelationType.of(field);
+        
+        if (relationType == RelationType.HAS_ONE || relationType == RelationType.HAS_MANY) {
+            updateRelatedModel(model, field, relatedModel);
+        }
+    }
+
+    /**
+     * 更新关联模型（字符串方式）
+     */
+    public static <T extends Model<?>, R> void updateRelation(T model, String relation, R relatedModel) {
+        if (model == null || relation == null || relatedModel == null) {
+            return;
+        }
+
+        Field field = ReflectUtil.getField(model.getClass(), relation);
+        if (field != null) {
+            RelationType relationType = RelationType.of(field);
+            if (relationType == RelationType.HAS_ONE || relationType == RelationType.HAS_MANY) {
+                updateRelatedModel(model, field, relatedModel);
+            }
+        }
+    }
+
+    /**
+     * 保存关联模型的具体实现
+     */
+    private static <T extends Model<?>> void saveRelatedModel(T model, Field field, Object relatedModel) {
+        RelationType relationType = RelationType.of(field);
+        
+        if (relationType == RelationType.HAS_ONE) {
+            // 设置外键
+            setForeignKey(model, field, relatedModel);
+            // 保存关联模型
+            if (relatedModel instanceof Model) {
+                ((Model<?>) relatedModel).save();
+            }
+        } else if (relationType == RelationType.HAS_MANY) {
+            if (relatedModel instanceof List) {
+                List<?> list = (List<?>) relatedModel;
+                for (Object item : list) {
+                    if (item instanceof Model) {
+                        // 设置外键
+                        setForeignKey(model, field, item);
+                        // 保存关联模型
+                        ((Model<?>) item).save();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 更新关联模型的具体实现
+     */
+    private static <T extends Model<?>> void updateRelatedModel(T model, Field field, Object relatedModel) {
+        if (relatedModel instanceof Model) {
+            Model<?> modelInstance = (Model<?>) relatedModel;
+            // 如果模型有ID，则更新；否则插入
+            if (modelInstance.primaryKeyValue() != null) {
+                BaseMapper<Model<?>> mapper = (BaseMapper<Model<?>>) getRelatedRepository(modelInstance.getClass());
+                mapper.updateById(modelInstance);
+            } else {
+                saveRelatedModel(model, field, relatedModel);
+            }
+        }
+    }
+
+    /**
+     * 设置外键
+     */
+    private static <T extends Model<?>> void setForeignKey(T model, Field field, Object relatedModel) {
+        RelationOption<?> relationOption = RelationOption.of(model.getClass(), field.getName());
+        Relation relation = relationOption.getRelation();
+        
+        if (relation instanceof HasOneOrMany) {
+            HasOneOrMany hasOneOrMany = (HasOneOrMany) relation;
+            Field foreignField = hasOneOrMany.getForeignField();
+            Field localField = hasOneOrMany.getLocalField();
+            
+            Object localValue = ReflectUtil.getFieldValue(model, localField);
+            ReflectUtil.setFieldValue(relatedModel, foreignField, localValue);
+        }
+    }
+
+    /**
+     * 附加多对多关联
+     */
+    private static <T extends Model<?>, R> void attachManyToMany(T model, Field field, List<R> models) {
+        RelationOption<?> relationOption = RelationOption.of(model.getClass(), field.getName());
+        Relation relation = relationOption.getRelation();
+        
+        if (relation instanceof BelongsToMany) {
+            BelongsToMany<?> belongsToMany = (BelongsToMany<?>) relation;
+            Class<?> pivotClass = belongsToMany.getPivotClass();
+            Field foreignPivotField = belongsToMany.getForeignPivotField();
+            Field relatedPivotField = belongsToMany.getRelatedPivotField();
+            Field localField = belongsToMany.getLocalField();
+            Field foreignField = belongsToMany.getForeignField();
+            
+            Object localValue = ReflectUtil.getFieldValue(model, localField);
+            
+            for (R relatedModel : models) {
+                if (relatedModel instanceof Model) {
+                    Object foreignValue = ReflectUtil.getFieldValue(relatedModel, foreignField);
+                    
+                    // 创建中间表记录
+                    try {
+                        Object pivot = pivotClass.getDeclaredConstructor().newInstance();
+                        ReflectUtil.setFieldValue(pivot, foreignPivotField, localValue);
+                        ReflectUtil.setFieldValue(pivot, relatedPivotField, foreignValue);
+                        
+                        BaseMapper<Object> pivotMapper = (BaseMapper<Object>) getRelatedRepository(pivotClass);
+                        pivotMapper.insert(pivot);
+                    } catch (Exception e) {
+                        log.error("Failed to create pivot record", e);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 分离多对多关联
+     */
+    private static <T extends Model<?>, R> void detachManyToMany(T model, Field field, List<R> models) {
+        RelationOption<?> relationOption = RelationOption.of(model.getClass(), field.getName());
+        Relation relation = relationOption.getRelation();
+        
+        if (relation instanceof BelongsToMany) {
+            BelongsToMany<?> belongsToMany = (BelongsToMany<?>) relation;
+            Class<?> pivotClass = belongsToMany.getPivotClass();
+            Field foreignPivotField = belongsToMany.getForeignPivotField();
+            Field relatedPivotField = belongsToMany.getRelatedPivotField();
+            Field localField = belongsToMany.getLocalField();
+            Field foreignField = belongsToMany.getForeignField();
+            
+            Object localValue = ReflectUtil.getFieldValue(model, localField);
+            List<Object> foreignValues = new ArrayList<>();
+            
+            for (R relatedModel : models) {
+                if (relatedModel instanceof Model) {
+                    Object foreignValue = ReflectUtil.getFieldValue(relatedModel, foreignField);
+                    foreignValues.add(foreignValue);
+                }
+            }
+            
+            if (!foreignValues.isEmpty()) {
+                // 删除中间表记录
+                BaseMapper<Object> pivotMapper = (BaseMapper<Object>) getRelatedRepository(pivotClass);
+                QueryWrapper<Object> wrapper = new QueryWrapper<>();
+                wrapper.eq(RelationUtils.getColumn(foreignPivotField), localValue)
+                       .in(RelationUtils.getColumn(relatedPivotField), foreignValues);
+                pivotMapper.delete(wrapper);
+            }
+        }
+    }
+
+    /**
+     * 分离所有多对多关联
+     */
+    private static <T extends Model<?>> void detachAllManyToMany(T model, Field field) {
+        RelationOption<?> relationOption = RelationOption.of(model.getClass(), field.getName());
+        Relation relation = relationOption.getRelation();
+        
+        if (relation instanceof BelongsToMany) {
+            BelongsToMany<?> belongsToMany = (BelongsToMany<?>) relation;
+            Class<?> pivotClass = belongsToMany.getPivotClass();
+            Field foreignPivotField = belongsToMany.getForeignPivotField();
+            Field localField = belongsToMany.getLocalField();
+            
+            Object localValue = ReflectUtil.getFieldValue(model, localField);
+            
+            // 删除所有中间表记录
+            BaseMapper<Object> pivotMapper = (BaseMapper<Object>) getRelatedRepository(pivotClass);
+            QueryWrapper<Object> wrapper = new QueryWrapper<>();
+            wrapper.eq(RelationUtils.getColumn(foreignPivotField), localValue);
+            pivotMapper.delete(wrapper);
+        }
     }
 }

@@ -48,4 +48,12 @@ public abstract class HasOneOrMany extends Relation {
 
         return null;
     }
+
+    public Field getForeignField() {
+        return foreignField;
+    }
+
+    public Field getLocalField() {
+        return localField;
+    }
 }
