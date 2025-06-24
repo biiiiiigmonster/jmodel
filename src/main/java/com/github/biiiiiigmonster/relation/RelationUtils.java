@@ -829,4 +829,150 @@ public class RelationUtils implements BeanPostProcessor {
             pivotMapper.delete(wrapper);
         }
     }
+
+    /**
+     * 切换多对多关联
+     * @param model 主模型
+     * @param relation 关联方法引用
+     * @param ids 要切换的ID列表
+     * @param <T> 主模型类型
+     * @param <R> 关联模型类型
+     * @return 切换后的关联ID列表
+     */
+    public static <T extends Model<?>, R extends Model<?>> List<Long> toggle(T model, SerializableFunction<R, ?> relation, List<Long> ids) {
+        String methodName = SerializedLambda.resolve(relation).getImplMethodName();
+        String fieldName = methodToFieldName(methodName);
+        return toggle(model, fieldName, ids);
+    }
+
+    /**
+     * 将getter/setter方法名转换为字段名
+     */
+    private static String methodToFieldName(String methodName) {
+        if (methodName.startsWith("get") && methodName.length() > 3) {
+            return Character.toLowerCase(methodName.charAt(3)) + methodName.substring(4);
+        } else if (methodName.startsWith("set") && methodName.length() > 3) {
+            return Character.toLowerCase(methodName.charAt(3)) + methodName.substring(4);
+        } else if (methodName.startsWith("is") && methodName.length() > 2) {
+            return Character.toLowerCase(methodName.charAt(2)) + methodName.substring(3);
+        }
+        return methodName;
+    }
+
+    /**
+     * 切换多对多关联（字符串方式）
+     * @param model 主模型
+     * @param relationName 关联名称
+     * @param ids 要切换的ID列表
+     * @param <T> 主模型类型
+     * @return 切换后的关联ID列表
+     */
+    public static <T extends Model<?>> List<Long> toggle(T model, String relationName, List<Long> ids) {
+        try {
+            // 获取关联字段
+            Field field = ReflectUtil.getField(model.getClass(), relationName);
+            if (field == null) {
+                throw new RuntimeException("Relation field not found: " + relationName);
+            }
+
+            // 获取当前关联的ID列表
+            List<Long> currentIds = getCurrentRelationIds(model, relationName);
+            
+            // 计算要添加和移除的ID
+            List<Long> toAdd = new ArrayList<>();
+            List<Long> toRemove = new ArrayList<>();
+            
+            for (Long id : ids) {
+                if (currentIds.contains(id)) {
+                    toRemove.add(id);
+                } else {
+                    toAdd.add(id);
+                }
+            }
+            
+            // 执行添加和移除操作
+            if (!toAdd.isEmpty()) {
+                // 通过ID创建模型对象并附加
+                List<Model<?>> modelsToAdd = createModelsByIds(model, field, toAdd);
+                attachManyToMany(model, field, modelsToAdd);
+            }
+            if (!toRemove.isEmpty()) {
+                // 通过ID创建模型对象并分离
+                List<Model<?>> modelsToRemove = createModelsByIds(model, field, toRemove);
+                detachManyToMany(model, field, modelsToRemove);
+            }
+            
+            // 返回最终的关联ID列表
+            return getCurrentRelationIds(model, relationName);
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to toggle relation: " + relationName, e);
+        }
+    }
+
+    /**
+     * 获取当前关联的ID列表
+     * @param model 主模型
+     * @param relationName 关联名称
+     * @param <T> 主模型类型
+     * @return 当前关联的ID列表
+     */
+    private static <T extends Model<?>> List<Long> getCurrentRelationIds(T model, String relationName) {
+        try {
+            // 重新查一次数据库，拿到最新的对象
+            Object pk = model.primaryKeyValue();
+            if (pk == null) {
+                return new ArrayList<>();
+            }
+            T freshModel = (T) model.find((java.io.Serializable) pk);
+            freshModel.load(relationName);
+            Field field = ReflectUtil.getField(freshModel.getClass(), relationName);
+            Object relationResult = ReflectUtil.getFieldValue(freshModel, field);
+            if (relationResult instanceof List) {
+                List<?> relatedModels = (List<?>) relationResult;
+                return relatedModels.stream()
+                    .map(related -> {
+                        if (related instanceof Model) {
+                            return (Long) ((Model<?>) related).primaryKeyValue();
+                        }
+                        return null;
+                    })
+                    .filter(id -> id != null)
+                    .collect(Collectors.toList());
+            }
+            return new ArrayList<>();
+        } catch (Exception e) {
+            log.error("Failed to get current relation IDs: " + relationName, e);
+            throw new RuntimeException("Failed to get current relation IDs: " + relationName, e);
+        }
+    }
+
+    /**
+     * 通过ID列表创建模型对象
+     * @param model 主模型
+     * @param field 关联字段
+     * @param ids ID列表
+     * @param <T> 主模型类型
+     * @return 模型对象列表
+     */
+    private static <T extends Model<?>> List<Model<?>> createModelsByIds(T model, Field field, List<Long> ids) {
+        try {
+            Class<?> relatedClass = getGenericType(field);
+            List<Model<?>> models = new ArrayList<>();
+            
+            for (Long id : ids) {
+                // 创建模型实例并设置ID
+                Model<?> relatedModel = (Model<?>) relatedClass.getDeclaredConstructor().newInstance();
+                Field idField = ReflectUtil.getField(relatedClass, "id");
+                if (idField != null) {
+                    ReflectUtil.setFieldValue(relatedModel, idField, id);
+                }
+                models.add(relatedModel);
+            }
+            
+            return models;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create models by IDs", e);
+        }
+    }
 }

@@ -14,6 +14,7 @@ import lombok.Getter;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -234,5 +235,47 @@ public abstract class Model<T extends Model<?>> {
      */
     public final <R> void update(String relation, R model) {
         RelationUtils.updateRelation((T) this, relation, model);
+    }
+
+    /**
+     * 切换多对多关联
+     * @param relation 关联方法引用
+     * @param ids 要切换的ID列表
+     * @param <R> 关联模型类型
+     * @return 切换后的关联ID列表
+     */
+    public <R extends Model> List<Long> toggle(SerializableFunction<R, ?> relation, List<Long> ids) {
+        return RelationUtils.toggle(this, relation, ids);
+    }
+
+    /**
+     * 切换多对多关联（单个ID）
+     * @param relation 关联方法引用
+     * @param id 要切换的ID
+     * @param <R> 关联模型类型
+     * @return 切换后的关联ID列表
+     */
+    public <R extends Model> List<Long> toggle(SerializableFunction<R, ?> relation, Long id) {
+        return toggle(relation, Arrays.asList(id));
+    }
+
+    /**
+     * 切换多对多关联（字符串方式）
+     * @param relationName 关联名称
+     * @param ids 要切换的ID列表
+     * @return 切换后的关联ID列表
+     */
+    public List<Long> toggle(String relationName, List<Long> ids) {
+        return RelationUtils.toggle(this, relationName, ids);
+    }
+
+    /**
+     * 切换多对多关联（字符串方式，单个ID）
+     * @param relationName 关联名称
+     * @param id 要切换的ID
+     * @return 切换后的关联ID列表
+     */
+    public List<Long> toggle(String relationName, Long id) {
+        return toggle(relationName, Arrays.asList(id));
     }
 }
