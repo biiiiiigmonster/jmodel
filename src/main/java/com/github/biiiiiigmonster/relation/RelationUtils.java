@@ -531,45 +531,57 @@ public class RelationUtils implements BeanPostProcessor {
         }
     }
 
-    /**
-     * 同步关联（多对多）
-     */
-    @SafeVarargs
-    public static <T extends Model<?>, R> void syncRelations(T model, SerializableFunction<T, List<R>> relation, R... models) {
-        if (model == null || relation == null) {
-            return;
-        }
+    public static <T extends Model<?>, R extends Model<?>> void syncRelations(T model, SerializableFunction<T, List<R>> relation, R... models) {
+        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
-        Field field = SerializedLambda.getField(relation);
-        RelationType relationType = RelationType.of(field);
-        
-        if (relationType == RelationType.BELONGS_TO_MANY) {
-            // 先分离所有关联，再附加新的关联
-            detachAllManyToMany(model, field);
-            if (models != null && models.length > 0) {
-                attachManyToMany(model, field, Arrays.asList(models));
-            }
-        }
+        syncRelations(relationClass, Arrays.asList(models), true);
     }
 
-    /**
-     * 同步关联（多对多，字符串方式）
-     */
-    public static <T extends Model<?>, R> void syncRelations(T model, String relation, R... models) {
-        if (model == null || relation == null) {
-            return;
-        }
+    public static <T extends Model<?>, R extends Model<?>> void syncRelations(T model, SerializableFunction<T, List<R>> relation, List<R> models) {
+        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
-        Field field = ReflectUtil.getField(model.getClass(), relation);
-        if (field != null) {
-            RelationType relationType = RelationType.of(field);
-            if (relationType == RelationType.BELONGS_TO_MANY) {
-                // 先分离所有关联，再附加新的关联
-                detachAllManyToMany(model, field);
-                if (models != null && models.length > 0) {
-                    attachManyToMany(model, field, Arrays.asList(models));
-                }
-            }
+        syncRelations(relationClass, models, true);
+    }
+
+    public static <T extends Model<?>, R extends Model<?>> void syncRelations(T model, String relation, R... models) {
+        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+
+        syncRelations(relationClass, Arrays.asList(models), true);
+    }
+
+    public static <T extends Model<?>, R extends Model<?>> void syncRelations(T model, String relation, List<R> models) {
+        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+
+        syncRelations(relationClass, models, true);
+    }
+
+    public static <T extends Model<?>, R extends Model<?>> void syncWithoutDetaching(T model, SerializableFunction<T, List<R>> relation, R... models) {
+        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+
+        syncRelations(relationClass, Arrays.asList(models), false);
+    }
+
+    public static <T extends Model<?>, R extends Model<?>> void syncWithoutDetaching(T model, SerializableFunction<T, List<R>> relation, List<R> models) {
+        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+
+        syncRelations(relationClass, models, false);
+    }
+
+    public static <T extends Model<?>, R extends Model<?>> void syncWithoutDetaching(T model, String relation, R... models) {
+        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+
+        syncRelations(relationClass, Arrays.asList(models), false);
+    }
+
+    public static <T extends Model<?>, R extends Model<?>> void syncWithoutDetaching(T model, String relation, List<R> models) {
+        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+
+        syncRelations(relationClass, models, false);
+    }
+
+    private static <R extends Model<?>> void syncRelations(Relation relation, List<R> relationModels, boolean detaching) {
+        if (relation instanceof BelongsToMany) {
+            ((BelongsToMany) relation).sync(relationModels, detaching);
         }
     }
 

@@ -4,6 +4,7 @@ import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
+import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -129,11 +132,11 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
         }
     }
 
-    public <R extends Model<?>> void detach(List<R> attachModels) {
+    public <R extends Model<?>> void detach(List<R> detachModels) {
         Object localValue = ReflectUtil.getFieldValue(model, localField);
         List<Object> foreignValues = new ArrayList<>();
 
-        for (R relatedModel : attachModels) {
+        for (R relatedModel : detachModels) {
             Object foreignValue = ReflectUtil.getFieldValue(relatedModel, foreignField);
             foreignValues.add(foreignValue);
         }
@@ -145,6 +148,26 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
             wrapper.eq(RelationUtils.getColumn(foreignPivotField), localValue)
                     .in(RelationUtils.getColumn(relatedPivotField), foreignValues);
             pivotMapper.delete(wrapper);
+        }
+    }
+
+    public void detachAll() {
+        Object localValue = ReflectUtil.getFieldValue(model, localField);
+
+        BaseMapper<P> pivotMapper = (BaseMapper<P>) RelationUtils.getRelatedRepository(pivotClass);
+        QueryWrapper<P> wrapper = new QueryWrapper<>();
+        wrapper.eq(RelationUtils.getColumn(foreignPivotField), localValue);
+        pivotMapper.delete(wrapper);
+    }
+
+    public <R extends Model<?>> void sync(List<R> syncModels, boolean detaching) {
+        List<R> current = getEager(Lists.newArrayList(model));
+        Set<Object> currentSet = current.stream().map(Model::primaryKeyValue).collect(Collectors.toSet());
+        Set<Object> syncSet = syncModels.stream().map(Model::primaryKeyValue).collect(Collectors.toSet());
+
+        attach(syncModels.stream().filter(m -> !currentSet.contains(m.primaryKeyValue())).collect(Collectors.toList()));
+        if (detaching) {
+            detach(current.stream().filter(m -> !syncSet.contains(m.primaryKeyValue())).collect(Collectors.toList()));
         }
     }
 }

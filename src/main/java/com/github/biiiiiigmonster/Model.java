@@ -208,18 +208,35 @@ public abstract class Model<T extends Model<?>> {
         RelationUtils.detachRelations((T) this, relation, models);
     }
 
-    /**
-     * 同步关联（多对多）
-     */
-    @SafeVarargs
-    public final <R> void sync(SerializableFunction<T, List<R>> relation, R... models) {
+    public final <R extends Model<?>> void sync(SerializableFunction<T, List<R>> relation, R... models) {
         RelationUtils.syncRelations((T) this, relation, models);
     }
 
-    /**
-     * 同步关联（多对多，字符串方式）
-     */
-    public final <R> void sync(String relation, R... models) {
+    public final <R extends Model<?>> void sync(SerializableFunction<T, List<R>> relation, List<R> models) {
+        RelationUtils.syncRelations((T) this, relation, models);
+    }
+
+    public final <R extends Model<?>> void sync(String relation, R... models) {
+        RelationUtils.syncRelations((T) this, relation, models);
+    }
+
+    public final <R extends Model<?>> void sync(String relation, List<R> models) {
+        RelationUtils.syncRelations((T) this, relation, models);
+    }
+
+    public final <R extends Model<?>> void syncWithoutDetaching(SerializableFunction<T, List<R>> relation, R... models) {
+        RelationUtils.syncRelations((T) this, relation, models);
+    }
+
+    public final <R extends Model<?>> void syncWithoutDetaching(SerializableFunction<T, List<R>> relation, List<R> models) {
+        RelationUtils.syncRelations((T) this, relation, models);
+    }
+
+    public final <R extends Model<?>> void syncWithoutDetaching(String relation, R... models) {
+        RelationUtils.syncRelations((T) this, relation, models);
+    }
+
+    public final <R extends Model<?>> void syncWithoutDetaching(String relation, List<R> models) {
         RelationUtils.syncRelations((T) this, relation, models);
     }
 
