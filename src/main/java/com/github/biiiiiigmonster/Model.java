@@ -176,53 +176,35 @@ public abstract class Model<T extends Model<?>> {
         RelationUtils.saveRelations((T) this, relation, models);
     }
 
-    /**
-     * 关联模型（一对多，仅支持字符串方式）
-     * @param relationName 关联名称
-     * @param relatedModel 要关联的模型
-     * @return 关联后的模型
-     */
-    public <R extends Model<?>> R associate(String relationName, R relatedModel) {
-        return null;
-    }
-
-    /**
-     * 解除关联（一对多，仅支持字符串方式）
-     * @param relationName 关联名称
-     * @param relatedModel 要解除关联的模型
-     * @return 解除关联后的模型
-     */
-    public <R extends Model<?>> R dissociate(String relationName, R relatedModel) {
-        return null;
-    }
-
-    /**
-     * 附加关联（多对多）
-     */
-    @SafeVarargs
-    public final <R> void attach(SerializableFunction<T, List<R>> relation, R... models) {
+    public final <R extends Model<?>> void attach(SerializableFunction<T, List<R>> relation, R... models) {
         RelationUtils.attachRelations((T) this, relation, models);
     }
 
-    /**
-     * 附加关联（多对多，字符串方式）
-     */
-    public final <R> void attach(String relation, R... models) {
+    public final <R extends Model<?>> void attach(SerializableFunction<T, List<R>> relation, List<R> models) {
         RelationUtils.attachRelations((T) this, relation, models);
     }
 
-    /**
-     * 分离关联（多对多）
-     */
-    @SafeVarargs
-    public final <R> void detach(SerializableFunction<T, List<R>> relation, R... models) {
+    public final <R extends Model<?>> void attach(String relation, R... models) {
+        RelationUtils.attachRelations((T) this, relation, models);
+    }
+
+    public final <R extends Model<?>> void attach(String relation, List<R> models) {
+        RelationUtils.attachRelations((T) this, relation, models);
+    }
+
+    public final <R extends Model<?>> void detach(SerializableFunction<T, List<R>> relation, R... models) {
         RelationUtils.detachRelations((T) this, relation, models);
     }
 
-    /**
-     * 分离关联（多对多，字符串方式）
-     */
-    public final <R> void detach(String relation, R... models) {
+    public final <R extends Model<?>> void detach(SerializableFunction<T, List<R>> relation, List<R> models) {
+        RelationUtils.detachRelations((T) this, relation, models);
+    }
+
+    public final <R extends Model<?>> void detach(String relation, R... models) {
+        RelationUtils.detachRelations((T) this, relation, models);
+    }
+
+    public final <R extends Model<?>> void detach(String relation, List<R> models) {
         RelationUtils.detachRelations((T) this, relation, models);
     }
 

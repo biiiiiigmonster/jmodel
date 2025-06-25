@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 @SuppressWarnings("unchecked")
 public class BelongsToMany<P extends Pivot<?>> extends Relation {
     @Getter
@@ -103,7 +105,6 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
         });
     }
 
-    // todo: pivot custom
     protected Field withPivotField() {
         return ReflectUtil.getField(foreignField.getDeclaringClass(), "pivot");
     }
@@ -112,4 +113,23 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
     public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
     }
 
+    public <R extends Model<?>> void attach(List<R> attachModels) {
+        Object localValue = ReflectUtil.getFieldValue(model, localField);
+        for (R attachModel : attachModels) {
+            Object foreignValue = ReflectUtil.getFieldValue(attachModel, foreignField);
+            try {
+                P pivot = pivotClass.getDeclaredConstructor().newInstance();
+                ReflectUtil.setFieldValue(pivot, foreignPivotField, localValue);
+                ReflectUtil.setFieldValue(pivot, relatedPivotField, foreignValue);
+
+                pivot.save();
+            } catch (Exception e) {
+                log.error("Failed to create pivot record", e);
+            }
+        }
+    }
+
+    public <R extends Model<?>> void detach(List<R> attachModels) {
+
+    }
 }

@@ -435,10 +435,6 @@ public class RelationUtils implements BeanPostProcessor {
         RELATED_MAP.computeIfAbsent(foreignClazz, k -> new ArrayList<>()).add(map);
     }
 
-    /**
-     * 保存关联模型
-     * 支持一对一、一对多关联
-     */
     public static <T extends Model<?>, R extends Model<?>> void saveRelations(T model, SerializableFunction<T, R> relation, R relationModel) {
         Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
@@ -469,152 +465,69 @@ public class RelationUtils implements BeanPostProcessor {
         saveRelations(relationClass, relationModels);
     }
 
-    private static <T extends Model<?>, R extends Model<?>> void saveRelations(Relation relation, List<R> relationModels) {
-        if (!HasOneOrMany.class.isAssignableFrom(relation.getClass())) {
-            return;
-        }
-
-        ((HasOneOrMany) relation).save(relationModels);
-    }
-
-    /**
-     * 保存关联模型（字符串方式）
-     */
-    public static <T extends Model<?>> void saveRelations(T model, String... relations) {
-        if (model == null || relations == null || relations.length == 0) {
-            return;
-        }
-
-        for (String relation : relations) {
-            Field field = ReflectUtil.getField(model.getClass(), relation);
-            if (field != null) {
-                Object relatedModel = ReflectUtil.getFieldValue(model, field);
-                if (relatedModel != null) {
-                    RelationType relationType = RelationType.of(field);
-                    if (relationType == RelationType.HAS_ONE || relationType == RelationType.HAS_MANY) {
-                        saveRelatedModel(model, field, relatedModel);
-                    }
-                }
-            }
+    private static <R extends Model<?>> void saveRelations(Relation relation, List<R> relationModels) {
+        if (relation instanceof HasOneOrMany) {
+            ((HasOneOrMany) relation).save(relationModels);
         }
     }
 
-    /**
-     * 创建并保存关联模型
-     */
-    public static <T extends Model<?>, R> R createRelation(T model, SerializableFunction<T, R> relation, R relatedModel) {
-        if (model == null || relation == null || relatedModel == null) {
-            return null;
-        }
+    public static <T extends Model<?>, R extends Model<?>> void attachRelations(T model, SerializableFunction<T, List<R>> relation, R... models) {
+        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
-        Field field = SerializedLambda.getField(relation);
-        RelationType relationType = RelationType.of(field);
-        
-        if (relationType == RelationType.HAS_ONE || relationType == RelationType.HAS_MANY) {
-            saveRelatedModel(model, field, relatedModel);
-            return relatedModel;
-        }
-        
-        return null;
+        attachRelations(relationClass, Arrays.asList(models));
     }
 
-    /**
-     * 创建并保存关联模型（字符串方式）
-     */
-    public static <T extends Model<?>, R> R createRelation(T model, String relation, R relatedModel) {
-        if (model == null || relation == null || relatedModel == null) {
-            return null;
-        }
+    public static <T extends Model<?>, R extends Model<?>> void attachRelations(T model, SerializableFunction<T, List<R>> relation, List<R> models) {
+        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
-        Field field = ReflectUtil.getField(model.getClass(), relation);
-        if (field != null) {
-            RelationType relationType = RelationType.of(field);
-            if (relationType == RelationType.HAS_ONE || relationType == RelationType.HAS_MANY) {
-                saveRelatedModel(model, field, relatedModel);
-                return relatedModel;
-            }
-        }
-        
-        return null;
+        attachRelations(relationClass, models);
     }
 
-    /**
-     * 附加关联（多对多）
-     */
-    @SafeVarargs
-    public static <T extends Model<?>, R> void attachRelations(T model, SerializableFunction<T, List<R>> relation, R... models) {
-        if (model == null || relation == null || models == null || models.length == 0) {
-            return;
-        }
+    public static <T extends Model<?>, R extends Model<?>> void attachRelations(T model, String relation, R... models) {
+        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
 
-        Field field = SerializedLambda.getField(relation);
-        RelationType relationType = RelationType.of(field);
-        
-        if (relationType == RelationType.BELONGS_TO_MANY) {
-            attachManyToMany(model, field, Arrays.asList(models));
+        attachRelations(relationClass, Arrays.asList(models));
+    }
+
+    public static <T extends Model<?>, R extends Model<?>> void attachRelations(T model, String relation, List<R> models) {
+        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+
+        attachRelations(relationClass, models);
+    }
+
+    private static <R extends Model<?>> void attachRelations(Relation relation, List<R> relationModels) {
+        if (relation instanceof BelongsToMany) {
+            ((BelongsToMany) relation).attach(relationModels);
         }
     }
 
-    /**
-     * 附加关联（多对多，字符串方式）
-     */
-    public static <T extends Model<?>, R> void attachRelations(T model, String relation, R... models) {
-        if (model == null || relation == null || models == null || models.length == 0) {
-            return;
-        }
+    public static <T extends Model<?>, R extends Model<?>> void detachRelations(T model, SerializableFunction<T, List<R>> relation, R... models) {
+        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
-        Field field = ReflectUtil.getField(model.getClass(), relation);
-        if (field != null) {
-            RelationType relationType = RelationType.of(field);
-            if (relationType == RelationType.BELONGS_TO_MANY) {
-                attachManyToMany(model, field, Arrays.asList(models));
-            }
-        }
+        detachRelations(relationClass, Arrays.asList(models));
     }
 
-    /**
-     * 分离关联（多对多）
-     */
-    @SafeVarargs
-    public static <T extends Model<?>, R> void detachRelations(T model, SerializableFunction<T, List<R>> relation, R... models) {
-        if (model == null || relation == null) {
-            return;
-        }
+    public static <T extends Model<?>, R extends Model<?>> void detachRelations(T model, SerializableFunction<T, List<R>> relation, List<R> models) {
+        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
-        Field field = SerializedLambda.getField(relation);
-        RelationType relationType = RelationType.of(field);
-        
-        if (relationType == RelationType.BELONGS_TO_MANY) {
-            if (models == null || models.length == 0) {
-                // 分离所有关联
-                detachAllManyToMany(model, field);
-            } else {
-                // 分离指定关联
-                detachManyToMany(model, field, Arrays.asList(models));
-            }
-        }
+        detachRelations(relationClass, models);
     }
 
-    /**
-     * 分离关联（多对多，字符串方式）
-     */
-    public static <T extends Model<?>, R> void detachRelations(T model, String relation, R... models) {
-        if (model == null || relation == null) {
-            return;
-        }
+    public static <T extends Model<?>, R extends Model<?>> void detachRelations(T model, String relation, R... models) {
+        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
 
-        Field field = ReflectUtil.getField(model.getClass(), relation);
-        if (field != null) {
-            RelationType relationType = RelationType.of(field);
-            if (relationType == RelationType.BELONGS_TO_MANY) {
-                if (models == null || models.length == 0) {
-                    // 分离所有关联
-                    detachAllManyToMany(model, field);
-                } else {
-                    // 分离指定关联
-                    detachManyToMany(model, field, Arrays.asList(models));
-                }
-            }
+        detachRelations(relationClass, Arrays.asList(models));
+    }
+
+    public static <T extends Model<?>, R extends Model<?>> void detachRelations(T model, String relation, List<R> models) {
+        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+
+        detachRelations(relationClass, models);
+    }
+
+    private static <R extends Model<?>> void detachRelations(Relation relation, List<R> relationModels) {
+        if (relation instanceof BelongsToMany) {
+            ((BelongsToMany) relation).detach(relationModels);
         }
     }
 
