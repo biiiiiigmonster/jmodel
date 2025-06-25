@@ -6,13 +6,17 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.relation.annotation.BelongsTo;
 import com.github.biiiiiigmonster.relation.annotation.MorphTo;
+import lombok.Getter;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.List;
 
 @SuppressWarnings("unchecked")
 public abstract class HasOneOrMany extends Relation {
+    @Getter
     protected Field foreignField;
+    @Getter
     protected Field localField;
     protected boolean chaperone;
 
@@ -49,11 +53,16 @@ public abstract class HasOneOrMany extends Relation {
         return null;
     }
 
-    public Field getForeignField() {
-        return foreignField;
+    public <R extends Model<?>> void save(List<R> relatedModels) {
+        relatedModels.forEach(this::saveRelatedModel);
     }
 
-    public Field getLocalField() {
-        return localField;
+    protected <R extends Model<?>> void saveRelatedModel(R relatedModel) {
+        Field foreignField = getForeignField();
+        Field localField = getLocalField();
+
+        Object localValue = ReflectUtil.getFieldValue(model, localField);
+        ReflectUtil.setFieldValue(relatedModel, foreignField, localValue);
+        relatedModel.save();
     }
 }

@@ -33,6 +33,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -438,23 +439,42 @@ public class RelationUtils implements BeanPostProcessor {
      * 保存关联模型
      * 支持一对一、一对多关联
      */
-    @SafeVarargs
-    public static <T extends Model<?>, R> void saveRelations(T model, SerializableFunction<T, R>... relations) {
-        if (model == null || relations == null || relations.length == 0) {
+    public static <T extends Model<?>, R extends Model<?>> void saveRelations(T model, SerializableFunction<T, R> relation, R relationModel) {
+        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+
+        saveRelations(relationClass, Collections.singletonList(relationModel));
+    }
+
+    public static <T extends Model<?>, R extends Model<?>> void saveRelations(T model, SerializableFunction<T, List<R>> relation, R... relationModels) {
+        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+
+        saveRelations(relationClass, Arrays.asList(relationModels));
+    }
+
+    public static <T extends Model<?>, R extends Model<?>> void saveRelations(T model, SerializableFunction<T, List<R>> relation, List<R> relationModels) {
+        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+
+        saveRelations(relationClass, relationModels);
+    }
+
+    public static <T extends Model<?>, R extends Model<?>> void saveRelations(T model, String relation, R... relationModels) {
+        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+
+        saveRelations(relationClass, Arrays.asList(relationModels));
+    }
+
+    public static <T extends Model<?>, R extends Model<?>> void saveRelations(T model, String relation, List<R> relationModels) {
+        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+
+        saveRelations(relationClass, relationModels);
+    }
+
+    private static <T extends Model<?>, R extends Model<?>> void saveRelations(Relation relation, List<R> relationModels) {
+        if (!HasOneOrMany.class.isAssignableFrom(relation.getClass())) {
             return;
         }
 
-        for (SerializableFunction<T, R> relation : relations) {
-            Field field = SerializedLambda.getField(relation);
-            R relatedModel = relation.apply(model);
-            
-            if (relatedModel != null) {
-                RelationType relationType = RelationType.of(field);
-                if (relationType == RelationType.HAS_ONE || relationType == RelationType.HAS_MANY) {
-                    saveRelatedModel(model, field, relatedModel);
-                }
-            }
-        }
+        ((HasOneOrMany) relation).save(relationModels);
     }
 
     /**

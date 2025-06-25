@@ -5,6 +5,7 @@ import com.github.biiiiiigmonster.entity.Profile;
 import com.github.biiiiiigmonster.entity.Post;
 import com.github.biiiiiigmonster.entity.Role;
 import com.github.biiiiiigmonster.entity.User;
+import com.github.biiiiiigmonster.entity.Comment;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -14,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
 public class RelatedModelOperationTest extends BaseTest {
 
@@ -29,11 +31,8 @@ public class RelatedModelOperationTest extends BaseTest {
         Profile profile = new Profile();
         profile.setDescription("Test Profile Description");
 
-        // 设置关联
-        user.setProfile(profile);
-
         // 保存关联
-        user.save(User::getProfile);
+        user.save(User::getProfile, profile);
 
         // 验证关联已保存
         User savedUser = userMapper.selectById(user.getId());
@@ -61,11 +60,8 @@ public class RelatedModelOperationTest extends BaseTest {
 
         List<Post> posts = Arrays.asList(post1, post2);
 
-        // 设置关联
-        user.setPosts(posts);
-
         // 保存关联
-        user.save(User::getPosts);
+        user.save(User::getPosts, posts);
 
         // 验证关联已保存
         User savedUser = userMapper.selectById(user.getId());
@@ -77,24 +73,6 @@ public class RelatedModelOperationTest extends BaseTest {
         assertEquals("Second Post", savedPosts.get(1).getTitle());
         assertEquals(user.getId(), savedPosts.get(0).getUserId());
         assertEquals(user.getId(), savedPosts.get(1).getUserId());
-    }
-
-    @Test
-    public void shouldCreateHasOneRelation() {
-        // 创建用户
-        User user = new User();
-        user.setName("Test User");
-        user.setEmail("test@example.com");
-        user.save();
-
-        // 创建并保存个人资料关联
-        Profile profile = new Profile();
-        profile.setDescription("Test Profile Description");
-        profile = user.create(User::getProfile, profile);
-
-        assertNotNull(profile);
-        assertEquals("Test Profile Description", profile.getDescription());
-        assertEquals(user.getId(), profile.getUserId());
     }
 
     @Test
@@ -242,40 +220,6 @@ public class RelatedModelOperationTest extends BaseTest {
     }
 
     @Test
-    public void shouldUpdateHasOneRelation() {
-        // 创建用户
-        User user = new User();
-        user.setName("Test User");
-        user.setEmail("test@example.com");
-        user.save();
-
-        // 创建个人资料并设置关联
-        Profile profile = new Profile();
-        profile.setDescription("Initial Description");
-        profile.setUserId(user.getId());
-
-        // 设置关联并保存
-        user.setProfile(profile);
-        user.save(User::getProfile);
-
-        // 验证初始状态
-        User savedUser = userMapper.selectById(user.getId());
-        Profile savedProfile = savedUser.get(User::getProfile);
-        assertNotNull(savedProfile);
-        assertEquals("Initial Description", savedProfile.getDescription());
-
-        // 更新个人资料
-        savedProfile.setDescription("Updated Description");
-        user.update(User::getProfile, savedProfile);
-
-        // 验证更新
-        User updatedUser = userMapper.selectById(user.getId());
-        Profile updatedProfile = updatedUser.get(User::getProfile);
-
-        assertEquals("Updated Description", updatedProfile.getDescription());
-    }
-
-    @Test
     public void shouldSaveRelationWithStringMethod() {
         // 创建用户
         User user = new User();
@@ -287,11 +231,8 @@ public class RelatedModelOperationTest extends BaseTest {
         Profile profile = new Profile();
         profile.setDescription("Test Profile Description");
 
-        // 设置关联
-        user.setProfile(profile);
-
         // 使用字符串方式保存关联
-        user.save("profile");
+        user.save("profile", profile);
 
         // 验证关联已保存
         User savedUser = userMapper.selectById(user.getId());
@@ -300,24 +241,6 @@ public class RelatedModelOperationTest extends BaseTest {
         assertNotNull(savedProfile);
         assertEquals("Test Profile Description", savedProfile.getDescription());
         assertEquals(user.getId(), savedProfile.getUserId());
-    }
-
-    @Test
-    public void shouldCreateRelationWithStringMethod() {
-        // 创建用户
-        User user = new User();
-        user.setName("Test User");
-        user.setEmail("test@example.com");
-        user.save();
-
-        // 使用字符串方式创建并保存个人资料关联
-        Profile profile = new Profile();
-        profile.setDescription("Test Profile Description");
-        profile = user.create("profile", profile);
-
-        assertNotNull(profile);
-        assertEquals("Test Profile Description", profile.getDescription());
-        assertEquals(user.getId(), profile.getUserId());
     }
 
     @Test
@@ -506,4 +429,88 @@ public class RelatedModelOperationTest extends BaseTest {
         List<Role> roles2 = savedUser.get(User::getRoles);
         assertTrue(roles2.isEmpty());
     }
+
+//    @Test
+//    public void testAssociateRelation() {
+//        // 创建用户
+//        User user = new User();
+//        user.setName("Test User");
+//        user.setEmail("test@example.com");
+//        user.save();
+//
+//        // 创建文章
+//        Post post = new Post();
+//        post.setTitle("Test Post");
+//        post.setUserId(null); // 初始没有关联
+//
+//        // 关联文章到用户（字符串方式）
+//        Post associatedPost = user.associate("posts", post);
+//
+//        // 验证关联成功
+//        assertNotNull(associatedPost.getId());
+//        assertEquals(user.getId(), associatedPost.getUserId());
+//
+//        // 验证从数据库查询也能看到关联
+//        Post savedPost = postMapper.selectById(associatedPost.getId());
+//        assertEquals(user.getId(), savedPost.getUserId());
+//    }
+//
+//    @Test
+//    public void testDissociateRelation() {
+//        // 创建用户
+//        User user = new User();
+//        user.setName("Test User");
+//        user.setEmail("test@example.com");
+//        user.save();
+//
+//        // 创建文章并关联到用户
+//        Post post = new Post();
+//        post.setTitle("Test Post");
+//        post.setUserId(user.getId());
+//        post.save();
+//
+//        // 解除关联（字符串方式）
+//        Post dissociatedPost = user.dissociate("posts", post);
+//
+//        // 验证解除关联成功
+//        assertNull(dissociatedPost.getUserId());
+//
+//        // 验证从数据库查询也能看到解除关联
+//        Post savedPost = postMapper.selectById(dissociatedPost.getId());
+//        assertNull(savedPost.getUserId());
+//    }
+//
+//    @Test
+//    public void testAssociateAndDissociateMultiplePosts() {
+//        // 创建用户
+//        User user = new User();
+//        user.setName("Test User");
+//        user.setEmail("test@example.com");
+//        user.save();
+//
+//        // 创建多个文章
+//        Post post1 = new Post();
+//        post1.setTitle("Post 1");
+//        post1.setUserId(null);
+//
+//        Post post2 = new Post();
+//        post2.setTitle("Post 2");
+//        post2.setUserId(null);
+//
+//        // 关联多个文章（字符串方式）
+//        Post associatedPost1 = user.associate("posts", post1);
+//        Post associatedPost2 = user.associate("posts", post2);
+//
+//        // 验证关联成功
+//        assertEquals(user.getId(), associatedPost1.getUserId());
+//        assertEquals(user.getId(), associatedPost2.getUserId());
+//
+//        // 解除其中一个文章的关联（字符串方式）
+//        Post dissociatedPost = user.dissociate("posts", post1);
+//        assertNull(dissociatedPost.getUserId());
+//
+//        // 验证另一个文章仍然关联
+//        Post stillAssociated = postMapper.selectById(associatedPost2.getId());
+//        assertEquals(user.getId(), stillAssociated.getUserId());
+//    }
 }

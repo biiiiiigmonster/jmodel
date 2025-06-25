@@ -4,6 +4,7 @@ import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
+import lombok.Getter;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -14,10 +15,15 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public class BelongsToMany<P extends Pivot<?>> extends Relation {
+    @Getter
     protected Class<P> pivotClass;
+    @Getter
     protected Field foreignPivotField;
+    @Getter
     protected Field relatedPivotField;
+    @Getter
     protected Field foreignField;
+    @Getter
     protected Field localField;
     protected boolean withPivot;
 
@@ -106,23 +112,4 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
     public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
     }
 
-    public Class<P> getPivotClass() {
-        return pivotClass;
-    }
-
-    public Field getForeignPivotField() {
-        return foreignPivotField;
-    }
-
-    public Field getRelatedPivotField() {
-        return relatedPivotField;
-    }
-
-    public Field getForeignField() {
-        return foreignField;
-    }
-
-    public Field getLocalField() {
-        return localField;
-    }
 }

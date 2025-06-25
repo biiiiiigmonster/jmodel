@@ -83,9 +83,14 @@ public abstract class Model<T extends Model<?>> {
     // wip: event
     public Boolean save() {
         BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(getClass());
-        int insert = relatedRepository.insert((T) this);
+        int res;
+        if (primaryKeyValue() == null) {
+            res = relatedRepository.insert((T) this);
+        } else {
+            res = relatedRepository.updateById((T) this);
+        }
 
-        return insert > 0;
+        return res > 0;
     }
 
     // wip: event
@@ -151,31 +156,44 @@ public abstract class Model<T extends Model<?>> {
      * 保存关联模型
      * 支持一对一、一对多关联
      */
-    @SafeVarargs
-    public final <R> void save(SerializableFunction<T, R>... relations) {
-        RelationUtils.saveRelations((T) this, relations);
+    public final <R extends Model<?>> void save(SerializableFunction<T, R> relation, R model) {
+        RelationUtils.saveRelations((T) this, relation, model);
+    }
+
+    public final <R extends Model<?>> void save(SerializableFunction<T, List<R>> relation, R... models) {
+        RelationUtils.saveRelations((T) this, relation, models);
+    }
+
+    public final <R extends Model<?>> void save(SerializableFunction<T, List<R>> relation, List<R> models) {
+        RelationUtils.saveRelations((T) this, relation, models);
+    }
+
+    public final <R extends Model<?>> void save(String relation, R... models) {
+        RelationUtils.saveRelations((T) this, relation, models);
+    }
+
+    public final <R extends Model<?>> void save(String relation, List<R> models) {
+        RelationUtils.saveRelations((T) this, relation, models);
     }
 
     /**
-     * 保存关联模型（字符串方式）
+     * 关联模型（一对多，仅支持字符串方式）
+     * @param relationName 关联名称
+     * @param relatedModel 要关联的模型
+     * @return 关联后的模型
      */
-    public final void save(String... relations) {
-        RelationUtils.saveRelations((T) this, relations);
+    public <R extends Model<?>> R associate(String relationName, R relatedModel) {
+        return null;
     }
 
     /**
-     * 创建并保存关联模型
-     * 支持一对一、一对多关联
+     * 解除关联（一对多，仅支持字符串方式）
+     * @param relationName 关联名称
+     * @param relatedModel 要解除关联的模型
+     * @return 解除关联后的模型
      */
-    public final <R> R create(SerializableFunction<T, R> relation, R model) {
-        return RelationUtils.createRelation((T) this, relation, model);
-    }
-
-    /**
-     * 创建并保存关联模型（字符串方式）
-     */
-    public final <R> R create(String relation, R model) {
-        return RelationUtils.createRelation((T) this, relation, model);
+    public <R extends Model<?>> R dissociate(String relationName, R relatedModel) {
+        return null;
     }
 
     /**
@@ -221,20 +239,6 @@ public abstract class Model<T extends Model<?>> {
      */
     public final <R> void sync(String relation, R... models) {
         RelationUtils.syncRelations((T) this, relation, models);
-    }
-
-    /**
-     * 更新关联模型
-     */
-    public final <R> void update(SerializableFunction<T, R> relation, R model) {
-        RelationUtils.updateRelation((T) this, relation, model);
-    }
-
-    /**
-     * 更新关联模型（字符串方式）
-     */
-    public final <R> void update(String relation, R model) {
-        RelationUtils.updateRelation((T) this, relation, model);
     }
 
     /**
