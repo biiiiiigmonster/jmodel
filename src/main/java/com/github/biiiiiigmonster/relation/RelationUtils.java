@@ -279,7 +279,7 @@ public class RelationUtils implements BeanPostProcessor {
         )).values());
     }
 
-    private static <T extends Model<?>, R extends Model<?>> List<RelationOption<? extends Model<?>>> processRelations(Class<T> clazz, List<String> relations) {
+    private static <T extends Model<?>, R extends Model<?>> List<RelationOption<?>> processRelations(Class<T> clazz, List<String> relations) {
         Map<String, List<String>> map = relations.stream()
                 .filter(ObjectUtil::isNotEmpty)
                 .collect(Collectors.toMap(

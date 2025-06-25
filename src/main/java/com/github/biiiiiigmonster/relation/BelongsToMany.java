@@ -130,6 +130,21 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
     }
 
     public <R extends Model<?>> void detach(List<R> attachModels) {
+        Object localValue = ReflectUtil.getFieldValue(model, localField);
+        List<Object> foreignValues = new ArrayList<>();
 
+        for (R relatedModel : attachModels) {
+            Object foreignValue = ReflectUtil.getFieldValue(relatedModel, foreignField);
+            foreignValues.add(foreignValue);
+        }
+
+        if (!foreignValues.isEmpty()) {
+            // 删除中间表记录
+            BaseMapper<P> pivotMapper = (BaseMapper<P>) RelationUtils.getRelatedRepository(pivotClass);
+            QueryWrapper<P> wrapper = new QueryWrapper<>();
+            wrapper.eq(RelationUtils.getColumn(foreignPivotField), localValue)
+                    .in(RelationUtils.getColumn(relatedPivotField), foreignValues);
+            pivotMapper.delete(wrapper);
+        }
     }
 }

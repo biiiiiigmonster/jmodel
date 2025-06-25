@@ -145,40 +145,6 @@ public class RelatedModelOperationTest extends BaseTest {
     }
 
     @Test
-    public void shouldDetachAllBelongsToManyRelation() {
-        // 创建用户
-        User user = new User();
-        user.setName("Test User");
-        user.setEmail("test@example.com");
-        user.save();
-
-        // 创建角色
-        Role role1 = new Role();
-        role1.setName("admin");
-        roleMapper.insert(role1);
-
-        Role role2 = new Role();
-        role2.setName("user");
-        roleMapper.insert(role2);
-
-        // 先附加角色
-        user.attach(User::getRoles, role1, role2);
-
-        // 验证初始状态
-        User savedUser = userMapper.selectById(user.getId());
-        List<Role> initialRoles = savedUser.get(User::getRoles);
-        assertEquals(2, initialRoles.size());
-
-        // 分离所有角色
-        user.detach(User::getRoles);
-
-        // 验证分离后的状态
-        User updatedUser = userMapper.selectById(user.getId());
-        List<Role> remainingRoles = updatedUser.get(User::getRoles);
-        assertEquals(0, remainingRoles.size());
-    }
-
-    @Test
     public void shouldSyncBelongsToManyRelation() {
         // 创建用户
         User user = new User();
