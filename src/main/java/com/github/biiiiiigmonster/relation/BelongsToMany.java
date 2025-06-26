@@ -170,4 +170,22 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
             detach(current.stream().filter(m -> !syncSet.contains(m.primaryKeyValue())).collect(Collectors.toList()));
         }
     }
+
+    public <R extends Model<?>> void toggle(List<R> toggleModels) {
+        List<R> current = getEager(Lists.newArrayList(model));
+        Set<Object> currentSet = current.stream().map(Model::primaryKeyValue).collect(Collectors.toSet());
+        List<R> detach = new ArrayList<>();
+        List<R> attach = new ArrayList<>();
+
+        for (R relatedModel : toggleModels) {
+            if (currentSet.contains(relatedModel.primaryKeyValue())) {
+                detach.add(relatedModel);
+            } else {
+                attach.add(relatedModel);
+            }
+        }
+
+        detach(detach);
+        attach(attach);
+    }
 }

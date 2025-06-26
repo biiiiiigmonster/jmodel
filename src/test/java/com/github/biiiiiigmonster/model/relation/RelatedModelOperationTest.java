@@ -235,7 +235,7 @@ public class RelatedModelOperationTest extends BaseTest {
     }
 
     @Test
-    public void testToggleRelation() {
+    public void shouldToggleBelongsToManyRelation() {
         // 创建用户
         User user = new User();
         user.setName("Test User");
@@ -261,9 +261,7 @@ public class RelatedModelOperationTest extends BaseTest {
         assertTrue(initialRoles.isEmpty());
 
         // 切换admin角色（添加）
-        List<Long> result1 = user.toggle(User::getRoles, adminRole.getId());
-        assertEquals(1, result1.size());
-        assertTrue(result1.contains(adminRole.getId()));
+        user.toggle(User::getRoles, adminRole);
 
         // 验证关联已添加
         savedUser = userMapper.selectById(user.getId());
@@ -272,10 +270,7 @@ public class RelatedModelOperationTest extends BaseTest {
         assertEquals("admin", roles1.get(0).getName());
 
         // 切换user角色（添加）
-        List<Long> result2 = user.toggle(User::getRoles, userRole.getId());
-        assertEquals(2, result2.size());
-        assertTrue(result2.contains(adminRole.getId()));
-        assertTrue(result2.contains(userRole.getId()));
+        user.toggle(User::getRoles, userRole);
 
         // 验证关联已添加
         savedUser = userMapper.selectById(user.getId());
@@ -285,10 +280,7 @@ public class RelatedModelOperationTest extends BaseTest {
         assertTrue(roles2.stream().anyMatch(r -> "user".equals(r.getName())));
 
         // 切换admin角色（移除，因为已存在）
-        List<Long> result3 = user.toggle(User::getRoles, adminRole.getId());
-        assertEquals(1, result3.size());
-        assertTrue(result3.contains(userRole.getId()));
-        assertFalse(result3.contains(adminRole.getId()));
+        user.toggle(User::getRoles, adminRole);
 
         // 验证关联已移除
         savedUser = userMapper.selectById(user.getId());
@@ -297,18 +289,12 @@ public class RelatedModelOperationTest extends BaseTest {
         assertEquals("user", roles3.get(0).getName());
 
         // 切换多个角色
-        List<Long> result4 = user.toggle(User::getRoles, Arrays.asList(adminRole.getId(), guestRole.getId()));
-        assertEquals(3, result4.size());
-        assertTrue(result4.contains(userRole.getId()));
-        assertTrue(result4.contains(adminRole.getId()));
-        assertTrue(result4.contains(guestRole.getId()));
+        user.toggle(User::getRoles, userRole, guestRole);
 
         // 验证多个关联已添加
         savedUser = userMapper.selectById(user.getId());
         List<Role> roles4 = savedUser.get(User::getRoles);
-        assertEquals(3, roles4.size());
-        assertTrue(roles4.stream().anyMatch(r -> "admin".equals(r.getName())));
-        assertTrue(roles4.stream().anyMatch(r -> "user".equals(r.getName())));
+        assertEquals(1, roles4.size());
         assertTrue(roles4.stream().anyMatch(r -> "guest".equals(r.getName())));
     }
 
@@ -330,9 +316,7 @@ public class RelatedModelOperationTest extends BaseTest {
         roleMapper.insert(userRole);
 
         // 使用字符串方式切换角色
-        List<Long> result1 = user.toggle("roles", adminRole.getId());
-        assertEquals(1, result1.size());
-        assertTrue(result1.contains(adminRole.getId()));
+        user.toggle("roles", adminRole);
 
         // 验证关联已添加
         User savedUser = userMapper.selectById(user.getId());
@@ -341,9 +325,7 @@ public class RelatedModelOperationTest extends BaseTest {
         assertEquals("admin", roles1.get(0).getName());
 
         // 再次切换同一个角色（移除）
-        List<Long> result2 = user.toggle("roles", adminRole.getId());
-        assertEquals(0, result2.size());
-        assertFalse(result2.contains(adminRole.getId()));
+        user.toggle("roles", adminRole);
 
         // 验证关联已移除
         savedUser = userMapper.selectById(user.getId());
@@ -361,34 +343,31 @@ public class RelatedModelOperationTest extends BaseTest {
 
         // 创建多个角色
         Role role1 = new Role();
-        role1.setName("role1");
+        role1.setName("admin");
         roleMapper.insert(role1);
 
         Role role2 = new Role();
-        role2.setName("role2");
+        role2.setName("user");
         roleMapper.insert(role2);
 
         Role role3 = new Role();
-        role3.setName("role3");
+        role3.setName("guest");
         roleMapper.insert(role3);
 
-        // 切换多个ID
-        List<Long> ids = Arrays.asList(role1.getId(), role2.getId(), role3.getId());
-        List<Long> result = user.toggle(User::getRoles, ids);
-        assertEquals(3, result.size());
-        assertTrue(result.containsAll(ids));
+        // 切换多个
+        List<Role> list = Arrays.asList(role1, role2, role3);
+        user.toggle(User::getRoles, list);
 
         // 验证所有关联都已添加
         User savedUser = userMapper.selectById(user.getId());
         List<Role> roles = savedUser.get(User::getRoles);
         assertEquals(3, roles.size());
-        assertTrue(roles.stream().anyMatch(r -> "role1".equals(r.getName())));
-        assertTrue(roles.stream().anyMatch(r -> "role2".equals(r.getName())));
-        assertTrue(roles.stream().anyMatch(r -> "role3".equals(r.getName())));
+        assertTrue(roles.stream().anyMatch(r -> "admin".equals(r.getName())));
+        assertTrue(roles.stream().anyMatch(r -> "user".equals(r.getName())));
+        assertTrue(roles.stream().anyMatch(r -> "guest".equals(r.getName())));
 
         // 再次切换相同的ID（应该全部移除）
-        List<Long> result2 = user.toggle(User::getRoles, ids);
-        assertEquals(0, result2.size());
+        user.toggle(User::getRoles, list);
 
         // 验证所有关联都已移除
         savedUser = userMapper.selectById(user.getId());

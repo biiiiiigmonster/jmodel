@@ -240,45 +240,19 @@ public abstract class Model<T extends Model<?>> {
         RelationUtils.syncRelations((T) this, relation, models);
     }
 
-    /**
-     * 切换多对多关联
-     * @param relation 关联方法引用
-     * @param ids 要切换的ID列表
-     * @param <R> 关联模型类型
-     * @return 切换后的关联ID列表
-     */
-    public <R extends Model> List<Long> toggle(SerializableFunction<R, ?> relation, List<Long> ids) {
-        return RelationUtils.toggle(this, relation, ids);
+    public final <R extends Model<?>> void toggle(SerializableFunction<T, List<R>> relation, R... models) {
+        RelationUtils.toggleRelations((T) this, relation, models);
     }
 
-    /**
-     * 切换多对多关联（单个ID）
-     * @param relation 关联方法引用
-     * @param id 要切换的ID
-     * @param <R> 关联模型类型
-     * @return 切换后的关联ID列表
-     */
-    public <R extends Model> List<Long> toggle(SerializableFunction<R, ?> relation, Long id) {
-        return toggle(relation, Arrays.asList(id));
+    public final <R extends Model<?>> void toggle(SerializableFunction<T, List<R>> relation, List<R> models) {
+        RelationUtils.toggleRelations((T) this, relation, models);
     }
 
-    /**
-     * 切换多对多关联（字符串方式）
-     * @param relationName 关联名称
-     * @param ids 要切换的ID列表
-     * @return 切换后的关联ID列表
-     */
-    public List<Long> toggle(String relationName, List<Long> ids) {
-        return RelationUtils.toggle(this, relationName, ids);
+    public final <R extends Model<?>> void toggle(String relation, R... models) {
+        RelationUtils.toggleRelations((T) this, relation, models);
     }
 
-    /**
-     * 切换多对多关联（字符串方式，单个ID）
-     * @param relationName 关联名称
-     * @param id 要切换的ID
-     * @return 切换后的关联ID列表
-     */
-    public List<Long> toggle(String relationName, Long id) {
-        return toggle(relationName, Arrays.asList(id));
+    public final <R extends Model<?>> void toggle(String relation, List<R> models) {
+        RelationUtils.toggleRelations((T) this, relation, models);
     }
 }
