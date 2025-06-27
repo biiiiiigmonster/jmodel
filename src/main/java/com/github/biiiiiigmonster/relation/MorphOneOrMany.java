@@ -1,5 +1,6 @@
 package com.github.biiiiiigmonster.relation;
 
+import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
@@ -31,5 +32,10 @@ public abstract class MorphOneOrMany extends HasOneOrMany {
 
     protected String getMorphAlias() {
         return Relation.getMorphAlias(localField.getDeclaringClass(), foreignField.getDeclaringClass());
+    }
+
+    protected <R extends Model<?>> void saveRelatedModel(R relatedModel) {
+        ReflectUtil.setFieldValue(relatedModel, morphType, getMorphAlias());
+        super.saveRelatedModel(relatedModel);
     }
 }

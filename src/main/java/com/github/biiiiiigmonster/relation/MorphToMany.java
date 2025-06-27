@@ -1,5 +1,6 @@
 package com.github.biiiiiigmonster.relation;
 
+import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
@@ -47,5 +48,15 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
         return inverse
                 ? Relation.getMorphAlias(foreignField.getDeclaringClass(), localField.getDeclaringClass())
                 : Relation.getMorphAlias(localField.getDeclaringClass(), foreignField.getDeclaringClass());
+    }
+
+    protected void pivotSave(MP pivot, Object localValue, Object foreignValue) {
+        ReflectUtil.setFieldValue(pivot, morphPivotType, getMorphAlias());
+        super.pivotSave(pivot, localValue, foreignValue);
+    }
+
+    protected void pivotDelete(QueryWrapper<MP> wrapper) {
+        wrapper.eq(RelationUtils.getColumn(morphPivotType), getMorphAlias());
+        super.pivotDelete(wrapper);
     }
 }

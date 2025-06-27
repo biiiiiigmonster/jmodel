@@ -122,14 +122,18 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
             Object foreignValue = ReflectUtil.getFieldValue(attachModel, foreignField);
             try {
                 P pivot = pivotClass.getDeclaredConstructor().newInstance();
-                ReflectUtil.setFieldValue(pivot, foreignPivotField, localValue);
-                ReflectUtil.setFieldValue(pivot, relatedPivotField, foreignValue);
-
-                pivot.save();
+                pivotSave(pivot, localValue, foreignValue);
             } catch (Exception e) {
                 log.error("Failed to create pivot record", e);
             }
         }
+    }
+
+    protected void pivotSave(P pivot, Object localValue, Object foreignValue) {
+        ReflectUtil.setFieldValue(pivot, foreignPivotField, localValue);
+        ReflectUtil.setFieldValue(pivot, relatedPivotField, foreignValue);
+
+        pivot.save();
     }
 
     public <R extends Model<?>> void detach(List<R> detachModels) {
@@ -143,20 +147,23 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
 
         if (!foreignValues.isEmpty()) {
             // 删除中间表记录
-            BaseMapper<P> pivotMapper = (BaseMapper<P>) RelationUtils.getRelatedRepository(pivotClass);
             QueryWrapper<P> wrapper = new QueryWrapper<>();
             wrapper.eq(RelationUtils.getColumn(foreignPivotField), localValue)
                     .in(RelationUtils.getColumn(relatedPivotField), foreignValues);
-            pivotMapper.delete(wrapper);
+            pivotDelete(wrapper);
         }
     }
 
     public void detachAll() {
         Object localValue = ReflectUtil.getFieldValue(model, localField);
 
-        BaseMapper<P> pivotMapper = (BaseMapper<P>) RelationUtils.getRelatedRepository(pivotClass);
         QueryWrapper<P> wrapper = new QueryWrapper<>();
         wrapper.eq(RelationUtils.getColumn(foreignPivotField), localValue);
+        pivotDelete(wrapper);
+    }
+
+    protected void pivotDelete(QueryWrapper<P> wrapper) {
+        BaseMapper<P> pivotMapper = (BaseMapper<P>) RelationUtils.getRelatedRepository(pivotClass);
         pivotMapper.delete(wrapper);
     }
 

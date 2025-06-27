@@ -54,13 +54,12 @@ public abstract class HasOneOrMany extends Relation {
     }
 
     public <R extends Model<?>> void save(List<R> relatedModels) {
-        for (R relatedModel : relatedModels) {
-            Field foreignField = getForeignField();
-            Field localField = getLocalField();
+        relatedModels.forEach(this::saveRelatedModel);
+    }
 
-            Object localValue = ReflectUtil.getFieldValue(model, localField);
-            ReflectUtil.setFieldValue(relatedModel, foreignField, localValue);
-            relatedModel.save();
-        }
+    protected <R extends Model<?>> void saveRelatedModel(R relatedModel) {
+        Object localValue = ReflectUtil.getFieldValue(model, localField);
+        ReflectUtil.setFieldValue(relatedModel, foreignField, localValue);
+        relatedModel.save();
     }
 }
