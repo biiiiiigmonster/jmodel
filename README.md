@@ -512,4 +512,28 @@ user.detach(User::getRoles);
 user.sync(User::getRoles, userRole, guestRole);
 ```
 
+#### 同步关联（不移除现有关联）
+
+```java
+// 同步角色（只添加新关联，不移除现有关联）
+user.syncWithoutDetaching(User::getRoles, userRole, guestRole);
+```
+
+#### 切换关联
+
+```java
+// 切换角色（如果已存在则移除，如果不存在则添加）
+user.toggle(User::getRoles, adminRole);
+
+// 切换多个角色
+user.toggle(User::getRoles, userRole, guestRole);
+
+// 使用字符串方式
+user.toggle("roles", adminRole);
+
+// 切换列表中的角色
+List<Role> roles = Arrays.asList(adminRole, userRole, guestRole);
+user.toggle(User::getRoles, roles);
+```
+
 这些方法会自动处理中间表的创建和删除操作，确保数据一致性。
