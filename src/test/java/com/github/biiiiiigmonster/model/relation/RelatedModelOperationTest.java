@@ -186,6 +186,88 @@ public class RelatedModelOperationTest extends BaseTest {
     }
 
     @Test
+    public void shouldSyncWithoutDetachingBelongsToManyRelation() {
+        // 创建用户
+        User user = new User();
+        user.setName("Test User");
+        user.setEmail("test@example.com");
+        user.save();
+
+        // 创建角色
+        Role role1 = new Role();
+        role1.setName("admin");
+        roleMapper.insert(role1);
+
+        Role role2 = new Role();
+        role2.setName("user");
+        roleMapper.insert(role2);
+
+        Role role3 = new Role();
+        role3.setName("guest");
+        roleMapper.insert(role3);
+
+        // 先附加角色1和2
+        user.attach(User::getRoles, role1, role2);
+
+        // 验证初始状态
+        User savedUser = userMapper.selectById(user.getId());
+        List<Role> initialRoles = savedUser.get(User::getRoles);
+        assertEquals(2, initialRoles.size());
+
+        // 同步为角色2和3（不移除现有关联）
+        user.syncWithoutDetaching(User::getRoles, role2, role3);
+
+        // 验证同步后的状态（应该包含所有角色）
+        User updatedUser = userMapper.selectById(user.getId());
+        List<Role> syncedRoles = updatedUser.get(User::getRoles);
+        assertEquals(3, syncedRoles.size());
+        assertTrue(syncedRoles.stream().anyMatch(r -> "admin".equals(r.getName())));
+        assertTrue(syncedRoles.stream().anyMatch(r -> "user".equals(r.getName())));
+        assertTrue(syncedRoles.stream().anyMatch(r -> "guest".equals(r.getName())));
+    }
+
+    @Test
+    public void shouldSyncWithoutDetachingBelongsToManyRelationWithStringMethod() {
+        // 创建用户
+        User user = new User();
+        user.setName("Test User");
+        user.setEmail("test@example.com");
+        user.save();
+
+        // 创建角色
+        Role role1 = new Role();
+        role1.setName("admin");
+        roleMapper.insert(role1);
+
+        Role role2 = new Role();
+        role2.setName("user");
+        roleMapper.insert(role2);
+
+        Role role3 = new Role();
+        role3.setName("guest");
+        roleMapper.insert(role3);
+
+        // 先附加角色1和2
+        user.attach(User::getRoles, role1, role2);
+
+        // 验证初始状态
+        User savedUser = userMapper.selectById(user.getId());
+        List<Role> initialRoles = savedUser.get(User::getRoles);
+        assertEquals(2, initialRoles.size());
+
+        // 使用字符串方式同步为角色2和3（不移除现有关联）
+        user.syncWithoutDetaching("roles", role2, role3);
+
+        // 验证同步后的状态（应该包含所有角色）
+        User updatedUser = userMapper.selectById(user.getId());
+        List<Role> syncedRoles = updatedUser.get(User::getRoles);
+        assertEquals(3, syncedRoles.size());
+        assertTrue(syncedRoles.stream().anyMatch(r -> "admin".equals(r.getName())));
+        assertTrue(syncedRoles.stream().anyMatch(r -> "user".equals(r.getName())));
+        assertTrue(syncedRoles.stream().anyMatch(r -> "guest".equals(r.getName())));
+    }
+
+    @Test
     public void shouldAssociateRelationWithStringMethod() {
         // 创建用户
         User user = new User();

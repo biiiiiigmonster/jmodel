@@ -221,19 +221,19 @@ public abstract class Model<T extends Model<?>> {
     }
 
     public final <R extends Model<?>> void syncWithoutDetaching(SerializableFunction<T, List<R>> relation, R... models) {
-        RelationUtils.syncRelations((T) this, relation, models);
+        RelationUtils.syncWithoutDetachingRelations((T) this, relation, models);
     }
 
     public final <R extends Model<?>> void syncWithoutDetaching(SerializableFunction<T, List<R>> relation, List<R> models) {
-        RelationUtils.syncRelations((T) this, relation, models);
+        RelationUtils.syncWithoutDetachingRelations((T) this, relation, models);
     }
 
     public final <R extends Model<?>> void syncWithoutDetaching(String relation, R... models) {
-        RelationUtils.syncRelations((T) this, relation, models);
+        RelationUtils.syncWithoutDetachingRelations((T) this, relation, models);
     }
 
     public final <R extends Model<?>> void syncWithoutDetaching(String relation, List<R> models) {
-        RelationUtils.syncRelations((T) this, relation, models);
+        RelationUtils.syncWithoutDetachingRelations((T) this, relation, models);
     }
 
     public final <R extends Model<?>> void toggle(SerializableFunction<T, List<R>> relation, R... models) {
