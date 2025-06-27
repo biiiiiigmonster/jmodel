@@ -34,8 +34,8 @@ public abstract class MorphOneOrMany extends HasOneOrMany {
         return Relation.getMorphAlias(localField.getDeclaringClass(), foreignField.getDeclaringClass());
     }
 
-    protected <R extends Model<?>> void saveRelatedModel(R relatedModel) {
+    protected <R extends Model<?>> void associateRelatedModel(R relatedModel) {
         ReflectUtil.setFieldValue(relatedModel, morphType, getMorphAlias());
-        super.saveRelatedModel(relatedModel);
+        super.associateRelatedModel(relatedModel);
     }
 }

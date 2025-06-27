@@ -431,39 +431,39 @@ public class RelationUtils implements BeanPostProcessor {
         RELATED_MAP.computeIfAbsent(foreignClazz, k -> new ArrayList<>()).add(map);
     }
 
-    public static <T extends Model<?>, R extends Model<?>> void saveRelations(T model, SerializableFunction<T, R> relation, R relationModel) {
+    public static <T extends Model<?>, R extends Model<?>> void associateRelations(T model, SerializableFunction<T, R> relation, R relationModel) {
         Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
-        saveRelations(relationClass, Collections.singletonList(relationModel));
+        associateRelations(relationClass, Collections.singletonList(relationModel));
     }
 
-    public static <T extends Model<?>, R extends Model<?>> void saveRelations(T model, SerializableFunction<T, List<R>> relation, R... relationModels) {
+    public static <T extends Model<?>, R extends Model<?>> void associateRelations(T model, SerializableFunction<T, List<R>> relation, R... relationModels) {
         Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
-        saveRelations(relationClass, Arrays.asList(relationModels));
+        associateRelations(relationClass, Arrays.asList(relationModels));
     }
 
-    public static <T extends Model<?>, R extends Model<?>> void saveRelations(T model, SerializableFunction<T, List<R>> relation, List<R> relationModels) {
+    public static <T extends Model<?>, R extends Model<?>> void associateRelations(T model, SerializableFunction<T, List<R>> relation, List<R> relationModels) {
         Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
-        saveRelations(relationClass, relationModels);
+        associateRelations(relationClass, relationModels);
     }
 
-    public static <T extends Model<?>, R extends Model<?>> void saveRelations(T model, String relation, R... relationModels) {
+    public static <T extends Model<?>, R extends Model<?>> void associateRelations(T model, String relation, R... relationModels) {
         Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
 
-        saveRelations(relationClass, Arrays.asList(relationModels));
+        associateRelations(relationClass, Arrays.asList(relationModels));
     }
 
-    public static <T extends Model<?>, R extends Model<?>> void saveRelations(T model, String relation, List<R> relationModels) {
+    public static <T extends Model<?>, R extends Model<?>> void associateRelations(T model, String relation, List<R> relationModels) {
         Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
 
-        saveRelations(relationClass, relationModels);
+        associateRelations(relationClass, relationModels);
     }
 
-    private static <R extends Model<?>> void saveRelations(Relation relation, List<R> relationModels) {
+    private static <R extends Model<?>> void associateRelations(Relation relation, List<R> relationModels) {
         if (relation instanceof HasOneOrMany) {
-            ((HasOneOrMany) relation).save(relationModels);
+            ((HasOneOrMany) relation).associate(relationModels);
         }
     }
 

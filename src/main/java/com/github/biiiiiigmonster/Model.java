@@ -152,28 +152,24 @@ public abstract class Model<T extends Model<?>> {
         return !is(model);
     }
 
-    /**
-     * 保存关联模型
-     * 支持一对一、一对多关联
-     */
-    public final <R extends Model<?>> void save(SerializableFunction<T, R> relation, R model) {
-        RelationUtils.saveRelations((T) this, relation, model);
+    public final <R extends Model<?>> void associate(SerializableFunction<T, R> relation, R model) {
+        RelationUtils.associateRelations((T) this, relation, model);
     }
 
-    public final <R extends Model<?>> void save(SerializableFunction<T, List<R>> relation, R... models) {
-        RelationUtils.saveRelations((T) this, relation, models);
+    public final <R extends Model<?>> void associate(SerializableFunction<T, List<R>> relation, R... models) {
+        RelationUtils.associateRelations((T) this, relation, models);
     }
 
-    public final <R extends Model<?>> void save(SerializableFunction<T, List<R>> relation, List<R> models) {
-        RelationUtils.saveRelations((T) this, relation, models);
+    public final <R extends Model<?>> void associate(SerializableFunction<T, List<R>> relation, List<R> models) {
+        RelationUtils.associateRelations((T) this, relation, models);
     }
 
-    public final <R extends Model<?>> void save(String relation, R... models) {
-        RelationUtils.saveRelations((T) this, relation, models);
+    public final <R extends Model<?>> void associate(String relation, R... models) {
+        RelationUtils.associateRelations((T) this, relation, models);
     }
 
-    public final <R extends Model<?>> void save(String relation, List<R> models) {
-        RelationUtils.saveRelations((T) this, relation, models);
+    public final <R extends Model<?>> void associate(String relation, List<R> models) {
+        RelationUtils.associateRelations((T) this, relation, models);
     }
 
     public final <R extends Model<?>> void attach(SerializableFunction<T, List<R>> relation, R... models) {

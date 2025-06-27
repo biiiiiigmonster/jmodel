@@ -20,7 +20,7 @@ jmodel是一个为Java设计的ORM框架，提供了优雅的DSL查询语法和�
   - [预加载](#预加载)
   - [嵌套预加载](#嵌套预加载)
 - [插入和更新关联模型](#插入和更新关联模型)
-  - [保存关联模型](#保存关联模型)
+  - [建立关联模型](#建立关联模型)
   - [创建关联模型](#创建关联模型)
   - [更新关联模型](#更新关联模型)
   - [多对多关联操作](#多对多关联操作)
@@ -451,63 +451,30 @@ user.load("posts.comments");
 
 ## 插入和更新关联模型
 
-jmodel提供了强大的关联模型操作功能，支持保存、创建、更新和多对多关联操作。
+jmodel提供了强大的关联模型操作功能，支持建立、创建、更新和多对多关联操作。
 
-### 保存关联模型
+### 建立关联模型
 
-您可以使用`save`方法保存关联模型。这适用于一对一和一对多关联：
+您可以使用`associate`方法建立并保存关联模型。这适用于一对一和一对多关联：
 
 ```java
-// 保存一对一关联
+// 建立一对一关联
 User user = userMapper.selectById(1L);
 Phone phone = new Phone();
 phone.setNumber("1234567890");
-user.setPhone(phone);
-user.save(User::getPhone);
+user.associate(User::getPhone, phone);
 
-// 保存一对多关联
+// 建立一对多关联
 User user = userMapper.selectById(1L);
 List<Post> posts = Arrays.asList(
     new Post() {{ setTitle("First Post"); }},
     new Post() {{ setTitle("Second Post"); }}
 );
-user.setPosts(posts);
-user.save(User::getPosts);
+user.associate(User::getPosts, posts);
 
 // 使用字符串方式
-user.save("phone", "posts");
-```
-
-### 创建关联模型
-
-使用`create`方法可以创建并保存关联模型：
-
-```java
-// 创建一对一关联
-User user = userMapper.selectById(1L);
-Phone phone = user.create(User::getPhone, new Phone() {{
-    setNumber("1234567890");
-}});
-
-// 使用字符串方式
-Phone phone = user.create("phone", new Phone() {{
-    setNumber("1234567890");
-}});
-```
-
-### 更新关联模型
-
-使用`update`方法可以更新已存在的关联模型：
-
-```java
-// 更新一对一关联
-User user = userMapper.selectById(1L);
-Phone phone = user.get(User::getPhone);
-phone.setNumber("9876543210");
-user.update(User::getPhone, phone);
-
-// 使用字符串方式
-user.update("phone", phone);
+user.associate("phone", phone);
+user.associate("posts", posts);
 ```
 
 ### 多对多关联操作

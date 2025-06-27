@@ -31,8 +31,8 @@ public class RelatedModelOperationTest extends BaseTest {
         Profile profile = new Profile();
         profile.setDescription("Test Profile Description");
 
-        // 保存关联
-        user.save(User::getProfile, profile);
+        // 建立关联
+        user.associate(User::getProfile, profile);
 
         // 验证关联已保存
         User savedUser = userMapper.selectById(user.getId());
@@ -60,8 +60,8 @@ public class RelatedModelOperationTest extends BaseTest {
 
         List<Post> posts = Arrays.asList(post1, post2);
 
-        // 保存关联
-        user.save(User::getPosts, posts);
+        // 建立关联
+        user.associate(User::getPosts, posts);
 
         // 验证关联已保存
         User savedUser = userMapper.selectById(user.getId());
@@ -186,7 +186,7 @@ public class RelatedModelOperationTest extends BaseTest {
     }
 
     @Test
-    public void shouldSaveRelationWithStringMethod() {
+    public void shouldAssociateRelationWithStringMethod() {
         // 创建用户
         User user = new User();
         user.setName("Test User");
@@ -197,8 +197,8 @@ public class RelatedModelOperationTest extends BaseTest {
         Profile profile = new Profile();
         profile.setDescription("Test Profile Description");
 
-        // 使用字符串方式保存关联
-        user.save("profile", profile);
+        // 使用字符串方式建立关联
+        user.associate("profile", profile);
 
         // 验证关联已保存
         User savedUser = userMapper.selectById(user.getId());

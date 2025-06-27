@@ -7,7 +7,6 @@ import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.relation.annotation.BelongsTo;
 import com.github.biiiiiigmonster.relation.annotation.MorphTo;
 import lombok.Getter;
-import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -53,11 +52,11 @@ public abstract class HasOneOrMany extends Relation {
         return null;
     }
 
-    public <R extends Model<?>> void save(List<R> relatedModels) {
-        relatedModels.forEach(this::saveRelatedModel);
+    public <R extends Model<?>> void associate(List<R> relatedModels) {
+        relatedModels.forEach(this::associateRelatedModel);
     }
 
-    protected <R extends Model<?>> void saveRelatedModel(R relatedModel) {
+    protected <R extends Model<?>> void associateRelatedModel(R relatedModel) {
         Object localValue = ReflectUtil.getFieldValue(model, localField);
         ReflectUtil.setFieldValue(relatedModel, foreignField, localValue);
         relatedModel.save();
