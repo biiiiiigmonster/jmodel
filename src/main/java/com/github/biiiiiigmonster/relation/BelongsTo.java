@@ -50,4 +50,15 @@ public class BelongsTo extends Relation {
             ReflectUtil.setFieldValue(o, relatedField, value);
         });
     }
+
+    public <R extends Model<?>> void associate(R relatedModel) {
+        Object localValue = ReflectUtil.getFieldValue(relatedModel, ownerField);
+        ReflectUtil.setFieldValue(model, foreignField, localValue);
+        model.save();
+    }
+
+    public void dissociate() {
+        ReflectUtil.setFieldValue(model, foreignField, null);
+        model.save();
+    }
 }

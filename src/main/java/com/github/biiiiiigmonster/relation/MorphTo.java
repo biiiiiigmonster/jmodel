@@ -28,7 +28,7 @@ public class MorphTo extends BelongsTo {
     }
 
     protected <T extends Model<?>> List<T> filterMorph(List<T> models) {
-        String morphAlias = Relation.getMorphAlias(ownerField.getDeclaringClass(), foreignField.getDeclaringClass());
+        String morphAlias = getMorphAlias();
         return models.stream()
                 .filter(model -> ReflectUtil.getFieldValue(model, morphType).equals(morphAlias))
                 .collect(Collectors.toList());
@@ -37,5 +37,19 @@ public class MorphTo extends BelongsTo {
     @Override
     public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
         super.match(filterMorph(models), results);
+    }
+
+    protected String getMorphAlias() {
+        return Relation.getMorphAlias(ownerField.getDeclaringClass(), foreignField.getDeclaringClass());
+    }
+
+    public <R extends Model<?>> void associate(R relatedModel) {
+        ReflectUtil.setFieldValue(model, morphType, getMorphAlias());
+        super.associate(relatedModel);
+    }
+
+    public void dissociate() {
+        ReflectUtil.setFieldValue(model, morphType, null);
+        super.dissociate();
     }
 }
