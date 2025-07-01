@@ -172,14 +172,6 @@ public abstract class Model<T extends Model<?>> {
         RelationUtils.associateRelations((T) this, relation, models);
     }
 
-    public final <R extends Model<?>> void dissociate(SerializableFunction<T, R> relation) {
-        RelationUtils.dissociateRelations((T) this, relation);
-    }
-
-    public final void dissociate(String relation) {
-        RelationUtils.dissociateRelations((T) this, relation);
-    }
-
     public final <R extends Model<?>> void attach(SerializableFunction<T, List<R>> relation, R... models) {
         RelationUtils.attachRelations((T) this, relation, models);
     }

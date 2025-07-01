@@ -56,9 +56,4 @@ public class BelongsTo extends Relation {
         ReflectUtil.setFieldValue(model, foreignField, localValue);
         model.save();
     }
-
-    public void dissociate() {
-        ReflectUtil.setFieldValue(model, foreignField, null);
-        model.save();
-    }
 }

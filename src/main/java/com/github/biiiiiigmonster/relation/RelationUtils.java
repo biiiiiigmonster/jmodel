@@ -469,24 +469,6 @@ public class RelationUtils implements BeanPostProcessor {
         }
     }
 
-    public static <T extends Model<?>, R extends Model<?>> void dissociateRelations(T model, SerializableFunction<T, R> relation) {
-        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
-
-        dissociateRelations(relationClass);
-    }
-
-    public static <T extends Model<?>> void dissociateRelations(T model, String relation) {
-        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
-
-        dissociateRelations(relationClass);
-    }
-
-    private static void dissociateRelations(Relation relation) {
-        if (relation instanceof BelongsTo) {
-            ((BelongsTo) relation).dissociate();
-        }
-    }
-
     public static <T extends Model<?>, R extends Model<?>> void attachRelations(T model, SerializableFunction<T, List<R>> relation, R... models) {
         Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
 

@@ -47,9 +47,4 @@ public class MorphTo extends BelongsTo {
         ReflectUtil.setFieldValue(model, morphType, getMorphAlias());
         super.associate(relatedModel);
     }
-
-    public void dissociate() {
-        ReflectUtil.setFieldValue(model, morphType, null);
-        super.dissociate();
-    }
 }
