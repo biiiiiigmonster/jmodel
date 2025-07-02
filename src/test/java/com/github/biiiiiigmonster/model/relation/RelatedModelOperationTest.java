@@ -1,11 +1,10 @@
 package com.github.biiiiiigmonster.model.relation;
 
 import com.github.biiiiiigmonster.BaseTest;
-import com.github.biiiiiigmonster.entity.Profile;
 import com.github.biiiiiigmonster.entity.Post;
+import com.github.biiiiiigmonster.entity.Profile;
 import com.github.biiiiiigmonster.entity.Role;
 import com.github.biiiiiigmonster.entity.User;
-import com.github.biiiiiigmonster.entity.Comment;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -15,7 +14,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNull;
 
 public class RelatedModelOperationTest extends BaseTest {
 
