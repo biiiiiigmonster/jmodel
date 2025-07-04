@@ -5,12 +5,16 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.attribute.AttributeUtils;
+import com.github.biiiiiigmonster.event.ModelEventManager;
 import com.github.biiiiiigmonster.relation.Pivot;
 import com.github.biiiiiigmonster.relation.Relation;
 import com.github.biiiiiigmonster.relation.RelationOption;
 import com.github.biiiiiigmonster.relation.RelationType;
 import com.github.biiiiiigmonster.relation.RelationUtils;
 import lombok.Getter;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -21,9 +25,11 @@ import java.util.List;
  */
 @Getter
 @SuppressWarnings("unchecked")
-public abstract class Model<T extends Model<?>> {
+public abstract class Model<T extends Model<?>> implements ApplicationContextAware {
     @TableField(exist = false)
     private Pivot<?> pivot;
+    
+    private static ModelEventManager eventManager;
 
     public <R> R get(SerializableFunction<T, R> column) {
         R value = column.apply((T) this);
@@ -67,7 +73,14 @@ public abstract class Model<T extends Model<?>> {
 
     public T find(Serializable id) {
         BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(getClass());
-        return relatedRepository.selectById(id);
+        T result = relatedRepository.selectById(id);
+        
+        // 检索后事件
+        if (eventManager != null && result != null) {
+            eventManager.fireRetrieved(result);
+        }
+        
+        return result;
     }
 
     public T first(Wrapper<Model<?>> queryWrapper) {
@@ -79,23 +92,63 @@ public abstract class Model<T extends Model<?>> {
         return list.get(0);
     }
 
-    // wip: event
     public Boolean save() {
         BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(getClass());
         int res;
+
+        // 保存前事件
+        if (eventManager != null) {
+            eventManager.fireSaving((T) this);
+        }
+
         if (primaryKeyValue() == null) {
+            // 创建前事件
+            if (eventManager != null) {
+                eventManager.fireCreating((T) this);
+            }
+            
             res = relatedRepository.insert((T) this);
+            
+            // 创建后事件
+            if (eventManager != null && res > 0) {
+                eventManager.fireCreated((T) this);
+            }
         } else {
+            // 更新前事件
+            if (eventManager != null) {
+                eventManager.fireUpdating((T) this);
+            }
+            
             res = relatedRepository.updateById((T) this);
+            
+            // 更新后事件
+            if (eventManager != null && res > 0) {
+                eventManager.fireUpdated((T) this);
+            }
+        }
+        
+        // 保存后事件
+        if (eventManager != null && res > 0) {
+            eventManager.fireSaved((T) this);
         }
 
         return res > 0;
     }
 
-    // wip: event
     public Boolean delete() {
         BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(getClass());
+        
+        // 删除前事件
+        if (eventManager != null) {
+            eventManager.fireDeleting((T) this);
+        }
+        
         int i = relatedRepository.deleteById((T) this);
+        
+        // 删除后事件
+        if (eventManager != null && i > 0) {
+            eventManager.fireDeleted((T) this);
+        }
 
         return i > 0;
     }
@@ -249,5 +302,58 @@ public abstract class Model<T extends Model<?>> {
 
     public final <R extends Model<?>> void toggle(String relation, List<R> models) {
         RelationUtils.toggleRelations((T) this, relation, models);
+    }
+    
+    /**
+     * 静音当前模型的事件
+     */
+    public static void muteEvents(Class<?> modelClass) {
+        if (eventManager != null) {
+            eventManager.mute(modelClass);
+        }
+    }
+    
+    /**
+     * 取消静音当前模型的事件
+     */
+    public static void unmuteEvents(Class<?> modelClass) {
+        if (eventManager != null) {
+            eventManager.unmute(modelClass);
+        }
+    }
+    
+    /**
+     * 静音当前模型的事件
+     */
+    public void muteEvents() {
+        muteEvents(getClass());
+    }
+    
+    /**
+     * 取消静音当前模型的事件
+     */
+    public void unmuteEvents() {
+        unmuteEvents(getClass());
+    }
+    
+    /**
+     * 检查当前模型的事件是否被静音
+     */
+    public static boolean isEventsMuted(Class<?> modelClass) {
+        return eventManager != null && eventManager.isModelMuted(modelClass);
+    }
+    
+    /**
+     * 检查当前模型的事件是否被静音
+     */
+    public boolean isEventsMuted() {
+        return isEventsMuted(getClass());
+    }
+    
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        if (eventManager == null) {
+            eventManager = applicationContext.getBean(ModelEventManager.class);
+        }
     }
 }
