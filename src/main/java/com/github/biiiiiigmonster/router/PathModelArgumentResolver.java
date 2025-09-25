@@ -1,5 +1,6 @@
 package com.github.biiiiiigmonster.router;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -7,7 +8,6 @@ import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.ModelNotFoundException;
 import com.github.biiiiiigmonster.relation.Relation;
 import com.github.biiiiiigmonster.relation.RelationUtils;
-import com.google.common.collect.Lists;
 import org.springframework.core.MethodParameter;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -18,7 +18,6 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.View;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -59,7 +58,7 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         if (RelationUtils.hasRelatedRepository(field)) {
             model = byRelatedRepository(value, field);
         } else {
-            List<String> values = Lists.newArrayList(value);
+            List<String> values = ListUtil.toList(value);
             List<Model<?>> results = Relation.byRelatedMethod(values, field);
             model = CollectionUtils.isEmpty(results) ? null : results.get(0);
         }
@@ -104,8 +103,8 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
     }
 
     @Override
-    protected void handleResolvedValue(@Nullable Object arg, String name, MethodParameter parameter,
-                                       @Nullable ModelAndViewContainer mavContainer, NativeWebRequest request) {
+    protected void handleResolvedValue(Object arg, String name, MethodParameter parameter,
+                                       ModelAndViewContainer mavContainer, NativeWebRequest request) {
         String key = PATH_MODEL_VARIABLES;
         int scope = RequestAttributes.SCOPE_REQUEST;
         LinkedHashMap<String, Object> pathVars = (LinkedHashMap<String, Object>) request.getAttribute(key, scope);

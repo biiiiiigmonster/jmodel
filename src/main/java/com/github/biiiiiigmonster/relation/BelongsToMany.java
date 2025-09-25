@@ -1,10 +1,10 @@
 package com.github.biiiiiigmonster.relation;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
-import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -167,7 +167,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
     }
 
     public <R extends Model<?>> void sync(List<R> syncModels, boolean detaching) {
-        List<R> current = getEager(Lists.newArrayList(model));
+        List<R> current = getEager(ListUtil.toList(model));
         Set<Object> currentSet = current.stream().map(Model::primaryKeyValue).collect(Collectors.toSet());
         Set<Object> syncSet = syncModels.stream().map(Model::primaryKeyValue).collect(Collectors.toSet());
 
@@ -178,7 +178,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
     }
 
     public <R extends Model<?>> void toggle(List<R> toggleModels) {
-        List<R> current = getEager(Lists.newArrayList(model));
+        List<R> current = getEager(ListUtil.toList(model));
         Set<Object> currentSet = current.stream().map(Model::primaryKeyValue).collect(Collectors.toSet());
         List<R> detach = new ArrayList<>();
         List<R> attach = new ArrayList<>();
