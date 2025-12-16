@@ -208,7 +208,7 @@
                                         <path>
                                             <groupId>io.github.biiiiiigmonster</groupId>
                                             <artifactId>jmodel-metamodel</artifactId>
-                                            <version>${jmodel.version}</version>
+                                            <version>${revision}</version>
                                         </path>
                                     </annotationProcessorPaths>
                                     <generatedTestSourcesDirectory>
