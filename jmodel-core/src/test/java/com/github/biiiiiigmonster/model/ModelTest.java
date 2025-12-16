@@ -14,7 +14,9 @@ public class ModelTest extends BaseTest {
     public void shouldLambdaGetEqualStringGet() {
         Profile lambdaGet = userMapper.selectById(1L).get(User::getProfile);
         Profile stringGet = (Profile) userMapper.selectById(1L).get("profile");
+        Profile clazzGet = userMapper.selectById(1L).get("profile", Profile.class);
         assertNotNull(lambdaGet);
         assertEquals(lambdaGet.getId(), stringGet.getId());
+        assertEquals(lambdaGet.getId(), clazzGet.getId());
     }
 }

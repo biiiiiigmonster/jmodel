@@ -32,29 +32,33 @@ public abstract class Model<T extends Model<?>> {
         }
 
         Field field = SerializedLambda.getField(column);
-        if (RelationType.hasRelationAnnotation(field)) {
-            load(column);
-        } else if (AttributeUtils.hasAttributeAnnotation(field)) {
-            append(column);
-        }
+        get(field);
 
         return column.apply((T) this);
     }
 
     public Object get(String column) {
+        return get(column, Object.class);
+    }
+
+    public <R> R get(String column, Class<R> type) {
         Object value = ReflectUtil.getFieldValue(this, column);
         if (value != null) {
-            return value;
+            return type.cast(value);
         }
 
         Field field = ReflectUtil.getField(getClass(), column);
-        if (RelationType.hasRelationAnnotation(field)) {
-            load(column);
-        } else if (AttributeUtils.hasAttributeAnnotation(field)) {
-            append(column);
-        }
+        get(field);
 
-        return ReflectUtil.getFieldValue(this, column);
+        return type.cast(ReflectUtil.getFieldValue(this, column));
+    }
+
+    private void get(Field field) {
+        if (RelationType.hasRelationAnnotation(field)) {
+            load(field.getName());
+        } else if (AttributeUtils.hasAttributeAnnotation(field)) {
+            append(field.getName());
+        }
     }
 
     public Relation relation(SerializableFunction<T, ?> column) {
