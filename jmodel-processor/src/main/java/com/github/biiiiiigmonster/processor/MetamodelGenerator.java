@@ -28,7 +28,7 @@ import java.util.Set;
 public class MetamodelGenerator {
 
     private static final String TABLE_FIELD_ANNOTATION = "com.baomidou.mybatisplus.annotation.TableField";
-    private static final String SINGULAR_ATTRIBUTE_IMPORT = "com.github.biiiiiigmonster.metamodel.SingularAttribute";
+    private static final String SINGULAR_ATTRIBUTE_IMPORT = "com.github.biiiiiigmonster.processor.SingularAttribute";
     private static final String GENERATED_ANNOTATION_IMPORT = "javax.annotation.Generated";
 
     /**
@@ -106,7 +106,7 @@ public class MetamodelGenerator {
         // Class declaration with @Generated annotation
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         source.append("@Generated(\n");
-        source.append("    value = \"com.github.biiiiiigmonster.metamodel.JmodelProcessor\",\n");
+        source.append("    value = \"com.github.biiiiiigmonster.processor.JmodelProcessor\",\n");
         source.append("    date = \"").append(timestamp).append("\"\n");
         source.append(")\n");
         source.append("public abstract class ").append(metamodelClassName).append(" {\n\n");
