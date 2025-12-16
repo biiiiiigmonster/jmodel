@@ -55,11 +55,8 @@ jobs:
 
       - name: Build and run tests
         run: |
-          # Install jmodel-processor first (required by jmodel-core tests)
-          mvn clean install -pl jmodel-processor -am -DskipTests
-          
-          # Run all tests
-          mvn test
+          # Build all modules and run tests in a single Maven execution
+          mvn clean test
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
