@@ -1,4 +1,4 @@
-package com.github.biiiiiigmonster.metamodel;
+package com.github.biiiiiigmonster.processor;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
