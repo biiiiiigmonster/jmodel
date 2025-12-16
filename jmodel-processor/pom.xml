@@ -26,11 +26,6 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>net.jqwik</groupId>
-            <artifactId>jqwik</artifactId>
-            <scope>test</scope>
-        </dependency>
         <!-- Google compile-testing for annotation processor testing -->
         <dependency>
             <groupId>com.google.testing.compile</groupId>
