@@ -1,11 +1,10 @@
-package com.github.biiiiiigmonster.model;
+package com.github.biiiiiigmonster.router;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.github.biiiiiigmonster.BaseTest;
 import com.github.biiiiiigmonster.ModelNotFoundException;
-import com.github.biiiiiigmonster.entity.Post;
-import com.github.biiiiiigmonster.entity.User;
+import com.github.biiiiiigmonster.router.entity.Post;
+import com.github.biiiiiigmonster.router.entity.User;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -56,6 +55,7 @@ public class PathModelTest extends BaseTest {
         User user = userMapper.selectOne(queryWrapper);
         assertTrue(respUser.is(user));
     }
+
 
     @Test
     public void multiPathModelTest() throws Exception {

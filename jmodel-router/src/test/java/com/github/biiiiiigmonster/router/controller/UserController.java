@@ -1,8 +1,8 @@
-package com.github.biiiiiigmonster.controller;
+package com.github.biiiiiigmonster.router.controller;
 
-import com.github.biiiiiigmonster.entity.Post;
-import com.github.biiiiiigmonster.entity.User;
 import com.github.biiiiiigmonster.router.PathModel;
+import com.github.biiiiiigmonster.router.entity.Post;
+import com.github.biiiiiigmonster.router.entity.User;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 

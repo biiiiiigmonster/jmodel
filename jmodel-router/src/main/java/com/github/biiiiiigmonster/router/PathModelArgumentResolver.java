@@ -69,6 +69,7 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         return model;
     }
 
+
     protected void scopeBinding(Model<?> model, MethodParameter parameter, NativeWebRequest request) {
         String key = PATH_MODEL_VARIABLES;
         int scope = RequestAttributes.SCOPE_REQUEST;

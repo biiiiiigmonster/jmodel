@@ -1,0 +1,13 @@
+CREATE TABLE t_user
+(
+    id    BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name  VARCHAR(50) NOT NULL,
+    email VARCHAR(100)
+);
+
+CREATE TABLE t_post
+(
+    id      BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT,
+    title   VARCHAR(255)
+);
