@@ -146,7 +146,8 @@
         <artifactId>central-publishing-maven-plugin</artifactId>
         <extensions>true</extensions>
         <configuration>
-          <publishingServerId>biiiiiigmonster</publishingServerId>
+          <publishingServerId>central</publishingServerId>
+          <autoPublish>true</autoPublish>
         </configuration>
       </plugin>
       <plugin>
@@ -164,9 +165,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-gpg-plugin</artifactId>
-        <configuration>
-          <executable>C:\Program Files (x86)\GnuPG\bin\gpg.exe</executable>
-        </configuration>
         <executions>
           <execution>
             <phase>verify</phase>

@@ -147,7 +147,14 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-gpg-plugin</artifactId>
-          <version>1.6</version>
+          <version>3.1.0</version>
+          <configuration>
+            <!-- GPG executable will be auto-detected or set via environment -->
+            <gpgArguments>
+              <arg>--pinentry-mode</arg>
+              <arg>loopback</arg>
+            </gpgArguments>
+          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
