@@ -63,7 +63,7 @@ jobs:
       - name: Publish to Maven Central
         run: |
           # Use central-publishing-maven-plugin to publish
-          mvn deploy -DskipTests -pl jmodel-processor,jmodel-core
+          mvn deploy -DskipTests -pl jmodel-core,jmodel-processor,jmodel-router
         env:
           MAVEN_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN }}
