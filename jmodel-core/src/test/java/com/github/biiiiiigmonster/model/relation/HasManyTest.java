@@ -20,7 +20,7 @@ public class HasManyTest extends BaseTest {
         User user = userMapper.selectById(1L);
         List<Post> posts = user.get(User::getPosts);
         assertNotNull(posts);
-//        assertEquals(2, posts.size());
+        assertEquals(2, posts.size());
         assertEquals("Getting Started with Spring Boot", posts.get(0).getTitle());
         assertEquals("Mastering JPA Relationships", posts.get(1).getTitle());
     }
@@ -45,7 +45,7 @@ public class HasManyTest extends BaseTest {
         User user1 = userList.get(0);
         List<Post> posts1 = user1.getPosts();
         assertNotNull(posts1);
-//        assertEquals(2, posts1.size());
+        assertEquals(2, posts1.size());
         assertEquals("Getting Started with Spring Boot", posts1.get(0).getTitle());
         assertEquals("Mastering JPA Relationships", posts1.get(1).getTitle());
 
