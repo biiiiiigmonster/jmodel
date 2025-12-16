@@ -39,11 +39,11 @@ public class User extends Model<User> {
     private Address profileAddress;
 
     @TableField(exist = false)
-    @HasMany
+    @HasMany(foreignKey = Post_.USER_ID)
     private List<Post> posts;
 
     @TableField(exist = false)
-    @HasMany(chaperone = true)
+    @HasMany(foreignKey = Post_.USER_ID, chaperone = true)
     private List<Post> postChaperones;
 
     @TableField(exist = false)
