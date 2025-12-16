@@ -48,8 +48,8 @@ jobs:
           # Update parent pom.xml
           mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
           
-          # Update jmodel.version property in parent pom
-          mvn versions:set-property -Dproperty=jmodel.version -DnewVersion=$VERSION -DgenerateBackupPoms=false
+          # Update revision property in parent pom
+          mvn versions:set-property -Dproperty=revision -DnewVersion=$VERSION -DgenerateBackupPoms=false
           
           echo "Version updated successfully"
 
