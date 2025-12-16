@@ -26,11 +26,11 @@ public class Post extends Model<Post> {
     private String title;
 
     @TableField(exist = false)
-    @BelongsTo
+    @BelongsTo(foreignKey = Post_.USER_ID)
     private User user;
 
     @TableField(exist = false)
-    @HasMany
+    @HasMany(foreignKey = Likes_.POST_ID)
     private List<Likes> likes;
 
     @TableField(exist = false)
