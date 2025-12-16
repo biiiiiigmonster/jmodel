@@ -63,12 +63,12 @@
             <dependency>
                 <groupId>io.github.biiiiiigmonster</groupId>
                 <artifactId>jmodel-core</artifactId>
-                <version>${jmodel.version}</version>
+                <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.biiiiiigmonster</groupId>
                 <artifactId>jmodel-metamodel</artifactId>
-                <version>${jmodel.version}</version>
+                <version>${revision}</version>
             </dependency>
             <!-- External dependencies -->
             <dependency>
