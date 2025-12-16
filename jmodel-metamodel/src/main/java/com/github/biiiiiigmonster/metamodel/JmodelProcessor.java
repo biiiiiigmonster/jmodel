@@ -1,4 +1,4 @@
-package com.github.biiiiiigmonster.metamodel.processor;
+package com.github.biiiiiigmonster.metamodel;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
@@ -33,7 +33,7 @@ import java.util.Set;
  */
 @SupportedAnnotationTypes("*")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
-public class ModelMetamodelProcessor extends AbstractProcessor {
+public class JmodelProcessor extends AbstractProcessor {
 
     private static final String MODEL_CLASS_NAME = "com.github.biiiiiigmonster.Model";
 

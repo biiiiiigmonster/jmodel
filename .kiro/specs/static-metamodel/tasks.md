@@ -58,7 +58,7 @@
 
 
 
-    - Create `com.github.biiiiiigmonster.metamodel.processor.MetamodelGenerator` class
+    - Create `com.github.biiiiiigmonster.metamodel.MetamodelGenerator` class
     - Implement `generate(TypeElement entityElement, ProcessingEnvironment env)` method
     - Implement `extractPersistentFields()` to filter out `@TableField(exist=false)` fields
     - Implement `isPersistentField()` to check field persistence

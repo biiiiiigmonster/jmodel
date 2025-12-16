@@ -1,4 +1,4 @@
-package com.github.biiiiiigmonster.metamodel.processor;
+package com.github.biiiiiigmonster.metamodel;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -106,7 +106,7 @@ public class MetamodelGenerator {
         // Class declaration with @Generated annotation
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         source.append("@Generated(\n");
-        source.append("    value = \"com.github.biiiiiigmonster.metamodel.processor.ModelMetamodelProcessor\",\n");
+        source.append("    value = \"com.github.biiiiiigmonster.metamodel.JmodelProcessor\",\n");
         source.append("    date = \"").append(timestamp).append("\"\n");
         source.append(")\n");
         source.append("public abstract class ").append(metamodelClassName).append(" {\n\n");
