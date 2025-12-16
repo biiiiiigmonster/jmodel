@@ -55,8 +55,8 @@ jobs:
 
       - name: Build and run tests
         run: |
-          # Install jmodel-metamodel first (required by jmodel-core tests)
-          mvn clean install -pl jmodel-metamodel -am -DskipTests
+          # Install jmodel-processor first (required by jmodel-core tests)
+          mvn clean install -pl jmodel-processor -am -DskipTests
           
           # Run all tests
           mvn test
@@ -66,7 +66,7 @@ jobs:
       - name: Publish to Maven Central
         run: |
           # Use central-publishing-maven-plugin to publish
-          mvn deploy -DskipTests -pl jmodel-metamodel,jmodel-core
+          mvn deploy -DskipTests -pl jmodel-processor,jmodel-core
         env:
           MAVEN_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN }}

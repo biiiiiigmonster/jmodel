@@ -68,7 +68,7 @@
         <!-- Metamodel module for generated classes -->
         <dependency>
             <groupId>io.github.biiiiiigmonster</groupId>
-            <artifactId>jmodel-metamodel</artifactId>
+            <artifactId>jmodel-processor</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -180,7 +180,7 @@
 
     <profiles>
         <!-- Profile for metamodel generation during test compilation -->
-        <!-- Activated by default - requires jmodel-metamodel to be installed first -->
+        <!-- Activated by default - requires jmodel-processor to be installed first -->
         <profile>
             <id>metamodel-processor</id>
             <activation>
@@ -207,7 +207,7 @@
                                         </path>
                                         <path>
                                             <groupId>io.github.biiiiiigmonster</groupId>
-                                            <artifactId>jmodel-metamodel</artifactId>
+                                            <artifactId>jmodel-processor</artifactId>
                                             <version>${revision}</version>
                                         </path>
                                     </annotationProcessorPaths>

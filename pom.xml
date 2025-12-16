@@ -13,7 +13,7 @@
 
     <modules>
         <module>jmodel-core</module>
-        <module>jmodel-metamodel</module>
+        <module>jmodel-processor</module>
     </modules>
 
     <licenses>
@@ -68,7 +68,7 @@
             </dependency>
             <dependency>
                 <groupId>io.github.biiiiiigmonster</groupId>
-                <artifactId>jmodel-metamodel</artifactId>
+                <artifactId>jmodel-processor</artifactId>
                 <version>${revision}</version>
             </dependency>
             <!-- External dependencies -->

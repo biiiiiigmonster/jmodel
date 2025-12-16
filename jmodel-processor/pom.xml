@@ -10,13 +10,13 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>jmodel-metamodel</artifactId>
+    <artifactId>jmodel-processor</artifactId>
     <packaging>jar</packaging>
-    <name>jmodel-metamodel</name>
+    <name>jmodel-processor</name>
     <description>ORM with DSL for Java - Metamodel Annotation Processor</description>
 
     <dependencies>
-        <!-- Note: jmodel-metamodel does NOT depend on jmodel-core at compile time -->
+        <!-- Note: jmodel-processor does NOT depend on jmodel-core at compile time -->
         <!-- The annotation processor detects Model subclasses by checking the type hierarchy -->
         <!-- using the fully qualified class name "com.github.biiiiiigmonster.Model" -->
 
