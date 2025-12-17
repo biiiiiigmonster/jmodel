@@ -228,7 +228,7 @@ public class RelationUtils implements BeanPostProcessor {
         // 分离
         List<T> eager = new ArrayList<>();
         List<T> exists = new ArrayList<>();
-        List<R> results = new ArrayList<>();
+        List<R> existResults = new ArrayList<>();
         if (loadForce) {
             eager = models;
         } else {
@@ -242,9 +242,9 @@ public class RelationUtils implements BeanPostProcessor {
                     if (nested) {
                         exists.add(model);
                         if (isFieldList) {
-                            results.addAll((List<R>) value);
+                            existResults.addAll((List<R>) value);
                         } else {
-                            results.add((R) value);
+                            existResults.add((R) value);
                         }
                     }
                 }
@@ -252,22 +252,26 @@ public class RelationUtils implements BeanPostProcessor {
         }
         Relation relation = relationOption.getRelation();
         // 合并关联结果
-        results = merge(results, relation.getEager(eager));
+        List<R> mergeResults = merge(existResults, relation.getEager(eager));
         // 嵌套处理
         if (relationOption.isNested()) {
-            load(results, relationOption.getNestedRelations(), loadForce);
+            load(mergeResults, relationOption.getNestedRelations(), loadForce);
         }
 
         // 合并父模型数据
         eager.addAll(exists);
         // 组装匹配
-        relation.match(eager, results);
+        relation.match(eager, mergeResults);
     }
 
     // 新旧结果集合并，如果重复以新结果集为准
     private static <T extends Model<?>> List<T> merge(List<T> oldList, List<T> newList) {
-        if (CollectionUtils.isEmpty(oldList) || CollectionUtils.isEmpty(newList)) {
+        if (CollectionUtils.isEmpty(oldList)) {
             return newList;
+        }
+
+        if (CollectionUtils.isEmpty(newList)) {
+            return oldList;
         }
 
         newList.addAll(oldList);
