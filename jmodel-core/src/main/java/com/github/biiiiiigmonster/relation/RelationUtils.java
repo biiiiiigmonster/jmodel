@@ -232,16 +232,14 @@ public class RelationUtils implements BeanPostProcessor {
         if (loadForce) {
             eager = models;
         } else {
-            boolean nested = relationOption.isNested();
-            boolean isFieldList = relationOption.isRelatedFieldList();
             for (T model : models) {
                 Object value = ReflectUtil.getFieldValue(model, relationOption.getRelatedField());
                 if (value == null) {
                     eager.add(model);
                 } else {
-                    if (nested) {
+                    if (relationOption.isNested()) {
                         exists.add(model);
-                        if (isFieldList) {
+                        if (relationOption.isRelatedFieldList()) {
                             existResults.addAll((List<R>) value);
                         } else {
                             existResults.add((R) value);
