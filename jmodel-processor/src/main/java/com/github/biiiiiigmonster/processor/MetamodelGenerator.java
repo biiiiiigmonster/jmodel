@@ -2,8 +2,10 @@ package com.github.biiiiiigmonster.processor;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -235,13 +237,12 @@ public class MetamodelGenerator {
         }
         
         // Look for @TableField annotation
-        for (javax.lang.model.element.AnnotationMirror annotationMirror : field.getAnnotationMirrors()) {
+        for (AnnotationMirror annotationMirror : field.getAnnotationMirrors()) {
             String annotationType = annotationMirror.getAnnotationType().toString();
             
             if (TABLE_FIELD_ANNOTATION.equals(annotationType)) {
                 // Check the 'exist' attribute
-                for (java.util.Map.Entry<? extends javax.lang.model.element.ExecutableElement, 
-                        ? extends javax.lang.model.element.AnnotationValue> entry 
+                for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry 
                         : annotationMirror.getElementValues().entrySet()) {
                     String key = entry.getKey().getSimpleName().toString();
                     if ("exist".equals(key)) {
