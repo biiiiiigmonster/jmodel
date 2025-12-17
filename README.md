@@ -48,10 +48,10 @@ class User extends Model<User> {
 }
 ```
 
-jmodel会假定`Phone`模型有一个`user_id`外键。如果您希望覆盖这个约定，可以传递自定义外键名称：
+jmodel会假定`Phone`模型有一个`userId`外键属性。如果您希望覆盖这个约定，可以传递自定义外键名称：
 
 ```java
-@HasOne(foreignKey = "user_id", localKey = "id")
+@HasOne(foreignKey = "userId", localKey = "id")
 private Phone phone;
 ```
 
@@ -79,12 +79,12 @@ Phone phone = user.getPhone();
 private List<Post> posts;
 ```
 
-jmodel会自动确定`Post`模型上的正确外键。按照约定，将使用父模型的"蛇形命名"加上`_id`后缀作为外键。因此，在这个例子中，jmodel会假定`Post`模型上的外键是`user_id`。
+jmodel会自动确定`Post`模型上的正确外键。按照约定，将使用父模型的"驼峰命名"加上`Id`后缀作为外键。因此，在这个例子中，jmodel会假定`Post`模型上的外键是`userId`。
 
 如果您希望覆盖这个约定，可以在定义关联时传递自定义外键：
 
 ```java
-@HasMany(foreignKey = "user_id", localKey = "id")
+@HasMany(foreignKey = "userId", localKey = "id")
 private List<Post> posts;
 ```
 
@@ -95,7 +95,7 @@ User user = userMapper.selectById(1L);
 List<Post> posts = user.get(User::getPosts);
 ```
 
-您也可以使用`load`方法预加载关联数据：
+您也可以使用`RelationUtils.load`方法预加载关联数据：
 
 ```java
 List<User> users = userMapper.selectBatchIds(Arrays.asList(1L, 2L));
@@ -113,18 +113,29 @@ for(User user : users) {
 
 ```java
 @HasMany(chaperone = true)
-private List<Post> postChaperones;
+private List<Post> posts;
+
+// ...
+
+@TableName
+class Post extends Model<Post> {
+    /**
+     * 获取这个帖子所属的用户 
+     */
+    @BelongsTo
+    private User user;
+}
 ```
 
-这样，每个`Post`对象都会有一个指向其父`User`的引用：
+这样，每个`Post`对象都会有一个指向其父`User`的引用，避免创建额外的查询：
 
 ```java
 User user = userMapper.selectById(1L);
-user.load(User::getPostChaperones);
+user.load(User::getPosts);
 
-List<Post> postChaperones = user.getPostChaperones();
-// postChaperones中的Post对象有User引用
-assertEquals(postChaperones.get(0).getUser(), user);
+List<Post> posts = user.getPosts();
+// posts中的Post对象有User引用
+assertEquals(posts.get(0).getUser(), user);
 ```
 
 ### 一对一（反向）
@@ -144,10 +155,10 @@ class Phone extends Model<Phone> {
 }
 ```
 
-在上面的例子中，jmodel将尝试匹配`Phone`模型上的`user_id`与`User`模型上的`id`。jmodel通过检查关联方法的名称并使用`_id`后缀来确定外键的默认名称。但是，如果`Phone`模型上的外键不是`user_id`，您可以传递自定义键名：
+在上面的例子中，jmodel将尝试匹配`Phone`模型上的`userId`与`User`模型上的`id`。jmodel通过检查关联方法的名称并使用`Id`后缀来确定外键的默认名称。但是，如果`Phone`模型上的外键不是`userId`，您可以传递自定义键名：
 
 ```java
-@BelongsTo(foreignKey = "user_id", ownerKey = "id")
+@BelongsTo(foreignKey = "userId", ownerKey = "id")
 private User user;
 ```
 
@@ -195,7 +206,7 @@ class Country extends Model<Country> {
 
 ### 多对多
 
-多对多关联比`HasOne`和`HasMany`关联更复杂。例如，一个用户可能有多个角色，而一个角色可能被多个用户共享。例如，许多用户可能具有"管理员"角色。要定义这种关联，需要三个数据库表：`users`、`roles`和`role_user`。`role_user`表是根据相关模型的名称按字母顺序命名的，包含`user_id`和`role_id`列。
+多对多关联比`HasOne`和`HasMany`关联更复杂。例如，一个用户可能有多个角色，而一个角色可能被多个用户共享。例如，许多用户可能具有"管理员"角色。要定义这种关联，需要三个数据库表：`users`、`roles`和`role_user`。`role_user`表是根据相关模型的名称按字母顺序命名的，包含`userId`和`roleId`列。
 
 多对多关联使用`@BelongsToMany`注解定义：
 
@@ -226,8 +237,8 @@ List<Role> roles = user.get(User::getRoles);
 ```java
 @BelongsToMany(
     using = UserRole.class,
-    foreignPivotKey = "user_id",
-    relatedPivotKey = "role_id"
+    foreignPivotKey = "userId",
+    relatedPivotKey = "roleId"
 )
 private List<Role> roles;
 ```
@@ -340,13 +351,13 @@ class Comment extends Model<Comment> {
 您可以自定义多态关联的类型和ID字段：
 
 ```java
-@MorphMany(type = "commentable_type", id = "commentable_id")
+@MorphMany(type = "commentableType", id = "commentableId")
 private List<Comment> comments;
 ```
 
 #### 自定义多态类型
 
-默认情况下，jmodel将使用完全限定的类名作为多态关联的"类型"值。例如，给定上面的`Post`和`Video`模型的例子，默认情况下存储在`commentable_type`列中的值将是`com.example.Post`或`com.example.Video`。
+默认情况下，jmodel将使用完全限定的类名作为多态关联的"类型"值。例如，给定上面的`Post`和`Video`模型的例子，默认情况下存储在`commentableType`列中的值将是`com.example.Post`或`com.example.Video`。
 
 如果您希望使用自定义值，可以使用`@MorphAlias`注解：
 
@@ -393,6 +404,7 @@ class Video extends Model<Video> {
 ```java
 import com.github.biiiiiigmonster.Model;
 
+@TableName
 class Tag extends Model<Tag> {
     /**
      * 获取分配了该标签的所有帖子
