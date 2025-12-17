@@ -1,6 +1,7 @@
 package com.github.biiiiiigmonster.processor;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
@@ -28,6 +29,7 @@ import java.util.Set;
 public class MetamodelGenerator {
 
     private static final String TABLE_FIELD_ANNOTATION = "com.baomidou.mybatisplus.annotation.TableField";
+    private static final String RELATION_META_ANNOTATION = "com.github.biiiiiigmonster.relation.annotation.config.Relation";
     private static final String SINGULAR_ATTRIBUTE_IMPORT = "com.github.biiiiiigmonster.processor.SingularAttribute";
     private static final String GENERATED_ANNOTATION_IMPORT = "javax.annotation.Generated";
 
@@ -221,11 +223,17 @@ public class MetamodelGenerator {
     /**
      * Checks if a field should be included in the metamodel.
      * A field is persistent if it does not have {@code @TableField(exist = false)}.
+     * Fields with @Relation annotations are also included.
      *
      * @param field the field element to check
      * @return true if the field is persistent, false otherwise
      */
     boolean isPersistentField(VariableElement field) {
+        // If field has @Relation annotation, include it
+        if (hasRelationAnnotation(field)) {
+            return true;
+        }
+        
         // Look for @TableField annotation
         for (javax.lang.model.element.AnnotationMirror annotationMirror : field.getAnnotationMirrors()) {
             String annotationType = annotationMirror.getAnnotationType().toString();
@@ -247,6 +255,28 @@ public class MetamodelGenerator {
         }
 
         return true;
+    }
+
+    /**
+     * Checks if a field has an annotation that is meta-annotated with @Relation.
+     *
+     * @param field the field element to check
+     * @return true if the field has a @Relation meta-annotated annotation
+     */
+    private boolean hasRelationAnnotation(VariableElement field) {
+        for (AnnotationMirror annotationMirror : field.getAnnotationMirrors()) {
+            // Get the annotation type element
+            Element annotationElement = annotationMirror.getAnnotationType().asElement();
+            
+            // Check if this annotation is meta-annotated with @Relation
+            for (AnnotationMirror metaAnnotation : annotationElement.getAnnotationMirrors()) {
+                String metaAnnotationType = metaAnnotation.getAnnotationType().toString();
+                if (RELATION_META_ANNOTATION.equals(metaAnnotationType)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
