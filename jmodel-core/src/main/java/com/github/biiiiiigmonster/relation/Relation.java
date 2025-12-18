@@ -43,6 +43,7 @@ public abstract class Relation {
 
     public abstract <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results);
 
+    // todo: delete
     public <T extends Model<?>> List<T> getResult(List<?> keys, Field relatedField, Function<List<?>, List<T>> func) {
         if (ObjectUtil.isEmpty(keys)) {
             return new ArrayList<>();

@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
-@SuppressWarnings("unchecked")
 public class BelongsToMany<P extends Pivot<?>> extends Relation {
     @Getter
     protected Class<P> pivotClass;

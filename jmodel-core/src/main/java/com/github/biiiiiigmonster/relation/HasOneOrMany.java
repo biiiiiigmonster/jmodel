@@ -31,7 +31,15 @@ public abstract class HasOneOrMany extends Relation {
     @Override
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
-        return getResult(localKeyValueList, foreignField);
+        return getResult(localKeyValueList, foreignField, this::byRelatedRepository);
+    }
+
+    protected <R extends Model<?>> List<R> byRelatedRepository(List<?> localKeyValueList) {
+        Class<R> relatedClass = (Class<R>) foreignField.getDeclaringClass();
+        DataDriver<R> driver = DriverRegistry.getDriver(relatedClass);
+        String columnName = RelationUtils.getColumn(foreignField);
+        QueryCondition condition = QueryCondition.byFieldValues(columnName, localKeyValueList);
+        return driver.findByCondition(relatedClass, condition);
     }
 
     protected Field chaperoneField() {
