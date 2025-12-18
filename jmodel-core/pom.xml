@@ -29,10 +29,10 @@
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
         </dependency>
-        <!-- MyBatis-Plus moved to test scope - core module is now ORM-agnostic -->
+        <!-- MyBatis-Plus driver for testing -->
         <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <groupId>io.github.biiiiiigmonster</groupId>
+            <artifactId>jmodel-driver-mybatis-plus</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

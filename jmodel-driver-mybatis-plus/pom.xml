@@ -10,10 +10,10 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>jmodel-router</artifactId>
+    <artifactId>jmodel-driver-mybatis-plus</artifactId>
     <packaging>jar</packaging>
-    <name>jmodel-router</name>
-    <description>ORM with DSL for Java - Router Module for Spring MVC PathModel binding</description>
+    <name>jmodel-driver-mybatis-plus</name>
+    <description>ORM with DSL for Java - MyBatis-Plus Driver Implementation</description>
 
     <dependencies>
         <!-- Internal module dependency -->
@@ -29,40 +29,15 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-starter</artifactId>
         </dependency>
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
         </dependency>
-        <!-- MyBatis-Plus driver for testing -->
         <dependency>
-            <groupId>io.github.biiiiiigmonster</groupId>
-            <artifactId>jmodel-driver-mybatis-plus</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- Test dependencies -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
         </dependency>
     </dependencies>
 

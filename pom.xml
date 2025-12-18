@@ -15,6 +15,7 @@
         <module>jmodel-core</module>
         <module>jmodel-processor</module>
         <module>jmodel-router</module>
+        <module>jmodel-driver-mybatis-plus</module>
     </modules>
 
     <licenses>
@@ -74,6 +75,11 @@
             <dependency>
                 <groupId>io.github.biiiiiigmonster</groupId>
                 <artifactId>jmodel-router</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.biiiiiigmonster</groupId>
+                <artifactId>jmodel-driver-mybatis-plus</artifactId>
                 <version>${revision}</version>
             </dependency>
             <!-- External dependencies -->
