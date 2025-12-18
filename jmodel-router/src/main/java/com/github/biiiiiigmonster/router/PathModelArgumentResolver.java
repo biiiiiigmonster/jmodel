@@ -2,10 +2,11 @@ package com.github.biiiiiigmonster.router;
 
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ReflectUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.ModelNotFoundException;
+import com.github.biiiiiigmonster.driver.DataDriver;
+import com.github.biiiiiigmonster.driver.DriverRegistry;
+import com.github.biiiiiigmonster.driver.QueryCondition;
 import com.github.biiiiiigmonster.relation.Relation;
 import com.github.biiiiiigmonster.relation.RelationUtils;
 import org.springframework.core.MethodParameter;
@@ -96,11 +97,14 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected <T extends Model<?>> T byRelatedRepository(String value, Field routeField) {
-        BaseMapper<T> repository = (BaseMapper<T>) RelationUtils.getRelatedRepository(routeField.getDeclaringClass());
-        QueryWrapper<T> wrapper = new QueryWrapper<>();
-        wrapper.eq(RelationUtils.getColumn(routeField), value).last("limit 1");
-        return repository.selectOne(wrapper);
+        Class<T> entityClass = (Class<T>) routeField.getDeclaringClass();
+        DataDriver<T> driver = DriverRegistry.getDriver(entityClass);
+        String columnName = RelationUtils.getColumn(routeField);
+        QueryCondition condition = QueryCondition.create().eq(columnName, value);
+        List<T> results = driver.findByCondition(entityClass, condition);
+        return CollectionUtils.isEmpty(results) ? null : results.get(0);
     }
 
     @Override

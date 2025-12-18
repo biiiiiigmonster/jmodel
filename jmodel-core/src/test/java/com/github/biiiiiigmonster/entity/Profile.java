@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@TableName(excludeProperty = "pivot")
+@TableName
 @EqualsAndHashCode(callSuper = false)
 public class Profile extends Model<Profile> {
     @TableId

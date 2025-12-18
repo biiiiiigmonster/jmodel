@@ -323,14 +323,31 @@ public class RelationUtils implements BeanPostProcessor {
     }
 
     /**
-     * 检查是否有可用的数据驱动
+     * 检查是否应该使用数据驱动而不是 @Related 方法
+     * 优先检查是否有 @Related 方法，如果有则返回 false（使用 @Related 方法）
+     * 如果没有 @Related 方法，则检查是否有可用的数据驱动
      * 
      * @param field 字段
-     * @return 如果有可用驱动返回 true
+     * @return 如果应该使用数据驱动返回 true，否则返回 false
      */
     public static boolean hasRelatedRepository(Field field) {
+        // 首先检查是否有 @Related 方法可用
+        // 如果有 @Related 方法，优先使用它
+        Class<?> declaringClass = field.getDeclaringClass();
+        List<Map<String, Object>> relatedMethods = RELATED_MAP.get(declaringClass);
+        if (relatedMethods != null && !relatedMethods.isEmpty()) {
+            for (Map<String, Object> map : relatedMethods) {
+                Related related = (Related) map.get("annotation");
+                if (related.field().equals(field.getName())) {
+                    // 找到了匹配的 @Related 方法，使用它而不是驱动
+                    return false;
+                }
+            }
+        }
+        
+        // 没有 @Related 方法，检查是否有可用的数据驱动
         try {
-            DriverRegistry.getDriver((Class<? extends Model<?>>) field.getDeclaringClass());
+            DriverRegistry.getDriver((Class<? extends Model<?>>) declaringClass);
             return true;
         } catch (Exception e) {
             return false;

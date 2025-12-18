@@ -10,7 +10,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@TableName(excludeProperty = "pivot")
+@TableName
 @EqualsAndHashCode(callSuper = false)
 @Morph(type = "commentableType", id = "commentableId")
 public class Comment extends Model<Comment> {

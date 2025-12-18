@@ -10,7 +10,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@TableName(excludeProperty = "pivot")
+@TableName
 @EqualsAndHashCode(callSuper = false)
 @MorphName("imageable")
 public class Image extends Model<Image> {

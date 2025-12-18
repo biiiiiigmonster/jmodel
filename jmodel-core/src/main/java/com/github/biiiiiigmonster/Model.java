@@ -5,7 +5,6 @@ import com.github.biiiiiigmonster.attribute.AttributeUtils;
 import com.github.biiiiiigmonster.driver.DataDriver;
 import com.github.biiiiiigmonster.driver.DriverRegistry;
 import com.github.biiiiiigmonster.driver.QueryCondition;
-import com.github.biiiiiigmonster.driver.annotation.Transient;
 import com.github.biiiiiigmonster.relation.Pivot;
 import com.github.biiiiiigmonster.relation.Relation;
 import com.github.biiiiiigmonster.relation.RelationOption;
@@ -23,8 +22,7 @@ import java.util.List;
 @Getter
 @SuppressWarnings("unchecked")
 public abstract class Model<T extends Model<?>> {
-    @Transient
-    private Pivot<?> pivot;
+    private transient Pivot<?> pivot;
 
     public <R> R get(SerializableFunction<T, R> column) {
         R value = column.apply((T) this);

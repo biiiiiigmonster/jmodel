@@ -11,7 +11,7 @@ import lombok.EqualsAndHashCode;
 import java.util.List;
 
 @Data
-@TableName(excludeProperty = "pivot")
+@TableName
 @EqualsAndHashCode(callSuper = false)
 public class Role extends Model<Role> {
     @TableId

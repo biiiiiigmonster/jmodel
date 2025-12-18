@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@TableName(excludeProperty = "pivot")
+@TableName
 @EqualsAndHashCode(callSuper = false)
 @MorphName
 public class Taggable extends MorphPivot<Taggable> {

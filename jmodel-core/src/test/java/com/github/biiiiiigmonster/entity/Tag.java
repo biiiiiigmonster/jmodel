@@ -13,7 +13,7 @@ import lombok.EqualsAndHashCode;
 import java.util.List;
 
 @Data
-@TableName(excludeProperty = "pivot")
+@TableName
 @EqualsAndHashCode(callSuper = false)
 public class Tag extends Model<Tag> {
     @TableId
