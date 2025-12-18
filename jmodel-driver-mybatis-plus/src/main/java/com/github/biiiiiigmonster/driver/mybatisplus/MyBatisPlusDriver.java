@@ -62,7 +62,6 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<Model<?>> findByCondition(Class<Model<?>> entityClass, QueryCondition condition) {
         try {
             BaseMapper<Model<?>> mapper = getMapper(entityClass);

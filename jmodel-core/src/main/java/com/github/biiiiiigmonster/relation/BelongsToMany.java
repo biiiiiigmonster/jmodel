@@ -75,15 +75,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
 
     protected <R extends Model<?>> List<R> getForeignResult(List<P> pivots) {
         List<?> relatedPivotKeyValueList = relatedKeyValueList(pivots, relatedPivotField);
-        return getResult(relatedPivotKeyValueList, foreignField, this::byRelatedRepository);
-    }
-
-    protected <R extends Model<?>> List<R> byRelatedRepository(List<?> keys) {
-        Class<R> relatedClass = (Class<R>) foreignField.getDeclaringClass();
-        DataDriver<R> driver = DriverRegistry.getDriver(relatedClass);
-        String columnName = RelationUtils.getColumn(foreignField);
-        QueryCondition condition = QueryCondition.byFieldValues(columnName, keys);
-        return driver.findByCondition(relatedClass, condition);
+        return getResult(relatedPivotKeyValueList, foreignField);
     }
 
     protected <T extends Model<?>, R extends Model<?>> void pivotMatch(List<T> models, List<P> pivots, List<R> results) {
@@ -159,22 +151,22 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
 
     /**
      * 删除中间表记录
-     * 
-     * @param localValue 本地键值
+     *
+     * @param localValue    本地键值
      * @param foreignValues 外键值列表，如果为 null 则删除所有匹配本地键的记录
      */
     protected void pivotDeleteByCondition(Object localValue, List<Object> foreignValues) {
         DataDriver<P> driver = DriverRegistry.getDriver(pivotClass);
         String foreignPivotColumn = RelationUtils.getColumn(foreignPivotField);
-        
+
         QueryCondition condition = QueryCondition.create()
                 .eq(foreignPivotColumn, localValue);
-        
+
         if (foreignValues != null && !foreignValues.isEmpty()) {
             String relatedPivotColumn = RelationUtils.getColumn(relatedPivotField);
             condition.in(relatedPivotColumn, foreignValues);
         }
-        
+
         // 查询要删除的记录
         List<P> toDelete = driver.findByCondition(pivotClass, condition);
         // 逐个删除

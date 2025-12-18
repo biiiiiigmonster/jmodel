@@ -4,9 +4,6 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.ModelNotFoundException;
-import com.github.biiiiiigmonster.driver.DataDriver;
-import com.github.biiiiiigmonster.driver.DriverRegistry;
-import com.github.biiiiiigmonster.driver.QueryCondition;
 import com.github.biiiiiigmonster.relation.Relation;
 import com.github.biiiiiigmonster.relation.RelationUtils;
 import org.springframework.core.MethodParameter;
@@ -55,7 +52,8 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         PathModel ann = parameter.getParameterAnnotation(PathModel.class);
         String fieldName = ann.routeKey().isEmpty() ? RelationUtils.getPrimaryKey(parameter.getParameterType()) : ann.routeKey();
         Field field = ReflectUtil.getField(parameter.getParameterType(), fieldName);
-        Model<?> model = byRelatedRepository(value, field);
+        List<Model<?>> results = Relation.getResult(ListUtil.toList(value), field);
+        Model<?> model = CollectionUtils.isEmpty(results) ? null : results.get(0);
         if (model != null && ann.scopeBinding()) {
             scopeBinding(model, parameter, request);
         }
@@ -88,16 +86,6 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         if (((Model<?>) associate).isNot((Model<?>) parent.getValue())) {
             throw new ModelNotFoundException(parameter.getParameterType());
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    protected <T extends Model<?>> T byRelatedRepository(String value, Field routeField) {
-        Class<T> entityClass = (Class<T>) routeField.getDeclaringClass();
-        DataDriver<T> driver = DriverRegistry.getDriver(entityClass);
-        String columnName = RelationUtils.getColumn(routeField);
-        QueryCondition condition = QueryCondition.create().eq(columnName, value);
-        List<T> results = driver.findByCondition(entityClass, condition);
-        return CollectionUtils.isEmpty(results) ? null : results.get(0);
     }
 
     @Override

@@ -32,7 +32,7 @@ public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation 
         List<TH> throughs = getResult(localKeyValueList, foreignField, this::byThroughRelatedRepository);
 
         List<?> throughKeyValueList = relatedKeyValueList(throughs, throughLocalField);
-        List<R> results = getResult(throughKeyValueList, throughForeignField, this::byRelatedRepository);
+        List<R> results = getResult(throughKeyValueList, throughForeignField);
 
         // 预匹配
         throughMatch(models, throughs, results);
