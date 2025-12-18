@@ -8,7 +8,6 @@ import com.github.biiiiiigmonster.driver.QueryCondition;
 import java.lang.reflect.Field;
 import java.util.List;
 
-@SuppressWarnings("unchecked")
 public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
     protected Class<MP> morphPivotClass;
     protected Field morphPivotType;

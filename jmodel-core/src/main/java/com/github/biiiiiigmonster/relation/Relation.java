@@ -26,7 +26,6 @@ import java.util.stream.Stream;
 
 @Getter
 @Slf4j
-@SuppressWarnings("unchecked")
 public abstract class Relation {
     protected Field relatedField;
     protected Model<?> model;
