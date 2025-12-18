@@ -152,7 +152,7 @@ public class DriverRegistry {
      * 
      * @param modelClass 模型类
      * @return 驱动名称
-     * @throws IllegalStateException 如果没有默认驱动且模型未指定驱动
+     * @throws DriverNotRegisteredException 如果没有默认驱动且模型未指定驱动
      */
     public static String getDriverName(Class<?> modelClass) {
         return MODEL_DRIVER_MAP.computeIfAbsent(modelClass, clazz -> {
@@ -161,7 +161,7 @@ public class DriverRegistry {
                 return annotation.value();
             }
             if (defaultDriverName == null) {
-                throw new IllegalStateException("未设置默认驱动，且模型类 " + modelClass.getName() + " 未指定驱动");
+                throw new DriverNotRegisteredException("default", modelClass);
             }
             return defaultDriverName;
         });
