@@ -13,7 +13,7 @@ import lombok.EqualsAndHashCode;
 import java.util.List;
 
 @Data
-@TableName
+@TableName(excludeProperty = "pivot")
 @EqualsAndHashCode(callSuper = false)
 @MorphAlias
 public class Video extends Model<Video> {

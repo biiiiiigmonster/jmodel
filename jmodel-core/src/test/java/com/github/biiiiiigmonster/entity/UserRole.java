@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@TableName
+@TableName(excludeProperty = "pivot")
 @EqualsAndHashCode(callSuper = false)
 public class UserRole extends Pivot<UserRole> {
     @TableId

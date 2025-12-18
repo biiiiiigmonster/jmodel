@@ -16,7 +16,7 @@ import lombok.EqualsAndHashCode;
 import java.util.List;
 
 @Data
-@TableName
+@TableName(excludeProperty = "pivot")
 @EqualsAndHashCode(callSuper = false)
 @MorphAlias
 public class Post extends Model<Post> {

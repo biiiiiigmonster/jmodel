@@ -28,7 +28,7 @@ import java.util.Date;
  * Requirements: 1.1, 1.3, 1.4, 5.1, 5.2, 5.3, 5.4, 5.5
  */
 @Data
-@TableName("sample_entity")
+@TableName(excludeProperty = "pivot")("sample_entity")
 @EqualsAndHashCode(callSuper = false)
 public class SampleEntity extends Model<SampleEntity> {
 
