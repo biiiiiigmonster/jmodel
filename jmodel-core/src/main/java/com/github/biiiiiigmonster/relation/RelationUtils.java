@@ -4,25 +4,20 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.baomidou.mybatisplus.core.metadata.TableInfo;
-import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
-import com.baomidou.mybatisplus.core.toolkit.LambdaUtils;
-import com.baomidou.mybatisplus.core.toolkit.ReflectionKit;
-import com.baomidou.mybatisplus.core.toolkit.support.ColumnCache;
 import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.SerializableFunction;
 import com.github.biiiiiigmonster.SerializedLambda;
+import com.github.biiiiiigmonster.driver.DataDriver;
+import com.github.biiiiiigmonster.driver.DriverRegistry;
+import com.github.biiiiiigmonster.driver.EntityMetadata;
+import com.github.biiiiiigmonster.driver.QueryCondition;
 import com.github.biiiiiigmonster.relation.annotation.config.Related;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.PostConstruct;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -37,22 +32,19 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
+ * 关联关系工具类
+ * 提供模型关联加载、关联操作等功能
+ * 
  * @author luyunfeng
  */
 @Slf4j
 @Component
 @SuppressWarnings("unchecked")
 public class RelationUtils implements BeanPostProcessor {
-    private static final Map<Class<?>, BaseMapper<?>> RELATED_REPOSITORY_MAP = new HashMap<>();
 
     private static final Map<Class<?>, List<Map<String, Object>>> RELATED_MAP = new HashMap<>();
 
     private static final Map<String, Map<Object, Method>> MAP_CACHE = new HashMap<>();
-
-    private static final Map<Class<?>, Map<String, ColumnCache>> COLUMN_MAP = new HashMap<>();
-
-    @Autowired
-    private ApplicationContext context;
 
     public static <T extends Model<?>> void load(T obj, String... relations) {
         if (obj == null) {
@@ -330,20 +322,31 @@ public class RelationUtils implements BeanPostProcessor {
         );
     }
 
-    public static BaseMapper<?> getRelatedRepository(Class<?> clazz) {
-        return RELATED_REPOSITORY_MAP.get(clazz);
-    }
-
+    /**
+     * 检查是否有可用的数据驱动
+     * 
+     * @param field 字段
+     * @return 如果有可用驱动返回 true
+     */
     public static boolean hasRelatedRepository(Field field) {
-        return RELATED_REPOSITORY_MAP.containsKey(field.getDeclaringClass());
+        try {
+            DriverRegistry.getDriver((Class<? extends Model<?>>) field.getDeclaringClass());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
+    /**
+     * 获取字段对应的数据库列名（通过元数据提供者）
+     * 
+     * @param foreignField 字段
+     * @return 数据库列名
+     */
     public static String getColumn(Field foreignField) {
         Class<?> entityClass = foreignField.getDeclaringClass();
-
-        Map<String, ColumnCache> columnMap = COLUMN_MAP.computeIfAbsent(entityClass, LambdaUtils::getColumnMap);
-        ColumnCache columnCache = columnMap.get(LambdaUtils.formatKey(foreignField.getName()));
-        return columnCache.getColumn();
+        EntityMetadata metadata = DriverRegistry.getMetadata(entityClass);
+        return metadata.getColumnName(entityClass, foreignField.getName());
     }
 
     public static Class<?> getGenericType(Field field) {
@@ -383,28 +386,75 @@ public class RelationUtils implements BeanPostProcessor {
     }
 
     /**
-     * 模型默认本地键名
+     * 获取实体主键字段名（通过元数据提供者）
      *
      * @param clazz model class
-     * @return String
+     * @return 主键字段名
      */
     public static String getPrimaryKey(Class<?> clazz) {
-        TableInfo tableInfo = TableInfoHelper.getTableInfo(clazz);
-        return tableInfo == null ? "id" : tableInfo.getKeyColumn();
+        try {
+            EntityMetadata metadata = DriverRegistry.getMetadata(clazz);
+            return metadata.getPrimaryKey(clazz);
+        } catch (Exception e) {
+            // 如果元数据提供者未注册，返回默认值
+            return "id";
+        }
     }
 
     /**
-     * 模型默认外地键名
+     * 获取外键字段名（通过元数据提供者）
      *
      * @param clazz model class
-     * @return String
+     * @return 外键字段名
      */
     public static String getForeignKey(Class<?> clazz) {
-        return StrUtil.lowerFirst(clazz.getSimpleName()) + StrUtil.upperFirst(getPrimaryKey(clazz));
+        try {
+            EntityMetadata metadata = DriverRegistry.getMetadata(clazz);
+            return metadata.getForeignKey(clazz);
+        } catch (Exception e) {
+            // 如果元数据提供者未注册，使用默认约定
+            return StrUtil.lowerFirst(clazz.getSimpleName()) + StrUtil.upperFirst(getPrimaryKey(clazz));
+        }
     }
 
     /**
-     * 启动时扫描一下一些model的加载是否有指定方法，默认都是@RelatedRepository
+     * 根据字段值批量查询实体（用于关联查询优化）
+     * 
+     * @param entityClass 实体类
+     * @param fieldName 字段名
+     * @param values 字段值列表
+     * @param <T> 实体类型
+     * @return 符合条件的实体列表
+     */
+    public static <T extends Model<?>> List<T> findByFieldValues(Class<T> entityClass, String fieldName, List<?> values) {
+        if (CollectionUtils.isEmpty(values)) {
+            return new ArrayList<>();
+        }
+        DataDriver<T> driver = DriverRegistry.getDriver(entityClass);
+        QueryCondition condition = QueryCondition.byFieldValues(fieldName, values);
+        return driver.findByCondition(entityClass, condition);
+    }
+
+    /**
+     * 根据主键批量查询实体
+     * 
+     * @param entityClass 实体类
+     * @param ids 主键值列表
+     * @param <T> 实体类型
+     * @return 符合条件的实体列表
+     */
+    public static <T extends Model<?>> List<T> findByIds(Class<T> entityClass, List<? extends Serializable> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return new ArrayList<>();
+        }
+        DataDriver<T> driver = DriverRegistry.getDriver(entityClass);
+        String primaryKey = getPrimaryKey(entityClass);
+        QueryCondition condition = QueryCondition.byIds(primaryKey, ids);
+        return driver.findByCondition(entityClass, condition);
+    }
+
+    /**
+     * 启动时扫描一下一些model的加载是否有指定方法，默认都是@Related
      */
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
@@ -414,15 +464,6 @@ public class RelationUtils implements BeanPostProcessor {
         }
 
         return bean;
-    }
-
-    @PostConstruct
-    public void init() {
-        context.getBeansOfType(BaseMapper.class).forEach((beanName, mapper) -> {
-            Class<?> mapperClass = AopUtils.isAopProxy(mapper) ? AopUtils.getTargetClass(beanName) : mapper.getClass();
-            Class<?> typeClass = ReflectionKit.getSuperClassGenericType(mapperClass, BaseMapper.class, 0);
-            RELATED_REPOSITORY_MAP.put(typeClass, mapper);
-        });
     }
 
     private void related(Object bean, Method method, Related annotation) {

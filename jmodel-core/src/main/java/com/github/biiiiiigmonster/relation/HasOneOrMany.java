@@ -1,9 +1,10 @@
 package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ReflectUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
+import com.github.biiiiiigmonster.driver.DataDriver;
+import com.github.biiiiiigmonster.driver.DriverRegistry;
+import com.github.biiiiiigmonster.driver.QueryCondition;
 import com.github.biiiiiigmonster.relation.annotation.BelongsTo;
 import com.github.biiiiiigmonster.relation.annotation.MorphTo;
 import lombok.Getter;
@@ -34,10 +35,11 @@ public abstract class HasOneOrMany extends Relation {
     }
 
     protected <R extends Model<?>> List<R> byRelatedRepository(List<?> localKeyValueList) {
-        BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
-        QueryWrapper<R> wrapper = new QueryWrapper<>();
-        wrapper.in(RelationUtils.getColumn(foreignField), localKeyValueList);
-        return relatedRepository.selectList(wrapper);
+        Class<R> relatedClass = (Class<R>) foreignField.getDeclaringClass();
+        DataDriver<R> driver = DriverRegistry.getDriver(relatedClass);
+        String columnName = RelationUtils.getColumn(foreignField);
+        QueryCondition condition = QueryCondition.byFieldValues(columnName, localKeyValueList);
+        return driver.findByCondition(relatedClass, condition);
     }
 
     protected Field chaperoneField() {

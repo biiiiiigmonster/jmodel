@@ -1,8 +1,9 @@
 package com.github.biiiiiigmonster.relation;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
+import com.github.biiiiiigmonster.driver.DataDriver;
+import com.github.biiiiiigmonster.driver.DriverRegistry;
+import com.github.biiiiiigmonster.driver.QueryCondition;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -40,17 +41,18 @@ public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation 
     }
 
     protected List<TH> byThroughRelatedRepository(List<?> keys) {
-        BaseMapper<TH> throughRepository = (BaseMapper<TH>) RelationUtils.getRelatedRepository(throughClass);
-        QueryWrapper<TH> throughWrapper = new QueryWrapper<>();
-        throughWrapper.in(RelationUtils.getColumn(foreignField), keys);
-        return throughRepository.selectList(throughWrapper);
+        DataDriver<TH> driver = DriverRegistry.getDriver(throughClass);
+        String columnName = RelationUtils.getColumn(foreignField);
+        QueryCondition condition = QueryCondition.byFieldValues(columnName, keys);
+        return driver.findByCondition(throughClass, condition);
     }
 
     protected <R extends Model<?>> List<R> byRelatedRepository(List<?> keys) {
-        BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(throughForeignField.getDeclaringClass());
-        QueryWrapper<R> wrapper = new QueryWrapper<>();
-        wrapper.in(RelationUtils.getColumn(throughForeignField), keys);
-        return relatedRepository.selectList(wrapper);
+        Class<R> relatedClass = (Class<R>) throughForeignField.getDeclaringClass();
+        DataDriver<R> driver = DriverRegistry.getDriver(relatedClass);
+        String columnName = RelationUtils.getColumn(throughForeignField);
+        QueryCondition condition = QueryCondition.byFieldValues(columnName, keys);
+        return driver.findByCondition(relatedClass, condition);
     }
 
     public abstract <T extends Model<?>, R extends Model<?>> void throughMatch(List<T> models, List<TH> throughs, List<R> results);

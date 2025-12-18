@@ -1,8 +1,9 @@
 package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ReflectUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.github.biiiiiigmonster.driver.DataDriver;
+import com.github.biiiiiigmonster.driver.DriverRegistry;
+import com.github.biiiiiigmonster.driver.QueryCondition;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -33,11 +34,13 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
     }
 
     protected List<MP> byPivotRelatedRepository(List<?> keys) {
-        BaseMapper<MP> morphPivotRepository = (BaseMapper<MP>) RelationUtils.getRelatedRepository(morphPivotClass);
-        QueryWrapper<MP> pivotWrapper = new QueryWrapper<>();
-        pivotWrapper.in(RelationUtils.getColumn(foreignPivotField), keys)
-                .eq(RelationUtils.getColumn(morphPivotType), getMorphAlias());
-        return morphPivotRepository.selectList(pivotWrapper);
+        DataDriver<MP> driver = DriverRegistry.getDriver(morphPivotClass);
+        String foreignPivotColumn = RelationUtils.getColumn(foreignPivotField);
+        String morphTypeColumn = RelationUtils.getColumn(morphPivotType);
+        QueryCondition condition = QueryCondition.create()
+                .in(foreignPivotColumn, keys)
+                .eq(morphTypeColumn, getMorphAlias());
+        return driver.findByCondition(morphPivotClass, condition);
     }
 
     protected Object[] additionalRelatedMethodArgs() {
@@ -55,8 +58,26 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
         super.pivotSave(pivot, localValue, foreignValue);
     }
 
-    protected void pivotDelete(QueryWrapper<MP> wrapper) {
-        wrapper.eq(RelationUtils.getColumn(morphPivotType), getMorphAlias());
-        super.pivotDelete(wrapper);
+    @Override
+    protected void pivotDeleteByCondition(Object localValue, List<Object> foreignValues) {
+        DataDriver<MP> driver = DriverRegistry.getDriver(morphPivotClass);
+        String foreignPivotColumn = RelationUtils.getColumn(foreignPivotField);
+        String morphTypeColumn = RelationUtils.getColumn(morphPivotType);
+        
+        QueryCondition condition = QueryCondition.create()
+                .eq(foreignPivotColumn, localValue)
+                .eq(morphTypeColumn, getMorphAlias());
+        
+        if (foreignValues != null && !foreignValues.isEmpty()) {
+            String relatedPivotColumn = RelationUtils.getColumn(relatedPivotField);
+            condition.in(relatedPivotColumn, foreignValues);
+        }
+        
+        // 查询要删除的记录
+        List<MP> toDelete = driver.findByCondition(morphPivotClass, condition);
+        // 逐个删除
+        for (MP pivot : toDelete) {
+            driver.delete(pivot);
+        }
     }
 }

@@ -1,10 +1,11 @@
 package com.github.biiiiiigmonster;
 
 import cn.hutool.core.util.ReflectUtil;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.attribute.AttributeUtils;
+import com.github.biiiiiigmonster.driver.DataDriver;
+import com.github.biiiiiigmonster.driver.DriverRegistry;
+import com.github.biiiiiigmonster.driver.QueryCondition;
+import com.github.biiiiiigmonster.driver.annotation.Transient;
 import com.github.biiiiiigmonster.relation.Pivot;
 import com.github.biiiiiigmonster.relation.Relation;
 import com.github.biiiiiigmonster.relation.RelationOption;
@@ -22,7 +23,7 @@ import java.util.List;
 @Getter
 @SuppressWarnings("unchecked")
 public abstract class Model<T extends Model<?>> {
-    @TableField(exist = false)
+    @Transient
     private Pivot<?> pivot;
 
     public <R> R get(SerializableFunction<T, R> column) {
@@ -70,38 +71,30 @@ public abstract class Model<T extends Model<?>> {
     }
 
     public T find(Serializable id) {
-        BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(getClass());
-        return relatedRepository.selectById(id);
+        DataDriver<T> driver = DriverRegistry.getDriver((Class<T>) getClass());
+        return driver.findById((Class<T>) getClass(), id);
     }
 
-    public T first(Wrapper<Model<?>> queryWrapper) {
-        BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(getClass());
-        List<T> list = relatedRepository.selectList((Wrapper<T>) queryWrapper);
-        if (list.isEmpty()) {
-            return null;
-        }
-        return list.get(0);
+    public T first(QueryCondition condition) {
+        DataDriver<T> driver = DriverRegistry.getDriver((Class<T>) getClass());
+        List<T> results = driver.findByCondition((Class<T>) getClass(), condition);
+        return results.isEmpty() ? null : results.get(0);
     }
 
     // wip: event
     public Boolean save() {
-        BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(getClass());
-        int res;
+        DataDriver<T> driver = DriverRegistry.getDriver((Class<T>) getClass());
         if (primaryKeyValue() == null) {
-            res = relatedRepository.insert((T) this);
+            return driver.insert((T) this);
         } else {
-            res = relatedRepository.updateById((T) this);
+            return driver.update((T) this);
         }
-
-        return res > 0;
     }
 
     // wip: event
     public Boolean delete() {
-        BaseMapper<T> relatedRepository = (BaseMapper<T>) RelationUtils.getRelatedRepository(getClass());
-        int i = relatedRepository.deleteById((T) this);
-
-        return i > 0;
+        DataDriver<T> driver = DriverRegistry.getDriver((Class<T>) getClass());
+        return driver.delete((T) this);
     }
 
     @SafeVarargs

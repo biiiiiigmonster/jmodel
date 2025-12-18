@@ -1,9 +1,10 @@
 package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ReflectUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
+import com.github.biiiiiigmonster.driver.DataDriver;
+import com.github.biiiiiigmonster.driver.DriverRegistry;
+import com.github.biiiiiigmonster.driver.QueryCondition;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -34,10 +35,11 @@ public class BelongsTo extends Relation {
     }
 
     private <R extends Model<?>> List<R> byRelatedRepository(List<?> keys) {
-        BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(ownerField.getDeclaringClass());
-        QueryWrapper<R> wrapper = new QueryWrapper<>();
-        wrapper.in(RelationUtils.getColumn(ownerField), keys);
-        return relatedRepository.selectList(wrapper);
+        Class<R> relatedClass = (Class<R>) ownerField.getDeclaringClass();
+        DataDriver<R> driver = DriverRegistry.getDriver(relatedClass);
+        String columnName = RelationUtils.getColumn(ownerField);
+        QueryCondition condition = QueryCondition.byFieldValues(columnName, keys);
+        return driver.findByCondition(relatedClass, condition);
     }
 
     @Override

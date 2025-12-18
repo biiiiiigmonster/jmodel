@@ -2,9 +2,10 @@ package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ReflectUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
+import com.github.biiiiiigmonster.driver.DataDriver;
+import com.github.biiiiiigmonster.driver.DriverRegistry;
+import com.github.biiiiiigmonster.driver.QueryCondition;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,10 +67,10 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
     }
 
     protected List<P> byPivotRelatedRepository(List<?> keys) {
-        BaseMapper<P> pivotRepository = (BaseMapper<P>) RelationUtils.getRelatedRepository(pivotClass);
-        QueryWrapper<P> pivotWrapper = new QueryWrapper<>();
-        pivotWrapper.in(RelationUtils.getColumn(foreignPivotField), keys);
-        return pivotRepository.selectList(pivotWrapper);
+        DataDriver<P> driver = DriverRegistry.getDriver(pivotClass);
+        String columnName = RelationUtils.getColumn(foreignPivotField);
+        QueryCondition condition = QueryCondition.byFieldValues(columnName, keys);
+        return driver.findByCondition(pivotClass, condition);
     }
 
     protected <R extends Model<?>> List<R> getForeignResult(List<P> pivots) {
@@ -78,10 +79,11 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
     }
 
     protected <R extends Model<?>> List<R> byRelatedRepository(List<?> keys) {
-        BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
-        QueryWrapper<R> wrapper = new QueryWrapper<>();
-        wrapper.in(RelationUtils.getColumn(foreignField), keys);
-        return relatedRepository.selectList(wrapper);
+        Class<R> relatedClass = (Class<R>) foreignField.getDeclaringClass();
+        DataDriver<R> driver = DriverRegistry.getDriver(relatedClass);
+        String columnName = RelationUtils.getColumn(foreignField);
+        QueryCondition condition = QueryCondition.byFieldValues(columnName, keys);
+        return driver.findByCondition(relatedClass, condition);
     }
 
     protected <T extends Model<?>, R extends Model<?>> void pivotMatch(List<T> models, List<P> pivots, List<R> results) {
@@ -145,25 +147,40 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
         }
 
         if (!foreignValues.isEmpty()) {
-            // 删除中间表记录
-            QueryWrapper<P> wrapper = new QueryWrapper<>();
-            wrapper.eq(RelationUtils.getColumn(foreignPivotField), localValue)
-                    .in(RelationUtils.getColumn(relatedPivotField), foreignValues);
-            pivotDelete(wrapper);
+            // 删除中间表记录 - 使用驱动接口查询后删除
+            pivotDeleteByCondition(localValue, foreignValues);
         }
     }
 
     public void detachAll() {
         Object localValue = ReflectUtil.getFieldValue(model, localField);
-
-        QueryWrapper<P> wrapper = new QueryWrapper<>();
-        wrapper.eq(RelationUtils.getColumn(foreignPivotField), localValue);
-        pivotDelete(wrapper);
+        pivotDeleteByCondition(localValue, null);
     }
 
-    protected void pivotDelete(QueryWrapper<P> wrapper) {
-        BaseMapper<P> pivotMapper = (BaseMapper<P>) RelationUtils.getRelatedRepository(pivotClass);
-        pivotMapper.delete(wrapper);
+    /**
+     * 删除中间表记录
+     * 
+     * @param localValue 本地键值
+     * @param foreignValues 外键值列表，如果为 null 则删除所有匹配本地键的记录
+     */
+    protected void pivotDeleteByCondition(Object localValue, List<Object> foreignValues) {
+        DataDriver<P> driver = DriverRegistry.getDriver(pivotClass);
+        String foreignPivotColumn = RelationUtils.getColumn(foreignPivotField);
+        
+        QueryCondition condition = QueryCondition.create()
+                .eq(foreignPivotColumn, localValue);
+        
+        if (foreignValues != null && !foreignValues.isEmpty()) {
+            String relatedPivotColumn = RelationUtils.getColumn(relatedPivotField);
+            condition.in(relatedPivotColumn, foreignValues);
+        }
+        
+        // 查询要删除的记录
+        List<P> toDelete = driver.findByCondition(pivotClass, condition);
+        // 逐个删除
+        for (P pivot : toDelete) {
+            driver.delete(pivot);
+        }
     }
 
     public <R extends Model<?>> void sync(List<R> syncModels, boolean detaching) {
