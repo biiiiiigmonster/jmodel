@@ -42,6 +42,13 @@ CREATE TABLE t_post
     title   VARCHAR(255)
 );
 
+CREATE TABLE t_phone
+(
+    id      BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT,
+    number  VARCHAR(255)
+);
+
 CREATE TABLE t_role
 (
     id   BIGINT PRIMARY KEY AUTO_INCREMENT,

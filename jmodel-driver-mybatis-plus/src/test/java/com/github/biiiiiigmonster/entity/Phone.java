@@ -1,5 +1,8 @@
 package com.github.biiiiiigmonster.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.relation.annotation.BelongsTo;
 import com.github.biiiiiigmonster.relation.annotation.MorphToMany;
@@ -12,14 +15,18 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @MorphAlias
+@TableName
 public class Phone extends Model<Phone> {
+    @TableId
     private Long id;
     private String number;
     private Long userId;
 
     @BelongsTo
+    @TableField(exist = false)
     private User user;
 
     @MorphToMany(using = Taggable.class)
+    @TableField(exist = false)
     private List<Tag> tags;
 }

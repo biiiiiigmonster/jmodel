@@ -3,6 +3,7 @@ package com.github.biiiiiigmonster;
 import com.github.biiiiiigmonster.mapper.AddressMapper;
 import com.github.biiiiiigmonster.mapper.CommentMapper;
 import com.github.biiiiiigmonster.mapper.ImageMapper;
+import com.github.biiiiiigmonster.mapper.PhoneMapper;
 import com.github.biiiiiigmonster.mapper.PostMapper;
 import com.github.biiiiiigmonster.mapper.ProfileMapper;
 import com.github.biiiiiigmonster.mapper.RoleMapper;
@@ -30,6 +31,8 @@ public class BaseTest {
     protected UserMapper userMapper;
     @Autowired
     protected PostMapper postMapper;
+    @Autowired
+    protected PhoneMapper phoneMapper;
     @Autowired
     protected VideoMapper videoMapper;
     @Autowired

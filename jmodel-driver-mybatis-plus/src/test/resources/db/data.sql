@@ -51,6 +51,18 @@ VALUES (1, 1, 'Getting Started with Spring Boot'),
        (9, 7, 'Testing Strategies'),
        (10, 8, 'DevOps Pipeline Setup');
 
+INSERT INTO t_phone (id, user_id, number)
+VALUES (1, 1, '10001'),
+       (2, 2, '10002'),
+       (3, 3, '10003'),
+       (4, 4, '10004'),
+       (5, 5, '10005'),
+       (6, 6, '10006'),
+       (7, 7, '10007'),
+       (8, 8, '10008'),
+       (9, 9, '10009'),
+       (10, 10, '10010');
+
 -- Videos (基础表 10条)
 INSERT INTO t_video (id, title, url)
 VALUES (1, 'Spring Boot Tutorial', 'https://example.com/videos/spring-boot'),
