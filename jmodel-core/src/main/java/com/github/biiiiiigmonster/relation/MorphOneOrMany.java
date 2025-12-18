@@ -30,10 +30,6 @@ public abstract class MorphOneOrMany extends HasOneOrMany {
         return driver.findByCondition(relatedClass, condition);
     }
 
-    protected Object[] additionalRelatedMethodArgs() {
-        return new Object[]{getMorphAlias()};
-    }
-
     protected String getMorphAlias() {
         return Relation.getMorphAlias(localField.getDeclaringClass(), foreignField.getDeclaringClass());
     }

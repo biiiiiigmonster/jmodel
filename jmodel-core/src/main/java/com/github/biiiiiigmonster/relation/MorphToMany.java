@@ -42,10 +42,6 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
         return driver.findByCondition(morphPivotClass, condition);
     }
 
-    protected Object[] additionalRelatedMethodArgs() {
-        return new Object[]{getMorphAlias()};
-    }
-
     protected String getMorphAlias() {
         return inverse
                 ? Relation.getMorphAlias(foreignField.getDeclaringClass(), localField.getDeclaringClass())
