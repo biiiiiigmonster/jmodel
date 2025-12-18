@@ -29,12 +29,7 @@
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
         </dependency>
-        <!-- MyBatis-Plus driver for testing -->
-        <dependency>
-            <groupId>io.github.biiiiiigmonster</groupId>
-            <artifactId>jmodel-driver-mybatis-plus</artifactId>
-            <scope>test</scope>
-        </dependency>
+
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
