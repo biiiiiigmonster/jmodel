@@ -31,15 +31,7 @@ public class BelongsTo extends Relation {
     @Override
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> ownerKeyValueList = relatedKeyValueList(models, foreignField);
-        return getResult(ownerKeyValueList, ownerField, this::byRelatedRepository);
-    }
-
-    private <R extends Model<?>> List<R> byRelatedRepository(List<?> keys) {
-        Class<R> relatedClass = (Class<R>) ownerField.getDeclaringClass();
-        DataDriver<R> driver = DriverRegistry.getDriver(relatedClass);
-        String columnName = RelationUtils.getColumn(ownerField);
-        QueryCondition condition = QueryCondition.byFieldValues(columnName, keys);
-        return driver.findByCondition(relatedClass, condition);
+        return getResult(ownerKeyValueList, ownerField);
     }
 
     @Override

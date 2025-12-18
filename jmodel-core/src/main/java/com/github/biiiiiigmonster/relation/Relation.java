@@ -4,6 +4,9 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.github.biiiiiigmonster.Model;
+import com.github.biiiiiigmonster.driver.DataDriver;
+import com.github.biiiiiigmonster.driver.DriverRegistry;
+import com.github.biiiiiigmonster.driver.QueryCondition;
 import com.github.biiiiiigmonster.relation.annotation.config.Morph;
 import com.github.biiiiiigmonster.relation.annotation.config.MorphAlias;
 import com.github.biiiiiigmonster.relation.annotation.config.MorphName;
@@ -26,6 +29,7 @@ import java.util.stream.Stream;
 
 @Getter
 @Slf4j
+@SuppressWarnings("unchecked")
 public abstract class Relation {
     protected Field relatedField;
     protected Model<?> model;
@@ -52,6 +56,14 @@ public abstract class Relation {
         }
 
         return func.apply(keys);
+    }
+
+    public <T extends Model<?>> List<T> getResult(List<?> keys, Field relatedField) {
+        Class<T> relatedClass = (Class<T>) relatedField.getDeclaringClass();
+        DataDriver<T> driver = DriverRegistry.getDriver(relatedClass);
+        String columnName = RelationUtils.getColumn(relatedField);
+        QueryCondition condition = QueryCondition.byFieldValues(columnName, keys);
+        return driver.findByCondition(relatedClass, condition);
     }
 
     public static <T extends Model<?>> List<?> relatedKeyValueList(List<T> models, Field field) {
