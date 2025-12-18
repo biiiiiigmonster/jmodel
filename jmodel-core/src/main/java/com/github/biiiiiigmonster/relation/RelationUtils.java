@@ -11,9 +11,7 @@ import com.github.biiiiiigmonster.driver.DataDriver;
 import com.github.biiiiiigmonster.driver.DriverRegistry;
 import com.github.biiiiiigmonster.driver.EntityMetadata;
 import com.github.biiiiiigmonster.driver.QueryCondition;
-import com.github.biiiiiigmonster.relation.annotation.config.Related;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -25,7 +23,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,11 +37,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @SuppressWarnings("unchecked")
-public class RelationUtils implements BeanPostProcessor {
-
-    private static final Map<Class<?>, List<Map<String, Object>>> RELATED_MAP = new HashMap<>();
-
-    private static final Map<String, Map<Object, Method>> MAP_CACHE = new HashMap<>();
+public class RelationUtils {
 
     public static <T extends Model<?>> void load(T obj, String... relations) {
         if (obj == null) {
@@ -300,52 +293,14 @@ public class RelationUtils implements BeanPostProcessor {
         return list;
     }
 
-    public static String relatedMethodCacheKey(Field field) {
-        return String.format("%s.%s", field.getDeclaringClass().getName(), field.getName());
-    }
-
-    public static Map<Object, Method> getRelatedMethod(Field field) {
-        String key = relatedMethodCacheKey(field);
-        return MAP_CACHE.computeIfAbsent(key, k ->
-                RELATED_MAP.get(field.getDeclaringClass()).stream()
-                        .filter(map -> {
-                            Related related = (Related) map.get("annotation");
-                            return related.field().equals(field.getName());
-                        })
-                        .map(map -> {
-                            Map<Object, Method> cache = new HashMap<>();
-                            cache.put(map.get("bean"), (Method) map.get("method"));
-                            return cache;
-                        })
-                        .findFirst()
-                        .orElse(null)
-        );
-    }
-
     /**
-     * 检查是否应该使用数据驱动而不是 @Related 方法
-     * 优先检查是否有 @Related 方法，如果有则返回 false（使用 @Related 方法）
-     * 如果没有 @Related 方法，则检查是否有可用的数据驱动
+     * 检查是否有可用的数据驱动
      * 
      * @param field 字段
-     * @return 如果应该使用数据驱动返回 true，否则返回 false
+     * @return 如果有可用的数据驱动返回 true，否则返回 false
      */
     public static boolean hasRelatedRepository(Field field) {
-        // 首先检查是否有 @Related 方法可用
-        // 如果有 @Related 方法，优先使用它
         Class<?> declaringClass = field.getDeclaringClass();
-        List<Map<String, Object>> relatedMethods = RELATED_MAP.get(declaringClass);
-        if (relatedMethods != null && !relatedMethods.isEmpty()) {
-            for (Map<String, Object> map : relatedMethods) {
-                Related related = (Related) map.get("annotation");
-                if (related.field().equals(field.getName())) {
-                    // 找到了匹配的 @Related 方法，使用它而不是驱动
-                    return false;
-                }
-            }
-        }
-        
-        // 没有 @Related 方法，检查是否有可用的数据驱动
         try {
             DriverRegistry.getDriver((Class<? extends Model<?>>) declaringClass);
             return true;
@@ -470,30 +425,7 @@ public class RelationUtils implements BeanPostProcessor {
         return driver.findByCondition(entityClass, condition);
     }
 
-    /**
-     * 启动时扫描一下一些model的加载是否有指定方法，默认都是@Related
-     */
-    @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName) {
-        Class<?> clazz = bean.getClass();
-        for (Method method : clazz.getDeclaredMethods()) {
-            related(bean, method, method.getAnnotation(Related.class));
-        }
 
-        return bean;
-    }
-
-    private void related(Object bean, Method method, Related annotation) {
-        if (annotation == null) {
-            return;
-        }
-        Map<String, Object> map = new HashMap<>();
-        map.put("bean", bean);
-        map.put("method", method);
-        map.put("annotation", annotation);
-        Class<?> foreignClazz = getGenericReturnType(method);
-        RELATED_MAP.computeIfAbsent(foreignClazz, k -> new ArrayList<>()).add(map);
-    }
 
     public static <T extends Model<?>, R extends Model<?>> void associateRelations(T model, SerializableFunction<T, R> relation, R relationModel) {
         Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);

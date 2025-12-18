@@ -55,14 +55,7 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         PathModel ann = parameter.getParameterAnnotation(PathModel.class);
         String fieldName = ann.routeKey().isEmpty() ? RelationUtils.getPrimaryKey(parameter.getParameterType()) : ann.routeKey();
         Field field = ReflectUtil.getField(parameter.getParameterType(), fieldName);
-        Model<?> model;
-        if (RelationUtils.hasRelatedRepository(field)) {
-            model = byRelatedRepository(value, field);
-        } else {
-            List<String> values = ListUtil.toList(value);
-            List<Model<?>> results = Relation.byRelatedMethod(values, field);
-            model = CollectionUtils.isEmpty(results) ? null : results.get(0);
-        }
+        Model<?> model = byRelatedRepository(value, field);
         if (model != null && ann.scopeBinding()) {
             scopeBinding(model, parameter, request);
         }

@@ -48,35 +48,11 @@ public abstract class Relation {
             return new ArrayList<>();
         }
 
-        return RelationUtils.hasRelatedRepository(relatedField)
-                ? func.apply(keys)
-                : byRelatedMethod(keys, relatedField, additionalRelatedMethodArgs());
-    }
-
-    public static <T extends Model<?>> List<T> byRelatedMethod(List<?> localKeyValueList, Field relatedField, Object... args) {
-        Map<Object, Method> relatedMethod = RelationUtils.getRelatedMethod(relatedField);
-        Object bean = relatedMethod.keySet().iterator().next();
-        Method method = relatedMethod.values().iterator().next();
-        if (List.class.isAssignableFrom(method.getParameterTypes()[0])) {
-            return ReflectUtil.invoke(bean, method, localKeyValueList, args);
-        } else {
-            log.warn("{}存在N + 1查询隐患，建议{}实现List参数的仓库方法", bean.getClass().getName(), method.getName());
-            return localKeyValueList.stream()
-                    .map(param -> ReflectUtil.invoke(bean, method, param, args))
-                    .filter(Objects::nonNull)
-                    .flatMap(r -> {
-                        if (List.class.isAssignableFrom(method.getReturnType())) {
-                            return ((List<T>) r).stream();
-                        } else {
-                            return Stream.of((T) r);
-                        }
-                    })
-                    .collect(Collectors.toList());
+        if (!RelationUtils.hasRelatedRepository(relatedField)) {
+            throw new IllegalStateException("No data driver found for entity: " + relatedField.getDeclaringClass().getName());
         }
-    }
 
-    protected Object[] additionalRelatedMethodArgs() {
-        return new Object[]{};
+        return func.apply(keys);
     }
 
     public static <T extends Model<?>> List<?> relatedKeyValueList(List<T> models, Field field) {
