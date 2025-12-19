@@ -1,10 +1,11 @@
 package com.github.biiiiiigmonster.router;
 
-import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.ModelNotFoundException;
-import com.github.biiiiiigmonster.relation.Relation;
+import com.github.biiiiiigmonster.driver.DataDriver;
+import com.github.biiiiiigmonster.driver.DriverRegistry;
+import com.github.biiiiiigmonster.driver.QueryCondition;
 import com.github.biiiiiigmonster.relation.RelationUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.util.Assert;
@@ -45,15 +46,14 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         Map<String, String> uriTemplateVars = (Map<String, String>) request.getAttribute(
                 HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
         String value;
-        if (uriTemplateVars == null || (value = uriTemplateVars.get(name)) == null) {
+        PathModel ann = parameter.getParameterAnnotation(PathModel.class);
+        if (ann == null || uriTemplateVars == null || (value = uriTemplateVars.get(name)) == null) {
             return null;
         }
 
-        PathModel ann = parameter.getParameterAnnotation(PathModel.class);
         String fieldName = ann.routeKey().isEmpty() ? RelationUtils.getPrimaryKey(parameter.getParameterType()) : ann.routeKey();
         Field field = ReflectUtil.getField(parameter.getParameterType(), fieldName);
-        List<Model<?>> results = Relation.getResult(ListUtil.toList(value), field);
-        Model<?> model = CollectionUtils.isEmpty(results) ? null : results.get(0);
+        Model<?> model = getModel(value, field);
         if (model != null && ann.scopeBinding()) {
             scopeBinding(model, parameter, request);
         }
@@ -61,6 +61,14 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         return model;
     }
 
+    protected <T extends Model<?>> T getModel(String value, Field routeField) {
+        Class<T> entityClass = (Class<T>) routeField.getDeclaringClass();
+        DataDriver<T> driver = DriverRegistry.getDriver(entityClass);
+        String columnName = RelationUtils.getColumn(routeField);
+        QueryCondition condition = QueryCondition.create().eq(columnName, value);
+        List<T> results = driver.findByCondition(entityClass, condition);
+        return CollectionUtils.isEmpty(results) ? null : results.get(0);
+    }
 
     protected void scopeBinding(Model<?> model, MethodParameter parameter, NativeWebRequest request) {
         String key = PATH_MODEL_VARIABLES;

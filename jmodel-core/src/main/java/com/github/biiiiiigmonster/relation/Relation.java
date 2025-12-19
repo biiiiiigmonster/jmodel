@@ -56,7 +56,7 @@ public abstract class Relation {
         return func.apply(keys);
     }
 
-    public static <T extends Model<?>> List<T> getResult(List<?> keys, Field relatedField) {
+    protected <T extends Model<?>> List<T> getResult(List<?> keys, Field relatedField) {
         if (ObjectUtil.isEmpty(keys)) {
             return new ArrayList<>();
         }
