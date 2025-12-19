@@ -15,18 +15,16 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * MyBatis-Plus 实体元数据实现
  * 通过 MyBatis-Plus 注解获取实体的元数据信息
- * 
+ *
  * @author jmodel
  */
 @Component
 public class MyBatisPlusMetadata implements EntityMetadata {
-    
-    public static final String PROVIDER_NAME = "mybatis-plus";
-    
+
     private static final Map<Class<?>, String> PRIMARY_KEY_CACHE = new ConcurrentHashMap<>();
-    
+
     private static final Map<String, String> COLUMN_NAME_CACHE = new ConcurrentHashMap<>();
-    
+
     @Override
     public String getPrimaryKey(Class<?> entityClass) {
         return PRIMARY_KEY_CACHE.computeIfAbsent(entityClass, clazz -> {
@@ -62,17 +60,17 @@ public class MyBatisPlusMetadata implements EntityMetadata {
             }
         });
     }
-    
+
     @Override
     public String getForeignKey(Class<?> entityClass) {
         String simpleName = entityClass.getSimpleName();
         String primaryKey = getPrimaryKey(entityClass);
         return StrUtil.lowerFirst(simpleName) + StrUtil.upperFirst(primaryKey);
     }
-    
+
     @Override
     public String getProviderName() {
-        return PROVIDER_NAME;
+        return MyBatisPlusDriver.class.getName();
     }
 
     private Field[] getAllFields(Class<?> clazz) {
@@ -86,7 +84,7 @@ public class MyBatisPlusMetadata implements EntityMetadata {
         }
         return fields.toArray(new Field[0]);
     }
-    
+
     private Field getField(Class<?> clazz, String fieldName) {
         Class<?> current = clazz;
         while (current != null && current != Object.class) {
@@ -98,7 +96,7 @@ public class MyBatisPlusMetadata implements EntityMetadata {
         }
         return null;
     }
-    
+
     public static void clearCache() {
         PRIMARY_KEY_CACHE.clear();
         COLUMN_NAME_CACHE.clear();

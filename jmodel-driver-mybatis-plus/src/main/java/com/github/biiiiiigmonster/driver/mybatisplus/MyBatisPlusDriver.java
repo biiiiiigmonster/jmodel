@@ -22,16 +22,11 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * MyBatis-Plus 数据驱动实现
  * 将 DataDriver 接口的操作委托给 MyBatis-Plus 的 BaseMapper
- * 
+ *
  * @author jmodel
  */
 @Component
 public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationContextAware {
-
-    /**
-     * 驱动名称常量
-     */
-    public static final String DRIVER_NAME = "mybatis-plus";
 
     /**
      * Spring 应用上下文
@@ -57,7 +52,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("findById", DRIVER_NAME, e);
+            throw new DriverOperationException("findById", getDriverName(), e);
         }
     }
 
@@ -70,7 +65,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException | QueryConditionException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("findByCondition", DRIVER_NAME, e);
+            throw new DriverOperationException("findByCondition", getDriverName(), e);
         }
     }
 
@@ -83,7 +78,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("insert", DRIVER_NAME, e);
+            throw new DriverOperationException("insert", getDriverName(), e);
         }
     }
 
@@ -96,7 +91,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("update", DRIVER_NAME, e);
+            throw new DriverOperationException("update", getDriverName(), e);
         }
     }
 
@@ -109,7 +104,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("deleteById", DRIVER_NAME, e);
+            throw new DriverOperationException("deleteById", getDriverName(), e);
         }
     }
 
@@ -123,13 +118,13 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("delete", DRIVER_NAME, e);
+            throw new DriverOperationException("delete", getDriverName(), e);
         }
     }
 
     @Override
     public String getDriverName() {
-        return DRIVER_NAME;
+        return this.getClass().getName();
     }
 
 
@@ -155,7 +150,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
                         return mapper;
                     }
                 }
-                throw new DriverOperationException("getMapper", DRIVER_NAME,
+                throw new DriverOperationException("getMapper", MyBatisPlusDriver.class.getName(),
                         new IllegalStateException("未找到实体类 " + clazz.getName() + " 对应的 Mapper", e));
             }
         });
@@ -176,7 +171,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
     /**
      * 检查 Mapper 是否对应指定的实体类
      *
-     * @param mapper Mapper 实例
+     * @param mapper      Mapper 实例
      * @param entityClass 实体类
      * @return 如果匹配返回 true
      */

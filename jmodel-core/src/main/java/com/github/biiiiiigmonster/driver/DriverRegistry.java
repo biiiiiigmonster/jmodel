@@ -1,9 +1,13 @@
 package com.github.biiiiiigmonster.driver;
 
 import com.github.biiiiiigmonster.Model;
+import com.github.biiiiiigmonster.config.CoreProperties;
 import com.github.biiiiiigmonster.driver.annotation.UseDriver;
 import com.github.biiiiiigmonster.driver.exception.DriverNotRegisteredException;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,256 +15,238 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 驱动注册和管理器
  * 负责管理数据驱动的注册、查找和默认驱动设置
- * 
+ *
  * @author jmodel-core
  */
+@Component
 public class DriverRegistry {
-    
+
     /**
-     * 已注册的驱动映射表
+     * 已注册的驱动映射表（按Class注册）
      */
-    private static final Map<String, DataDriver<?>> DRIVER_MAP = new ConcurrentHashMap<>();
-    
+    private static final Map<Class<? extends DataDriver<?>>, DataDriver<?>> DRIVER_MAP = new ConcurrentHashMap<>();
+
     /**
-     * 已注册的元数据提供者映射表
+     * 已注册的元数据提供者映射表（按Class注册）
      */
-    private static final Map<String, EntityMetadata> METADATA_MAP = new ConcurrentHashMap<>();
-    
+    private static final Map<Class<? extends DataDriver<?>>, EntityMetadata> METADATA_MAP = new ConcurrentHashMap<>();
+
     /**
-     * 模型类到驱动名称的映射缓存
+     * 模型类到驱动类的映射缓存
      */
-    private static final Map<Class<?>, String> MODEL_DRIVER_MAP = new ConcurrentHashMap<>();
-    
+    private static final Map<Class<?>, Class<? extends DataDriver<?>>> MODEL_DRIVER_MAP = new ConcurrentHashMap<>();
+
     /**
-     * 默认驱动名称
+     * 默认驱动类
      */
-    private static volatile String defaultDriverName;
-    
+    private static volatile Class<? extends DataDriver<?>> defaultDriverClass;
+
+    @Resource
+    private CoreProperties coreProperties;
+
     /**
-     * 私有构造函数，防止实例化
+     * 初始化默认驱动配置
      */
-    private DriverRegistry() {
+    @PostConstruct
+    public void init() {
+        if (coreProperties.getDriver() != null
+                && coreProperties.getDriver().getDefaultDriver() != null) {
+            defaultDriverClass = coreProperties.getDriver().getDefaultDriver();
+        }
     }
 
-    
     /**
      * 注册数据驱动
-     * 如果是第一个注册的驱动，将自动设置为默认驱动
-     * 
-     * @param driverName 驱动名称
-     * @param driver 驱动实例
+     * 如果是第一个注册的驱动且未配置默认驱动，将自动设置为默认驱动
+     *
+     * @param driverClass 驱动类
+     * @param driver      驱动实例
      */
-    public static void registerDriver(String driverName, DataDriver<?> driver) {
-        if (driverName == null || driverName.trim().isEmpty()) {
-            throw new IllegalArgumentException("驱动名称不能为空");
+    public static void registerDriver(Class<? extends DataDriver<?>> driverClass, DataDriver<?> driver) {
+        if (driverClass == null) {
+            throw new IllegalArgumentException("驱动类不能为空");
         }
         if (driver == null) {
             throw new IllegalArgumentException("驱动实例不能为空");
         }
-        DRIVER_MAP.put(driverName, driver);
-        if (defaultDriverName == null) {
-            defaultDriverName = driverName;
+        DRIVER_MAP.put(driverClass, driver);
+        // 如果未配置默认驱动且是第一个注册的驱动，设置为默认
+        if (defaultDriverClass == null && DRIVER_MAP.size() == 1) {
+            defaultDriverClass = driverClass;
         }
     }
-    
+
     /**
      * 注册实体元数据提供者
-     * 
-     * @param providerName 提供者名称
-     * @param metadata 元数据提供者实例
+     *
+     * @param driverClass 驱动类（与驱动关联）
+     * @param metadata    元数据提供者实例
      */
-    public static void registerMetadata(String providerName, EntityMetadata metadata) {
-        if (providerName == null || providerName.trim().isEmpty()) {
-            throw new IllegalArgumentException("元数据提供者名称不能为空");
+    public static void registerMetadata(Class<? extends DataDriver<?>> driverClass, EntityMetadata metadata) {
+        if (driverClass == null) {
+            throw new IllegalArgumentException("驱动类不能为空");
         }
         if (metadata == null) {
             throw new IllegalArgumentException("元数据提供者实例不能为空");
         }
-        METADATA_MAP.put(providerName, metadata);
+        METADATA_MAP.put(driverClass, metadata);
     }
-    
+
     /**
      * 获取模型对应的驱动
-     * 
+     *
      * @param modelClass 模型类
-     * @param <T> 模型类型
+     * @param <T>        模型类型
      * @return 对应的数据驱动
      * @throws DriverNotRegisteredException 如果驱动未注册
      */
     @SuppressWarnings("unchecked")
     public static <T extends Model<?>> DataDriver<T> getDriver(Class<T> modelClass) {
-        String driverName = getDriverName(modelClass);
-        DataDriver<?> driver = DRIVER_MAP.get(driverName);
+        Class<? extends DataDriver<?>> driverClass = getDriverClass(modelClass);
+        DataDriver<?> driver = DRIVER_MAP.get(driverClass);
         if (driver == null) {
-            throw new DriverNotRegisteredException(driverName, modelClass);
-        }
-        return (DataDriver<T>) driver;
-    }
-    
-    /**
-     * 根据驱动名称获取驱动实例
-     * 
-     * @param driverName 驱动名称
-     * @param <T> 模型类型
-     * @return 对应的数据驱动
-     * @throws DriverNotRegisteredException 如果驱动未注册
-     */
-    @SuppressWarnings("unchecked")
-    public static <T extends Model<?>> DataDriver<T> getDriverByName(String driverName) {
-        DataDriver<?> driver = DRIVER_MAP.get(driverName);
-        if (driver == null) {
-            throw new DriverNotRegisteredException(driverName);
+            throw new DriverNotRegisteredException(driverClass.getName(), modelClass);
         }
         return (DataDriver<T>) driver;
     }
 
-    
+    /**
+     * 根据驱动类获取驱动实例
+     *
+     * @param driverClass 驱动类
+     * @param <T>         模型类型
+     * @return 对应的数据驱动
+     * @throws DriverNotRegisteredException 如果驱动未注册
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends Model<?>> DataDriver<T> getDriverByClass(Class<? extends DataDriver<?>> driverClass) {
+        DataDriver<?> driver = DRIVER_MAP.get(driverClass);
+        if (driver == null) {
+            throw new DriverNotRegisteredException(driverClass.getName());
+        }
+        return (DataDriver<T>) driver;
+    }
+
     /**
      * 获取模型对应的元数据提供者
-     * 
+     *
      * @param modelClass 模型类
      * @return 对应的元数据提供者
      * @throws DriverNotRegisteredException 如果元数据提供者未注册
      */
     public static EntityMetadata getMetadata(Class<?> modelClass) {
-        String driverName = getDriverName(modelClass);
-        EntityMetadata metadata = METADATA_MAP.get(driverName);
+        Class<? extends DataDriver<?>> driverClass = getDriverClass(modelClass);
+        EntityMetadata metadata = METADATA_MAP.get(driverClass);
         if (metadata == null) {
-            throw new DriverNotRegisteredException(driverName, modelClass);
+            throw new DriverNotRegisteredException(driverClass.getName(), modelClass);
         }
         return metadata;
     }
-    
+
     /**
-     * 根据提供者名称获取元数据提供者
-     * 
-     * @param providerName 提供者名称
+     * 根据驱动类获取元数据提供者
+     *
+     * @param driverClass 驱动类
      * @return 对应的元数据提供者
      * @throws DriverNotRegisteredException 如果元数据提供者未注册
      */
-    public static EntityMetadata getMetadataByName(String providerName) {
-        EntityMetadata metadata = METADATA_MAP.get(providerName);
+    public static EntityMetadata getMetadataByClass(Class<? extends DataDriver<?>> driverClass) {
+        EntityMetadata metadata = METADATA_MAP.get(driverClass);
         if (metadata == null) {
-            throw new DriverNotRegisteredException(providerName);
+            throw new DriverNotRegisteredException(driverClass.getName());
         }
         return metadata;
     }
-    
+
     /**
-     * 获取模型的驱动名称
+     * 获取模型的驱动类
      * 优先从 UseDriver 注解获取，否则使用默认驱动
-     * 
+     *
      * @param modelClass 模型类
-     * @return 驱动名称
+     * @return 驱动类
      * @throws DriverNotRegisteredException 如果没有默认驱动且模型未指定驱动
      */
-    public static String getDriverName(Class<?> modelClass) {
+    public static Class<? extends DataDriver<?>> getDriverClass(Class<?> modelClass) {
         return MODEL_DRIVER_MAP.computeIfAbsent(modelClass, clazz -> {
             UseDriver annotation = clazz.getAnnotation(UseDriver.class);
             if (annotation != null) {
                 return annotation.value();
             }
-            if (defaultDriverName == null) {
+            if (defaultDriverClass == null) {
                 throw new DriverNotRegisteredException("default", modelClass);
             }
-            return defaultDriverName;
+            return defaultDriverClass;
         });
     }
-    
-    /**
-     * 设置默认驱动
-     * 
-     * @param driverName 驱动名称
-     * @throws IllegalArgumentException 如果驱动未注册
-     */
-    public static void setDefaultDriver(String driverName) {
-        if (driverName == null || driverName.trim().isEmpty()) {
-            throw new IllegalArgumentException("驱动名称不能为空");
-        }
-        if (!DRIVER_MAP.containsKey(driverName)) {
-            throw new IllegalArgumentException("驱动未注册: " + driverName);
-        }
-        defaultDriverName = driverName;
-    }
 
-    
-    /**
-     * 获取默认驱动名称
-     * 
-     * @return 默认驱动名称，如果未设置则返回 null
-     */
-    public static String getDefaultDriverName() {
-        return defaultDriverName;
-    }
-    
     /**
      * 检查驱动是否已注册
-     * 
-     * @param driverName 驱动名称
+     *
+     * @param driverClass 驱动类
      * @return 如果已注册返回 true，否则返回 false
      */
-    public static boolean isDriverRegistered(String driverName) {
-        return DRIVER_MAP.containsKey(driverName);
+    public static boolean isDriverRegistered(Class<? extends DataDriver<?>> driverClass) {
+        return DRIVER_MAP.containsKey(driverClass);
     }
-    
+
     /**
      * 检查元数据提供者是否已注册
-     * 
-     * @param providerName 提供者名称
+     *
+     * @param driverClass 驱动类
      * @return 如果已注册返回 true，否则返回 false
      */
-    public static boolean isMetadataRegistered(String providerName) {
-        return METADATA_MAP.containsKey(providerName);
+    public static boolean isMetadataRegistered(Class<? extends DataDriver<?>> driverClass) {
+        return METADATA_MAP.containsKey(driverClass);
     }
-    
+
     /**
-     * 获取所有已注册的驱动名称
-     * 
-     * @return 驱动名称集合
+     * 获取所有已注册的驱动类
+     *
+     * @return 驱动类集合
      */
-    public static Set<String> getRegisteredDriverNames() {
+    public static Set<Class<? extends DataDriver<?>>> getRegisteredDriverClasses() {
         return DRIVER_MAP.keySet();
     }
-    
+
     /**
-     * 获取所有已注册的元数据提供者名称
-     * 
-     * @return 元数据提供者名称集合
+     * 获取所有已注册的元数据提供者对应的驱动类
+     *
+     * @return 驱动类集合
      */
-    public static Set<String> getRegisteredMetadataNames() {
+    public static Set<Class<? extends DataDriver<?>>> getRegisteredMetadataClasses() {
         return METADATA_MAP.keySet();
     }
-    
+
     /**
      * 注销驱动
-     * 
-     * @param driverName 驱动名称
+     *
+     * @param driverClass 驱动类
      * @return 如果成功注销返回 true，如果驱动不存在返回 false
      */
-    public static boolean unregisterDriver(String driverName) {
-        DataDriver<?> removed = DRIVER_MAP.remove(driverName);
+    public static boolean unregisterDriver(Class<? extends DataDriver<?>> driverClass) {
+        DataDriver<?> removed = DRIVER_MAP.remove(driverClass);
         if (removed != null) {
             // 如果注销的是默认驱动，清除默认驱动设置
-            if (driverName.equals(defaultDriverName)) {
-                defaultDriverName = null;
+            if (driverClass.equals(defaultDriverClass)) {
+                defaultDriverClass = null;
             }
             // 清除使用该驱动的模型缓存
-            MODEL_DRIVER_MAP.entrySet().removeIf(entry -> driverName.equals(entry.getValue()));
+            MODEL_DRIVER_MAP.entrySet().removeIf(entry -> driverClass.equals(entry.getValue()));
             return true;
         }
         return false;
     }
-    
+
     /**
      * 注销元数据提供者
-     * 
-     * @param providerName 提供者名称
+     *
+     * @param driverClass 驱动类
      * @return 如果成功注销返回 true，如果提供者不存在返回 false
      */
-    public static boolean unregisterMetadata(String providerName) {
-        return METADATA_MAP.remove(providerName) != null;
+    public static boolean unregisterMetadata(Class<? extends DataDriver<?>> driverClass) {
+        return METADATA_MAP.remove(driverClass) != null;
     }
-    
+
     /**
      * 清除所有注册信息（主要用于测试）
      */
@@ -268,9 +254,9 @@ public class DriverRegistry {
         DRIVER_MAP.clear();
         METADATA_MAP.clear();
         MODEL_DRIVER_MAP.clear();
-        defaultDriverName = null;
+        defaultDriverClass = null;
     }
-    
+
     /**
      * 清除模型驱动映射缓存（主要用于测试）
      */

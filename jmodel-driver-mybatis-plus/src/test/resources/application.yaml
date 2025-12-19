@@ -22,3 +22,8 @@ mybatis-plus:
     db-config:
       id-type: auto
       table-prefix: t_
+
+jmodel:
+  core:
+    driver:
+      default-driver: com.github.biiiiiigmonster.driver.mybatisplus.MyBatisPlusDriver

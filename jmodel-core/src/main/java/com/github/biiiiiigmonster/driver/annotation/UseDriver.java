@@ -1,5 +1,7 @@
 package com.github.biiiiiigmonster.driver.annotation;
 
+import com.github.biiiiiigmonster.driver.DataDriver;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,7 +10,7 @@ import java.lang.annotation.Target;
 
 /**
  * 用于指定模型使用的数据驱动
- * 
+ *
  * @author jmodel-core
  */
 @Target(ElementType.TYPE)
@@ -16,9 +18,9 @@ import java.lang.annotation.Target;
 @Documented
 public @interface UseDriver {
     /**
-     * 驱动名称
-     * 
-     * @return 驱动标识符
+     * 驱动类型
+     *
+     * @return 驱动类
      */
-    String value();
+    Class<? extends DataDriver<?>> value();
 }
