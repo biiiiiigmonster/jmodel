@@ -1,5 +1,8 @@
 package com.github.biiiiiigmonster.driver.mybatisplus;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
@@ -15,6 +18,9 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * MyBatis-Plus 数据驱动实现
  * 将 DataDriver 接口的操作委托给 MyBatis-Plus 的 BaseMapper
+ * 同时提供实体元数据信息
  *
  * @author jmodel
  */
@@ -39,10 +46,59 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
      */
     private static final Map<Class<?>, BaseMapper<?>> MAPPER_CACHE = new ConcurrentHashMap<>();
 
+    /**
+     * 主键字段缓存
+     */
+    private static final Map<Class<?>, String> PRIMARY_KEY_CACHE = new ConcurrentHashMap<>();
+
+    /**
+     * 列名缓存
+     */
+    private static final Map<String, String> COLUMN_NAME_CACHE = new ConcurrentHashMap<>();
+
     @Override
     public void setApplicationContext(ApplicationContext context) throws BeansException {
         applicationContext = context;
     }
+
+    // ===== 元数据方法实现 =====
+
+    @Override
+    public String getPrimaryKey(Class<?> entityClass) {
+        return PRIMARY_KEY_CACHE.computeIfAbsent(entityClass, clazz -> {
+            for (Field field : getAllFields(clazz)) {
+                TableId tableId = field.getAnnotation(TableId.class);
+                if (tableId != null) {
+                    return field.getName();
+                }
+            }
+            return "id";
+        });
+    }
+
+    @Override
+    public String getColumnName(Class<?> entityClass, String fieldName) {
+        String cacheKey = entityClass.getName() + "." + fieldName;
+        return COLUMN_NAME_CACHE.computeIfAbsent(cacheKey, key -> {
+            try {
+                Field field = getField(entityClass, fieldName);
+                if (field != null) {
+                    TableField tableField = field.getAnnotation(TableField.class);
+                    if (tableField != null && !tableField.value().isEmpty()) {
+                        return tableField.value();
+                    }
+                    TableId tableId = field.getAnnotation(TableId.class);
+                    if (tableId != null && !tableId.value().isEmpty()) {
+                        return tableId.value();
+                    }
+                }
+                return StrUtil.toUnderlineCase(fieldName);
+            } catch (Exception e) {
+                return StrUtil.toUnderlineCase(fieldName);
+            }
+        });
+    }
+    // ===== 数据操作方法实现 =====
 
     @Override
     public Model<?> findById(Class<Model<?>> entityClass, Serializable id) {
@@ -52,7 +108,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("findById", getDriverName(), e);
+            throw new DriverOperationException("findById", getClass(), e);
         }
     }
 
@@ -65,7 +121,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException | QueryConditionException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("findByCondition", getDriverName(), e);
+            throw new DriverOperationException("findByCondition", getClass(), e);
         }
     }
 
@@ -77,7 +133,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("insert", getDriverName(), e);
+            throw new DriverOperationException("insert", getClass(), e);
         }
     }
 
@@ -89,7 +145,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("update", getDriverName(), e);
+            throw new DriverOperationException("update", getClass(), e);
         }
     }
 
@@ -101,7 +157,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("deleteById", getDriverName(), e);
+            throw new DriverOperationException("deleteById", getClass(), e);
         }
     }
 
@@ -114,15 +170,9 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("delete", getDriverName(), e);
+            throw new DriverOperationException("delete", getClass(), e);
         }
     }
-
-    @Override
-    public String getDriverName() {
-        return this.getClass().getName();
-    }
-
 
     /**
      * 获取实体类对应的 Mapper
@@ -145,7 +195,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
                         return mapper;
                     }
                 }
-                throw new DriverOperationException("getMapper", MyBatisPlusDriver.class.getName(),
+                throw new DriverOperationException("getMapper", getClass(),
                         new IllegalStateException("未找到实体类 " + clazz.getName() + " 对应的 Mapper", e));
             }
         });
@@ -241,10 +291,25 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         return wrapper;
     }
 
-    /**
-     * 清除 Mapper 缓存（主要用于测试）
-     */
-    public static void clearMapperCache() {
-        MAPPER_CACHE.clear();
+    private Field[] getAllFields(Class<?> clazz) {
+        List<Field> fields = new ArrayList<>();
+        Class<?> current = clazz;
+        while (current != null && current != Object.class) {
+            fields.addAll(Arrays.asList(current.getDeclaredFields()));
+            current = current.getSuperclass();
+        }
+        return fields.toArray(new Field[0]);
+    }
+
+    private Field getField(Class<?> clazz, String fieldName) {
+        Class<?> current = clazz;
+        while (current != null && current != Object.class) {
+            try {
+                return current.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                current = current.getSuperclass();
+            }
+        }
+        return null;
     }
 }

@@ -60,25 +60,6 @@ public abstract class Model<T extends Model<?>> {
         }
     }
 
-    public Relation relation(SerializableFunction<T, ?> column) {
-        return RelationOption.of(column).getRelation().setModel(this);
-    }
-
-    public Relation relation(String relation) {
-        return RelationOption.of(getClass(), relation).getRelation().setModel(this);
-    }
-
-    public T find(Serializable id) {
-        DataDriver<T> driver = DriverRegistry.getDriver((Class<T>) getClass());
-        return driver.findById((Class<T>) getClass(), id);
-    }
-
-    public T first(QueryCondition condition) {
-        DataDriver<T> driver = DriverRegistry.getDriver((Class<T>) getClass());
-        List<T> results = driver.findByCondition((Class<T>) getClass(), condition);
-        return results.isEmpty() ? null : results.get(0);
-    }
-
     // wip: event
     public Boolean save() {
         DataDriver<T> driver = DriverRegistry.getDriver((Class<T>) getClass());
