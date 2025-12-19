@@ -8,6 +8,7 @@ import com.github.biiiiiigmonster.driver.DriverRegistry;
 import com.github.biiiiiigmonster.driver.QueryCondition;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -63,6 +64,10 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
 
     protected <T extends Model<?>> List<P> getPivotResult(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
+        if (CollectionUtils.isEmpty(localKeyValueList)) {
+            return new ArrayList<>();
+        }
+
         return getResult(getPivotClass(), pivotConditionEnhancer(localKeyValueList));
     }
 

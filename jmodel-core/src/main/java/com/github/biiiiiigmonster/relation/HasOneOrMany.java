@@ -8,8 +8,10 @@ import com.github.biiiiiigmonster.driver.QueryCondition;
 import com.github.biiiiiigmonster.relation.annotation.BelongsTo;
 import com.github.biiiiiigmonster.relation.annotation.MorphTo;
 import lombok.Getter;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -32,6 +34,10 @@ public abstract class HasOneOrMany extends Relation {
     @Override
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
+        if (CollectionUtils.isEmpty(localKeyValueList)) {
+            return new ArrayList<>();
+        }
+
         return getResult(getForeignClass(), foreignConditionEnhancer(localKeyValueList));
     }
 

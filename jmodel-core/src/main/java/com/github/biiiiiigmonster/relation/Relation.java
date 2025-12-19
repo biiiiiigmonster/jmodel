@@ -13,6 +13,7 @@ import com.github.biiiiiigmonster.relation.annotation.config.MorphName;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -61,6 +62,10 @@ public abstract class Relation {
      * 获取结果
      */
     protected <T extends Model<?>> List<T> getResult(List<?> keys, Field relatedField) {
+        if (CollectionUtils.isEmpty(keys)) {
+            return new ArrayList<>();
+        }
+
         Class<T> entityClass = (Class<T>) relatedField.getDeclaringClass();
         String columnName = RelationUtils.getColumn(relatedField);
         return getResult(entityClass, cond -> cond.in(columnName, keys));
