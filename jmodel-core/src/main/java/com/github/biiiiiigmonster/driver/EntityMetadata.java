@@ -34,9 +34,9 @@ public interface EntityMetadata {
     String getForeignKey(Class<?> entityClass);
     
     /**
-     * 获取元数据提供者标识
+     * 获取关联的驱动类
      * 
-     * @return 提供者名称
+     * @return 驱动类
      */
-    String getProviderName();
+    Class<? extends DataDriver<?>> getDriverClass();
 }

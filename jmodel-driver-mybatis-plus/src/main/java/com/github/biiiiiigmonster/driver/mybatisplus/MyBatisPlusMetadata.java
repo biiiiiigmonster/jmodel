@@ -3,6 +3,7 @@ package com.github.biiiiiigmonster.driver.mybatisplus;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.github.biiiiiigmonster.driver.DataDriver;
 import com.github.biiiiiigmonster.driver.EntityMetadata;
 import org.springframework.stereotype.Component;
 
@@ -69,8 +70,8 @@ public class MyBatisPlusMetadata implements EntityMetadata {
     }
 
     @Override
-    public String getProviderName() {
-        return MyBatisPlusDriver.class.getName();
+    public Class<? extends DataDriver<?>> getDriverClass() {
+        return MyBatisPlusDriver.class;
     }
 
     private Field[] getAllFields(Class<?> clazz) {

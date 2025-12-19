@@ -4,6 +4,7 @@ import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.config.CoreProperties;
 import com.github.biiiiiigmonster.driver.annotation.UseDriver;
 import com.github.biiiiiigmonster.driver.exception.DriverNotRegisteredException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -19,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author jmodel-core
  */
 @Component
+@SuppressWarnings("unchecked")
 public class DriverRegistry {
 
     /**
@@ -44,6 +46,9 @@ public class DriverRegistry {
     @Resource
     private CoreProperties coreProperties;
 
+    @Resource
+    private ApplicationContext applicationContext;
+
     /**
      * 初始化默认驱动配置
      */
@@ -53,43 +58,22 @@ public class DriverRegistry {
                 && coreProperties.getDriver().getDefaultDriver() != null) {
             defaultDriverClass = coreProperties.getDriver().getDefaultDriver();
         }
-    }
 
-    /**
-     * 注册数据驱动
-     * 如果是第一个注册的驱动且未配置默认驱动，将自动设置为默认驱动
-     *
-     * @param driverClass 驱动类
-     * @param driver      驱动实例
-     */
-    public static void registerDriver(Class<? extends DataDriver<?>> driverClass, DataDriver<?> driver) {
-        if (driverClass == null) {
-            throw new IllegalArgumentException("驱动类不能为空");
+        // 自动扫描并注册所有DataDriver实现
+        Map<String, DataDriver> drivers = applicationContext.getBeansOfType(DataDriver.class);
+        for (DataDriver<?> driver : drivers.values()) {
+            Class<? extends DataDriver<?>> driverClass = (Class<? extends DataDriver<?>>) driver.getClass();
+            DRIVER_MAP.put(driverClass, driver);
         }
-        if (driver == null) {
-            throw new IllegalArgumentException("驱动实例不能为空");
-        }
-        DRIVER_MAP.put(driverClass, driver);
-        // 如果未配置默认驱动且是第一个注册的驱动，设置为默认
-        if (defaultDriverClass == null && DRIVER_MAP.size() == 1) {
-            defaultDriverClass = driverClass;
-        }
-    }
 
-    /**
-     * 注册实体元数据提供者
-     *
-     * @param driverClass 驱动类（与驱动关联）
-     * @param metadata    元数据提供者实例
-     */
-    public static void registerMetadata(Class<? extends DataDriver<?>> driverClass, EntityMetadata metadata) {
-        if (driverClass == null) {
-            throw new IllegalArgumentException("驱动类不能为空");
+        // 自动扫描并注册所有EntityMetadata实现
+        Map<String, EntityMetadata> metadataProviders = applicationContext.getBeansOfType(EntityMetadata.class);
+        for (EntityMetadata metadata : metadataProviders.values()) {
+            Class<? extends DataDriver<?>> driverClass = metadata.getDriverClass();
+            if (driverClass != null) {
+                METADATA_MAP.put(driverClass, metadata);
+            }
         }
-        if (metadata == null) {
-            throw new IllegalArgumentException("元数据提供者实例不能为空");
-        }
-        METADATA_MAP.put(driverClass, metadata);
     }
 
     /**
@@ -100,7 +84,6 @@ public class DriverRegistry {
      * @return 对应的数据驱动
      * @throws DriverNotRegisteredException 如果驱动未注册
      */
-    @SuppressWarnings("unchecked")
     public static <T extends Model<?>> DataDriver<T> getDriver(Class<T> modelClass) {
         Class<? extends DataDriver<?>> driverClass = getDriverClass(modelClass);
         DataDriver<?> driver = DRIVER_MAP.get(driverClass);
@@ -118,7 +101,6 @@ public class DriverRegistry {
      * @return 对应的数据驱动
      * @throws DriverNotRegisteredException 如果驱动未注册
      */
-    @SuppressWarnings("unchecked")
     public static <T extends Model<?>> DataDriver<T> getDriverByClass(Class<? extends DataDriver<?>> driverClass) {
         DataDriver<?> driver = DRIVER_MAP.get(driverClass);
         if (driver == null) {
@@ -245,22 +227,5 @@ public class DriverRegistry {
      */
     public static boolean unregisterMetadata(Class<? extends DataDriver<?>> driverClass) {
         return METADATA_MAP.remove(driverClass) != null;
-    }
-
-    /**
-     * 清除所有注册信息（主要用于测试）
-     */
-    public static void clear() {
-        DRIVER_MAP.clear();
-        METADATA_MAP.clear();
-        MODEL_DRIVER_MAP.clear();
-        defaultDriverClass = null;
-    }
-
-    /**
-     * 清除模型驱动映射缓存（主要用于测试）
-     */
-    public static void clearModelDriverCache() {
-        MODEL_DRIVER_MAP.clear();
     }
 }
