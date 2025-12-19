@@ -76,7 +76,7 @@ public interface DataDriver<T extends Model<?>> {
      * @param id          主键值
      * @return 删除是否成功
      */
-    boolean deleteById(Class<T> entityClass, Serializable id);
+    int deleteById(Class<T> entityClass, Serializable id);
 
     /**
      * 删除实体
@@ -84,5 +84,5 @@ public interface DataDriver<T extends Model<?>> {
      * @param entity 要删除的实体
      * @return 删除是否成功
      */
-    boolean delete(T entity);
+    int delete(T entity);
 }

@@ -5,6 +5,7 @@ import com.github.biiiiiigmonster.attribute.AttributeUtils;
 import com.github.biiiiiigmonster.driver.DataDriver;
 import com.github.biiiiiigmonster.driver.DriverRegistry;
 import com.github.biiiiiigmonster.driver.QueryCondition;
+import com.github.biiiiiigmonster.event.ModelEventPublisher;
 import com.github.biiiiiigmonster.relation.Pivot;
 import com.github.biiiiiigmonster.relation.Relation;
 import com.github.biiiiiigmonster.relation.RelationOption;
@@ -60,23 +61,54 @@ public abstract class Model<T extends Model<?>> {
         }
     }
 
-    // wip: event
     public Boolean save() {
         DataDriver<T> driver = DriverRegistry.getDriver((Class<T>) getClass());
+        boolean isNew = primaryKeyValue() == null;
         int res;
-        if (primaryKeyValue() == null) {
+
+        // 发布saving事件（通用）
+        ModelEventPublisher.publishSaving((T) this);
+
+        if (isNew) {
+            // 发布creating事件
+            ModelEventPublisher.publishCreating((T) this);
             res = driver.insert((T) this);
+            if (res > 0) {
+                // 发布created事件
+                ModelEventPublisher.publishCreated((T) this);
+            }
         } else {
+            // 发布updating事件
+            ModelEventPublisher.publishUpdating((T) this);
             res = driver.update((T) this);
+            if (res > 0) {
+                // 发布updated事件
+                ModelEventPublisher.publishUpdated((T) this);
+            }
+        }
+
+        if (res > 0) {
+            // 发布saved事件（通用）
+            ModelEventPublisher.publishSaved((T) this);
         }
 
         return res > 0;
     }
 
-    // wip: event
     public Boolean delete() {
         DataDriver<T> driver = DriverRegistry.getDriver((Class<T>) getClass());
-        return driver.delete((T) this);
+
+        // 发布deleting事件
+        ModelEventPublisher.publishDeleting((T) this);
+
+        int result = driver.delete((T) this);
+
+        if (result > 0) {
+            // 发布deleted事件
+            ModelEventPublisher.publishDeleted((T) this);
+        }
+
+        return result > 0;
     }
 
     @SafeVarargs

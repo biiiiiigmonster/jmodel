@@ -150,10 +150,10 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
     }
 
     @Override
-    public boolean deleteById(Class<Model<?>> entityClass, Serializable id) {
+    public int deleteById(Class<Model<?>> entityClass, Serializable id) {
         try {
             BaseMapper<Model<?>> mapper = getMapper(entityClass);
-            return mapper.deleteById(id) > 0;
+            return mapper.deleteById(id);
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
@@ -162,11 +162,11 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
     }
 
     @Override
-    public boolean delete(Model<?> entity) {
+    public int delete(Model<?> entity) {
         try {
             BaseMapper<Model<?>> mapper = getMapper((Class<Model<?>>) entity.getClass());
             Serializable id = (Serializable) entity.primaryKeyValue();
-            return mapper.deleteById(id) > 0;
+            return mapper.deleteById(id);
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
