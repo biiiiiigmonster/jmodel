@@ -82,11 +82,14 @@ public abstract class Model<T extends Model<?>> {
     // wip: event
     public Boolean save() {
         DataDriver<T> driver = DriverRegistry.getDriver((Class<T>) getClass());
+        int res;
         if (primaryKeyValue() == null) {
-            return driver.insert((T) this);
+            res = driver.insert((T) this);
         } else {
-            return driver.update((T) this);
+            res = driver.update((T) this);
         }
+
+        return res > 0;
     }
 
     // wip: event

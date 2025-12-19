@@ -76,10 +76,10 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
 
     @Override
     @SuppressWarnings("unchecked")
-    public boolean insert(Model<?> entity) {
+    public int insert(Model<?> entity) {
         try {
             BaseMapper<Model<?>> mapper = getMapper((Class<Model<?>>) entity.getClass());
-            return mapper.insert(entity) > 0;
+            return mapper.insert(entity);
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
@@ -89,10 +89,10 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
 
     @Override
     @SuppressWarnings("unchecked")
-    public boolean update(Model<?> entity) {
+    public int update(Model<?> entity) {
         try {
             BaseMapper<Model<?>> mapper = getMapper((Class<Model<?>>) entity.getClass());
-            return mapper.updateById(entity) > 0;
+            return mapper.updateById(entity);
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {

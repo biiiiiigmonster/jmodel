@@ -38,7 +38,7 @@ public interface DataDriver<T extends Model<?>> {
      * @param entity 要插入的实体
      * @return 插入是否成功
      */
-    boolean insert(T entity);
+    int insert(T entity);
     
     /**
      * 更新现有实体
@@ -46,7 +46,7 @@ public interface DataDriver<T extends Model<?>> {
      * @param entity 要更新的实体
      * @return 更新是否成功
      */
-    boolean update(T entity);
+    int update(T entity);
     
     /**
      * 根据主键删除实体
