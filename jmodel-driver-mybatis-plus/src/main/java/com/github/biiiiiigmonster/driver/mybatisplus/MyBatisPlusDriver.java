@@ -52,7 +52,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("findById", getDriverName(), e);
+            throw new DriverOperationException("findById", getClass(), e);
         }
     }
 
@@ -65,7 +65,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException | QueryConditionException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("findByCondition", getDriverName(), e);
+            throw new DriverOperationException("findByCondition", getClass(), e);
         }
     }
 
@@ -77,7 +77,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("insert", getDriverName(), e);
+            throw new DriverOperationException("insert", getClass(), e);
         }
     }
 
@@ -89,7 +89,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("update", getDriverName(), e);
+            throw new DriverOperationException("update", getClass(), e);
         }
     }
 
@@ -101,7 +101,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("deleteById", getDriverName(), e);
+            throw new DriverOperationException("deleteById", getClass(), e);
         }
     }
 
@@ -114,15 +114,9 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
         } catch (DriverOperationException e) {
             throw e;
         } catch (Exception e) {
-            throw new DriverOperationException("delete", getDriverName(), e);
+            throw new DriverOperationException("delete", getClass(), e);
         }
     }
-
-    @Override
-    public String getDriverName() {
-        return this.getClass().getName();
-    }
-
 
     /**
      * 获取实体类对应的 Mapper
@@ -145,7 +139,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
                         return mapper;
                     }
                 }
-                throw new DriverOperationException("getMapper", MyBatisPlusDriver.class.getName(),
+                throw new DriverOperationException("getMapper", getClass(),
                         new IllegalStateException("未找到实体类 " + clazz.getName() + " 对应的 Mapper", e));
             }
         });
