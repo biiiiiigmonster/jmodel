@@ -8,6 +8,7 @@ import com.github.biiiiiigmonster.driver.QueryCondition;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.function.Consumer;
 
 @SuppressWarnings("unchecked")
 public abstract class MorphOneOrMany extends HasOneOrMany {
@@ -19,15 +20,10 @@ public abstract class MorphOneOrMany extends HasOneOrMany {
         this.morphType = morphType;
     }
 
-    protected <R extends Model<?>> List<R> byRelatedRepository(List<?> localKeyValueList) {
-        Class<R> relatedClass = (Class<R>) foreignField.getDeclaringClass();
-        DataDriver<R> driver = DriverRegistry.getDriver(relatedClass);
-        String foreignColumn = RelationUtils.getColumn(foreignField);
+    protected Consumer<QueryCondition> foreignConditionEnhancer(List<?> keys) {
+        Consumer<QueryCondition> superCond = super.foreignConditionEnhancer(keys);
         String morphTypeColumn = RelationUtils.getColumn(morphType);
-        QueryCondition condition = QueryCondition.create()
-                .in(foreignColumn, localKeyValueList)
-                .eq(morphTypeColumn, getMorphAlias());
-        return driver.findByCondition(relatedClass, condition);
+        return superCond.andThen(cond -> cond.eq(morphTypeColumn, getMorphAlias()));
     }
 
     protected String getMorphAlias() {

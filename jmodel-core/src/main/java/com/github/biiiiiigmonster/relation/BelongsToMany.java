@@ -8,6 +8,7 @@ import com.github.biiiiiigmonster.driver.DriverRegistry;
 import com.github.biiiiiigmonster.driver.QueryCondition;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -62,14 +64,20 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
 
     protected <T extends Model<?>> List<P> getPivotResult(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
-        return getResult(localKeyValueList, foreignPivotField, this::byPivotRelatedRepository);
+        if (CollectionUtils.isEmpty(localKeyValueList)) {
+            return new ArrayList<>();
+        }
+
+        return getResult(getPivotClass(), pivotConditionEnhancer(localKeyValueList));
     }
 
-    protected List<P> byPivotRelatedRepository(List<?> keys) {
-        DataDriver<P> driver = DriverRegistry.getDriver(pivotClass);
+    protected Class<P> getPivotClass() {
+        return pivotClass;
+    }
+
+    protected Consumer<QueryCondition> pivotConditionEnhancer(List<?> keys) {
         String columnName = RelationUtils.getColumn(foreignPivotField);
-        QueryCondition condition = QueryCondition.byFieldValues(columnName, keys);
-        return driver.findByCondition(pivotClass, condition);
+        return condition -> condition.in(columnName, keys);
     }
 
     protected <R extends Model<?>> List<R> getForeignResult(List<P> pivots) {
