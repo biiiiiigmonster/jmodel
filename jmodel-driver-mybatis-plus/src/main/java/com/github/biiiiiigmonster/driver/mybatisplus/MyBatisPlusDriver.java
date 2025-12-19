@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author jmodel
  */
 @Component
+@SuppressWarnings("unchecked")
 public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationContextAware {
 
     /**
@@ -44,7 +45,6 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Model<?> findById(Class<Model<?>> entityClass, Serializable id) {
         try {
             BaseMapper<Model<?>> mapper = getMapper(entityClass);
@@ -70,7 +70,6 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public int insert(Model<?> entity) {
         try {
             BaseMapper<Model<?>> mapper = getMapper((Class<Model<?>>) entity.getClass());
@@ -83,7 +82,6 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public int update(Model<?> entity) {
         try {
             BaseMapper<Model<?>> mapper = getMapper((Class<Model<?>>) entity.getClass());
@@ -96,7 +94,6 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public boolean deleteById(Class<Model<?>> entityClass, Serializable id) {
         try {
             BaseMapper<Model<?>> mapper = getMapper(entityClass);
@@ -109,7 +106,6 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public boolean delete(Model<?> entity) {
         try {
             BaseMapper<Model<?>> mapper = getMapper((Class<Model<?>>) entity.getClass());
@@ -134,7 +130,6 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
      * @param entityClass 实体类
      * @return 对应的 BaseMapper
      */
-    @SuppressWarnings("unchecked")
     private BaseMapper<Model<?>> getMapper(Class<Model<?>> entityClass) {
         return (BaseMapper<Model<?>>) MAPPER_CACHE.computeIfAbsent(entityClass, clazz -> {
             // 根据实体类名推断 Mapper 名称
@@ -202,7 +197,6 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
      * @param condition 查询条件
      * @return QueryWrapper 实例
      */
-    @SuppressWarnings("unchecked")
     private QueryWrapper<Model<?>> buildQueryWrapper(QueryCondition condition) {
         QueryWrapper<Model<?>> wrapper = new QueryWrapper<>();
 

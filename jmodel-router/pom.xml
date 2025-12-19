@@ -35,12 +35,6 @@
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
         </dependency>
-        <!-- MyBatis-Plus driver for testing -->
-        <dependency>
-            <groupId>io.github.biiiiiigmonster</groupId>
-            <artifactId>jmodel-driver-mybatis-plus</artifactId>
-            <scope>test</scope>
-        </dependency>
 
         <!-- Test dependencies -->
         <dependency>
@@ -62,6 +56,12 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- MyBatis-Plus driver for testing -->
+        <dependency>
+            <groupId>io.github.biiiiiigmonster</groupId>
+            <artifactId>jmodel-driver-mybatis-plus</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
