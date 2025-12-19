@@ -21,7 +21,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Getter
@@ -43,29 +43,27 @@ public abstract class Relation {
 
     public abstract <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results);
 
-    // todo: delete
-    public <T extends Model<?>> List<T> getResult(List<?> keys, Field relatedField, Function<List<?>, List<T>> func) {
-        if (ObjectUtil.isEmpty(keys)) {
-            return new ArrayList<>();
-        }
+    /**
+     * 统一的结果获取方法，支持条件扩展
+     *
+     * @param entityClass       实体类型
+     * @param conditionEnhancer 条件增强器，可为 null
+     */
+    protected <T extends Model<?>> List<T> getResult(Class<T> entityClass, Consumer<QueryCondition> conditionEnhancer) {
+        DataDriver<T> driver = DriverRegistry.getDriver(entityClass);
+        QueryCondition condition = QueryCondition.create();
+        conditionEnhancer.accept(condition);
 
-        if (!RelationUtils.hasRelatedRepository(relatedField)) {
-            throw new IllegalStateException("No data driver found for entity: " + relatedField.getDeclaringClass().getName());
-        }
-
-        return func.apply(keys);
+        return driver.findByCondition(entityClass, condition);
     }
 
+    /**
+     * 获取结果
+     */
     protected <T extends Model<?>> List<T> getResult(List<?> keys, Field relatedField) {
-        if (ObjectUtil.isEmpty(keys)) {
-            return new ArrayList<>();
-        }
-
-        Class<T> relatedClass = (Class<T>) relatedField.getDeclaringClass();
-        DataDriver<T> driver = DriverRegistry.getDriver(relatedClass);
+        Class<T> entityClass = (Class<T>) relatedField.getDeclaringClass();
         String columnName = RelationUtils.getColumn(relatedField);
-        QueryCondition condition = QueryCondition.byFieldValues(columnName, keys);
-        return driver.findByCondition(relatedClass, condition);
+        return getResult(entityClass, cond -> cond.in(columnName, keys));
     }
 
     public static <T extends Model<?>> List<?> relatedKeyValueList(List<T> models, Field field) {

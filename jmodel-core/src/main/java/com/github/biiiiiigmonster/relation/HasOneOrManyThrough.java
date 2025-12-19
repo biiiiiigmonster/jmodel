@@ -28,7 +28,8 @@ public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation 
     @Override
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
-        List<TH> throughs = getResult(localKeyValueList, foreignField, this::byThroughRelatedRepository);
+        String columnName = RelationUtils.getColumn(foreignField);
+        List<TH> throughs = getResult(throughClass, cond -> cond.in(columnName, localKeyValueList));
 
         List<?> throughKeyValueList = relatedKeyValueList(throughs, throughLocalField);
         List<R> results = getResult(throughKeyValueList, throughForeignField);
@@ -37,13 +38,6 @@ public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation 
         throughMatch(models, throughs, results);
 
         return results;
-    }
-
-    protected List<TH> byThroughRelatedRepository(List<?> keys) {
-        DataDriver<TH> driver = DriverRegistry.getDriver(throughClass);
-        String columnName = RelationUtils.getColumn(foreignField);
-        QueryCondition condition = QueryCondition.byFieldValues(columnName, keys);
-        return driver.findByCondition(throughClass, condition);
     }
 
     public abstract <T extends Model<?>, R extends Model<?>> void throughMatch(List<T> models, List<TH> throughs, List<R> results);
