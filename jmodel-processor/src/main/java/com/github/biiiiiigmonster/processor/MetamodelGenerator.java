@@ -27,7 +27,6 @@ import java.util.Set;
  */
 public class MetamodelGenerator {
 
-    private static final String TABLE_FIELD_ANNOTATION = "com.baomidou.mybatisplus.annotation.TableField";
     private static final String SINGULAR_ATTRIBUTE_IMPORT = "com.github.biiiiiigmonster.processor.SingularAttribute";
     private static final String GENERATED_ANNOTATION_IMPORT = "javax.annotation.Generated";
 
@@ -191,11 +190,10 @@ public class MetamodelGenerator {
 
 
     /**
-     * Extracts persistent fields from the entity, excluding fields marked with
-     * {@code @TableField(exist = false)}.
+     * Extracts all non-static fields from the entity.
      *
      * @param entityElement the entity type element
-     * @return list of persistent field elements
+     * @return list of field elements
      */
     List<VariableElement> extractPersistentFields(TypeElement entityElement) {
         List<VariableElement> persistentFields = new ArrayList<>();
@@ -204,49 +202,16 @@ public class MetamodelGenerator {
             if (enclosedElement.getKind() == ElementKind.FIELD) {
                 VariableElement field = (VariableElement) enclosedElement;
                 
-                // Skip static fields
+                // Skip static fields only
                 if (field.getModifiers().contains(Modifier.STATIC)) {
                     continue;
                 }
 
-                if (isPersistentField(field)) {
-                    persistentFields.add(field);
-                }
+                persistentFields.add(field);
             }
         }
 
         return persistentFields;
-    }
-
-    /**
-     * Checks if a field should be included in the metamodel.
-     * A field is persistent if it does not have {@code @TableField(exist = false)}.
-     *
-     * @param field the field element to check
-     * @return true if the field is persistent, false otherwise
-     */
-    boolean isPersistentField(VariableElement field) {
-        // Look for @TableField annotation
-        for (javax.lang.model.element.AnnotationMirror annotationMirror : field.getAnnotationMirrors()) {
-            String annotationType = annotationMirror.getAnnotationType().toString();
-            
-            if (TABLE_FIELD_ANNOTATION.equals(annotationType)) {
-                // Check the 'exist' attribute
-                for (java.util.Map.Entry<? extends javax.lang.model.element.ExecutableElement, 
-                        ? extends javax.lang.model.element.AnnotationValue> entry 
-                        : annotationMirror.getElementValues().entrySet()) {
-                    String key = entry.getKey().getSimpleName().toString();
-                    if ("exist".equals(key)) {
-                        Object value = entry.getValue().getValue();
-                        if (Boolean.FALSE.equals(value)) {
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-
-        return true;
     }
 
     /**

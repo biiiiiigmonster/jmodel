@@ -4,25 +4,15 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.baomidou.mybatisplus.core.metadata.TableInfo;
-import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
-import com.baomidou.mybatisplus.core.toolkit.LambdaUtils;
-import com.baomidou.mybatisplus.core.toolkit.ReflectionKit;
-import com.baomidou.mybatisplus.core.toolkit.support.ColumnCache;
 import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.SerializableFunction;
 import com.github.biiiiiigmonster.SerializedLambda;
-import com.github.biiiiiigmonster.relation.annotation.config.Related;
+import com.github.biiiiiigmonster.driver.DataDriver;
+import com.github.biiiiiigmonster.driver.DriverRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.PostConstruct;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -30,28 +20,21 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
+ * 关联关系工具类
+ * 提供模型关联加载、关联操作等功能
+ *
  * @author luyunfeng
  */
 @Slf4j
 @Component
 @SuppressWarnings("unchecked")
-public class RelationUtils implements BeanPostProcessor {
-    private static final Map<Class<?>, BaseMapper<?>> RELATED_REPOSITORY_MAP = new HashMap<>();
-
-    private static final Map<Class<?>, List<Map<String, Object>>> RELATED_MAP = new HashMap<>();
-
-    private static final Map<String, Map<Object, Method>> MAP_CACHE = new HashMap<>();
-
-    private static final Map<Class<?>, Map<String, ColumnCache>> COLUMN_MAP = new HashMap<>();
-
-    @Autowired
-    private ApplicationContext context;
+public class RelationUtils {
 
     public static <T extends Model<?>> void load(T obj, String... relations) {
         if (obj == null) {
@@ -227,7 +210,7 @@ public class RelationUtils implements BeanPostProcessor {
         // 分离
         List<T> eager = new ArrayList<>();
         List<T> exists = new ArrayList<>();
-        List<R> results = new ArrayList<>();
+        List<R> existResults = new ArrayList<>();
         if (loadForce) {
             eager = models;
         } else {
@@ -239,9 +222,9 @@ public class RelationUtils implements BeanPostProcessor {
                     if (relationOption.isNested()) {
                         exists.add(model);
                         if (relationOption.isRelatedFieldList()) {
-                            results.addAll((List<R>) value);
+                            existResults.addAll((List<R>) value);
                         } else {
-                            results.add((R) value);
+                            existResults.add((R) value);
                         }
                     }
                 }
@@ -249,22 +232,26 @@ public class RelationUtils implements BeanPostProcessor {
         }
         Relation relation = relationOption.getRelation();
         // 合并关联结果
-        results = merge(results, relation.getEager(eager));
+        List<R> mergeResults = merge(existResults, relation.getEager(eager));
         // 嵌套处理
         if (relationOption.isNested()) {
-            load(results, relationOption.getNestedRelations(), loadForce);
+            load(mergeResults, relationOption.getNestedRelations(), loadForce);
         }
 
         // 合并父模型数据
         eager.addAll(exists);
         // 组装匹配
-        relation.match(eager, results);
+        relation.match(eager, mergeResults);
     }
 
     // 新旧结果集合并，如果重复以新结果集为准
     private static <T extends Model<?>> List<T> merge(List<T> oldList, List<T> newList) {
-        if (CollectionUtils.isEmpty(oldList) || CollectionUtils.isEmpty(newList)) {
+        if (CollectionUtils.isEmpty(oldList)) {
             return newList;
+        }
+
+        if (CollectionUtils.isEmpty(newList)) {
+            return oldList;
         }
 
         newList.addAll(oldList);
@@ -287,7 +274,8 @@ public class RelationUtils implements BeanPostProcessor {
                         (v1, v2) -> {
                             v1.addAll(v2);
                             return v1;
-                        }
+                        },
+                        LinkedHashMap::new
                 ));
 
         List<RelationOption<?>> list = new ArrayList<>();
@@ -302,42 +290,16 @@ public class RelationUtils implements BeanPostProcessor {
         return list;
     }
 
-    public static String relatedMethodCacheKey(Field field) {
-        return String.format("%s.%s", field.getDeclaringClass().getName(), field.getName());
-    }
-
-    public static Map<Object, Method> getRelatedMethod(Field field) {
-        String key = relatedMethodCacheKey(field);
-        return MAP_CACHE.computeIfAbsent(key, k ->
-                RELATED_MAP.get(field.getDeclaringClass()).stream()
-                        .filter(map -> {
-                            Related related = (Related) map.get("annotation");
-                            return related.field().equals(field.getName());
-                        })
-                        .map(map -> {
-                            Map<Object, Method> cache = new HashMap<>();
-                            cache.put(map.get("bean"), (Method) map.get("method"));
-                            return cache;
-                        })
-                        .findFirst()
-                        .orElse(null)
-        );
-    }
-
-    public static BaseMapper<?> getRelatedRepository(Class<?> clazz) {
-        return RELATED_REPOSITORY_MAP.get(clazz);
-    }
-
-    public static boolean hasRelatedRepository(Field field) {
-        return RELATED_REPOSITORY_MAP.containsKey(field.getDeclaringClass());
-    }
-
+    /**
+     * 获取字段对应的数据库列名（通过驱动）
+     *
+     * @param foreignField 字段
+     * @return 数据库列名
+     */
     public static String getColumn(Field foreignField) {
         Class<?> entityClass = foreignField.getDeclaringClass();
-
-        Map<String, ColumnCache> columnMap = COLUMN_MAP.computeIfAbsent(entityClass, LambdaUtils::getColumnMap);
-        ColumnCache columnCache = columnMap.get(LambdaUtils.formatKey(foreignField.getName()));
-        return columnCache.getColumn();
+        DataDriver<?> driver = DriverRegistry.getDriver((Class<? extends Model<?>>) entityClass);
+        return driver.getColumnName(entityClass, foreignField.getName());
     }
 
     public static Class<?> getGenericType(Field field) {
@@ -377,58 +339,26 @@ public class RelationUtils implements BeanPostProcessor {
     }
 
     /**
-     * 模型默认本地键名
+     * 获取实体主键字段名（通过驱动）
      *
      * @param clazz model class
-     * @return String
+     * @return 主键字段名
      */
     public static String getPrimaryKey(Class<?> clazz) {
-        TableInfo tableInfo = TableInfoHelper.getTableInfo(clazz);
-        return tableInfo == null ? "id" : tableInfo.getKeyColumn();
+        DataDriver<?> driver = DriverRegistry.getDriver((Class<? extends Model<?>>) clazz);
+        return driver.getPrimaryKey(clazz);
     }
 
     /**
-     * 模型默认外地键名
+     * 获取外键字段名（通过驱动）
      *
      * @param clazz model class
-     * @return String
+     * @return 外键字段名
      */
     public static String getForeignKey(Class<?> clazz) {
-        return StrUtil.lowerFirst(clazz.getSimpleName()) + StrUtil.upperFirst(getPrimaryKey(clazz));
-    }
-
-    /**
-     * 启动时扫描一下一些model的加载是否有指定方法，默认都是@RelatedRepository
-     */
-    @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName) {
-        Class<?> clazz = bean.getClass();
-        for (Method method : clazz.getDeclaredMethods()) {
-            related(bean, method, method.getAnnotation(Related.class));
-        }
-
-        return bean;
-    }
-
-    @PostConstruct
-    public void init() {
-        context.getBeansOfType(BaseMapper.class).forEach((beanName, mapper) -> {
-            Class<?> mapperClass = AopUtils.isAopProxy(mapper) ? AopUtils.getTargetClass(beanName) : mapper.getClass();
-            Class<?> typeClass = ReflectionKit.getSuperClassGenericType(mapperClass, BaseMapper.class, 0);
-            RELATED_REPOSITORY_MAP.put(typeClass, mapper);
-        });
-    }
-
-    private void related(Object bean, Method method, Related annotation) {
-        if (annotation == null) {
-            return;
-        }
-        Map<String, Object> map = new HashMap<>();
-        map.put("bean", bean);
-        map.put("method", method);
-        map.put("annotation", annotation);
-        Class<?> foreignClazz = getGenericReturnType(method);
-        RELATED_MAP.computeIfAbsent(foreignClazz, k -> new ArrayList<>()).add(map);
+        String primaryKey = getPrimaryKey(clazz);
+        String simpleName = clazz.getSimpleName();
+        return StrUtil.lowerFirst(simpleName) + StrUtil.upperFirst(primaryKey);
     }
 
     public static <T extends Model<?>, R extends Model<?>> void associateRelations(T model, SerializableFunction<T, R> relation, R relationModel) {

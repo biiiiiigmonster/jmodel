@@ -14,6 +14,8 @@
     <modules>
         <module>jmodel-core</module>
         <module>jmodel-processor</module>
+        <module>jmodel-router</module>
+        <module>jmodel-driver-mybatis-plus</module>
     </modules>
 
     <licenses>
@@ -68,6 +70,16 @@
             <dependency>
                 <groupId>io.github.biiiiiigmonster</groupId>
                 <artifactId>jmodel-processor</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.biiiiiigmonster</groupId>
+                <artifactId>jmodel-router</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.biiiiiigmonster</groupId>
+                <artifactId>jmodel-driver-mybatis-plus</artifactId>
                 <version>${revision}</version>
             </dependency>
             <!-- External dependencies -->
@@ -137,6 +149,14 @@
                         <source>${maven.compiler.source}</source>
                         <target>${maven.compiler.target}</target>
                         <encoding>${project.build.sourceEncoding}</encoding>
+                        <!-- Default lombok annotation processor path for all modules -->
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -155,11 +175,32 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
                     <version>3.1.0</version>
+                    <inherited>true</inherited>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <excludeResources>true</excludeResources>
+                        <useDefaultExcludes>true</useDefaultExcludes>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>2.10.4</version>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.sonatype.central</groupId>
@@ -175,6 +216,14 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-gpg-plugin</artifactId>
                     <version>3.1.0</version>
+                    <executions>
+                        <execution>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>sign</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                     <configuration>
                         <!-- GPG executable will be auto-detected or set via environment -->
                         <gpgArguments>
@@ -182,6 +231,11 @@
                             <arg>loopback</arg>
                         </gpgArguments>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>3.3.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>

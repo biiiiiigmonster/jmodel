@@ -4,25 +4,26 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.github.biiiiiigmonster.Model;
+import com.github.biiiiiigmonster.driver.DataDriver;
+import com.github.biiiiiigmonster.driver.DriverRegistry;
+import com.github.biiiiiigmonster.driver.QueryCondition;
 import com.github.biiiiiigmonster.relation.annotation.config.Morph;
 import com.github.biiiiiigmonster.relation.annotation.config.MorphAlias;
 import com.github.biiiiiigmonster.relation.annotation.config.MorphName;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Getter
 @Slf4j
@@ -43,40 +44,31 @@ public abstract class Relation {
 
     public abstract <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results);
 
-    public <T extends Model<?>> List<T> getResult(List<?> keys, Field relatedField, Function<List<?>, List<T>> func) {
-        if (ObjectUtil.isEmpty(keys)) {
+    /**
+     * 统一的结果获取方法，支持条件扩展
+     *
+     * @param entityClass       实体类型
+     * @param conditionEnhancer 条件增强器，可为 null
+     */
+    protected <T extends Model<?>> List<T> getResult(Class<T> entityClass, Consumer<QueryCondition> conditionEnhancer) {
+        DataDriver<T> driver = DriverRegistry.getDriver(entityClass);
+        QueryCondition condition = QueryCondition.create();
+        conditionEnhancer.accept(condition);
+
+        return driver.findByCondition(entityClass, condition);
+    }
+
+    /**
+     * 获取结果
+     */
+    protected <T extends Model<?>> List<T> getResult(List<?> keys, Field relatedField) {
+        if (CollectionUtils.isEmpty(keys)) {
             return new ArrayList<>();
         }
 
-        return RelationUtils.hasRelatedRepository(relatedField)
-                ? func.apply(keys)
-                : byRelatedMethod(keys, relatedField, additionalRelatedMethodArgs());
-    }
-
-    public static <T extends Model<?>> List<T> byRelatedMethod(List<?> localKeyValueList, Field relatedField, Object... args) {
-        Map<Object, Method> relatedMethod = RelationUtils.getRelatedMethod(relatedField);
-        Object bean = relatedMethod.keySet().iterator().next();
-        Method method = relatedMethod.values().iterator().next();
-        if (List.class.isAssignableFrom(method.getParameterTypes()[0])) {
-            return ReflectUtil.invoke(bean, method, localKeyValueList, args);
-        } else {
-            log.warn("{}存在N + 1查询隐患，建议{}实现List参数的仓库方法", bean.getClass().getName(), method.getName());
-            return localKeyValueList.stream()
-                    .map(param -> ReflectUtil.invoke(bean, method, param, args))
-                    .filter(Objects::nonNull)
-                    .flatMap(r -> {
-                        if (List.class.isAssignableFrom(method.getReturnType())) {
-                            return ((List<T>) r).stream();
-                        } else {
-                            return Stream.of((T) r);
-                        }
-                    })
-                    .collect(Collectors.toList());
-        }
-    }
-
-    protected Object[] additionalRelatedMethodArgs() {
-        return new Object[]{};
+        Class<T> entityClass = (Class<T>) relatedField.getDeclaringClass();
+        String columnName = RelationUtils.getColumn(relatedField);
+        return getResult(entityClass, cond -> cond.in(columnName, keys));
     }
 
     public static <T extends Model<?>> List<?> relatedKeyValueList(List<T> models, Field field) {

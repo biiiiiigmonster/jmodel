@@ -1,12 +1,14 @@
 package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ReflectUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
+import com.github.biiiiiigmonster.driver.DataDriver;
+import com.github.biiiiiigmonster.driver.DriverRegistry;
+import com.github.biiiiiigmonster.driver.QueryCondition;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.function.Consumer;
 
 @SuppressWarnings("unchecked")
 public abstract class MorphOneOrMany extends HasOneOrMany {
@@ -18,16 +20,10 @@ public abstract class MorphOneOrMany extends HasOneOrMany {
         this.morphType = morphType;
     }
 
-    protected <R extends Model<?>> List<R> byRelatedRepository(List<?> localKeyValueList) {
-        BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(foreignField.getDeclaringClass());
-        QueryWrapper<R> wrapper = new QueryWrapper<>();
-        wrapper.in(RelationUtils.getColumn(foreignField), localKeyValueList)
-                .eq(RelationUtils.getColumn(morphType), getMorphAlias());
-        return relatedRepository.selectList(wrapper);
-    }
-
-    protected Object[] additionalRelatedMethodArgs() {
-        return new Object[]{getMorphAlias()};
+    protected Consumer<QueryCondition> foreignConditionEnhancer(List<?> keys) {
+        Consumer<QueryCondition> superCond = super.foreignConditionEnhancer(keys);
+        String morphTypeColumn = RelationUtils.getColumn(morphType);
+        return superCond.andThen(cond -> cond.eq(morphTypeColumn, getMorphAlias()));
     }
 
     protected String getMorphAlias() {

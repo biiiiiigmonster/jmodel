@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=TRUE
+    username: sa
+    password:
+    initialization-mode: always
+    schema: classpath:db/schema.sql
+    data: classpath:db/data.sql
+  h2:
+    console:
+      enabled: true
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    jdbc-type-for-null: null
+    local-cache-scope: statement
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.github.biiiiiigmonster.router.entity
+  global-config:
+    db-config:
+      id-type: auto
+      table-prefix: t_
+
+jmodel:
+  core:
+    driver:
+      default-driver: com.github.biiiiiigmonster.driver.mybatisplus.MyBatisPlusDriver

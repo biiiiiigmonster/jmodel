@@ -1,13 +1,15 @@
 package com.github.biiiiiigmonster.relation;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.biiiiiigmonster.Model;
+import com.github.biiiiiigmonster.driver.DataDriver;
+import com.github.biiiiiigmonster.driver.DriverRegistry;
+import com.github.biiiiiigmonster.driver.QueryCondition;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unchecked")
 public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation {
     protected Class<TH> throughClass;
     protected Field foreignField;
@@ -27,11 +29,8 @@ public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation 
 
     @Override
     public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
-        List<?> localKeyValueList = relatedKeyValueList(models, localField);
-        List<TH> throughs = getResult(localKeyValueList, foreignField, this::byThroughRelatedRepository);
-
-        List<?> throughKeyValueList = relatedKeyValueList(throughs, throughLocalField);
-        List<R> results = getResult(throughKeyValueList, throughForeignField, this::byRelatedRepository);
+        List<TH> throughs = getThroughResult(models);
+        List<R> results = getThroughForeignResult(throughs);
 
         // 预匹配
         throughMatch(models, throughs, results);
@@ -39,18 +38,19 @@ public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation 
         return results;
     }
 
-    protected List<TH> byThroughRelatedRepository(List<?> keys) {
-        BaseMapper<TH> throughRepository = (BaseMapper<TH>) RelationUtils.getRelatedRepository(throughClass);
-        QueryWrapper<TH> throughWrapper = new QueryWrapper<>();
-        throughWrapper.in(RelationUtils.getColumn(foreignField), keys);
-        return throughRepository.selectList(throughWrapper);
+    protected <T extends Model<?>> List<TH> getThroughResult(List<T> models) {
+        List<?> localKeyValueList = relatedKeyValueList(models, localField);
+        if (CollectionUtils.isEmpty(localKeyValueList)) {
+            return new ArrayList<>();
+        }
+
+        String columnName = RelationUtils.getColumn(foreignField);
+        return getResult(throughClass, cond -> cond.in(columnName, localKeyValueList));
     }
 
-    protected <R extends Model<?>> List<R> byRelatedRepository(List<?> keys) {
-        BaseMapper<R> relatedRepository = (BaseMapper<R>) RelationUtils.getRelatedRepository(throughForeignField.getDeclaringClass());
-        QueryWrapper<R> wrapper = new QueryWrapper<>();
-        wrapper.in(RelationUtils.getColumn(throughForeignField), keys);
-        return relatedRepository.selectList(wrapper);
+    protected <R extends Model<?>> List<R> getThroughForeignResult(List<TH> throughs) {
+        List<?> throughKeyValueList = relatedKeyValueList(throughs, throughLocalField);
+        return getResult(throughKeyValueList, throughForeignField);
     }
 
     public abstract <T extends Model<?>, R extends Model<?>> void throughMatch(List<T> models, List<TH> throughs, List<R> results);
