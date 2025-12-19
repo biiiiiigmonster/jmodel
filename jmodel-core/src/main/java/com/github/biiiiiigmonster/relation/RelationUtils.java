@@ -9,13 +9,10 @@ import com.github.biiiiiigmonster.SerializableFunction;
 import com.github.biiiiiigmonster.SerializedLambda;
 import com.github.biiiiiigmonster.driver.DataDriver;
 import com.github.biiiiiigmonster.driver.DriverRegistry;
-import com.github.biiiiiigmonster.driver.EntityMetadata;
-import com.github.biiiiiigmonster.driver.QueryCondition;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -31,7 +28,7 @@ import java.util.stream.Collectors;
 /**
  * 关联关系工具类
  * 提供模型关联加载、关联操作等功能
- * 
+ *
  * @author luyunfeng
  */
 @Slf4j
@@ -294,31 +291,15 @@ public class RelationUtils {
     }
 
     /**
-     * 检查是否有可用的数据驱动
-     * 
-     * @param field 字段
-     * @return 如果有可用的数据驱动返回 true，否则返回 false
-     */
-    public static boolean hasRelatedRepository(Field field) {
-        Class<?> declaringClass = field.getDeclaringClass();
-        try {
-            DriverRegistry.getDriver((Class<? extends Model<?>>) declaringClass);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    /**
-     * 获取字段对应的数据库列名（通过元数据提供者）
-     * 
+     * 获取字段对应的数据库列名（通过驱动）
+     *
      * @param foreignField 字段
      * @return 数据库列名
      */
     public static String getColumn(Field foreignField) {
         Class<?> entityClass = foreignField.getDeclaringClass();
-        EntityMetadata metadata = DriverRegistry.getMetadata(entityClass);
-        return metadata.getColumnName(entityClass, foreignField.getName());
+        DataDriver<?> driver = DriverRegistry.getDriver((Class<? extends Model<?>>) entityClass);
+        return driver.getColumnName(entityClass, foreignField.getName());
     }
 
     public static Class<?> getGenericType(Field field) {
@@ -358,74 +339,27 @@ public class RelationUtils {
     }
 
     /**
-     * 获取实体主键字段名（通过元数据提供者）
+     * 获取实体主键字段名（通过驱动）
      *
      * @param clazz model class
      * @return 主键字段名
      */
     public static String getPrimaryKey(Class<?> clazz) {
-        try {
-            EntityMetadata metadata = DriverRegistry.getMetadata(clazz);
-            return metadata.getPrimaryKey(clazz);
-        } catch (Exception e) {
-            // 如果元数据提供者未注册，返回默认值
-            return "id";
-        }
+        DataDriver<?> driver = DriverRegistry.getDriver((Class<? extends Model<?>>) clazz);
+        return driver.getPrimaryKey(clazz);
     }
 
     /**
-     * 获取外键字段名（通过元数据提供者）
+     * 获取外键字段名（通过驱动）
      *
      * @param clazz model class
      * @return 外键字段名
      */
     public static String getForeignKey(Class<?> clazz) {
-        try {
-            EntityMetadata metadata = DriverRegistry.getMetadata(clazz);
-            return metadata.getForeignKey(clazz);
-        } catch (Exception e) {
-            // 如果元数据提供者未注册，使用默认约定
-            return StrUtil.lowerFirst(clazz.getSimpleName()) + StrUtil.upperFirst(getPrimaryKey(clazz));
-        }
+        String primaryKey = getPrimaryKey(clazz);
+        String simpleName = clazz.getSimpleName();
+        return StrUtil.lowerFirst(simpleName) + StrUtil.upperFirst(primaryKey);
     }
-
-    /**
-     * 根据字段值批量查询实体（用于关联查询优化）
-     * 
-     * @param entityClass 实体类
-     * @param fieldName 字段名
-     * @param values 字段值列表
-     * @param <T> 实体类型
-     * @return 符合条件的实体列表
-     */
-    public static <T extends Model<?>> List<T> findByFieldValues(Class<T> entityClass, String fieldName, List<?> values) {
-        if (CollectionUtils.isEmpty(values)) {
-            return new ArrayList<>();
-        }
-        DataDriver<T> driver = DriverRegistry.getDriver(entityClass);
-        QueryCondition condition = QueryCondition.byFieldValues(fieldName, values);
-        return driver.findByCondition(entityClass, condition);
-    }
-
-    /**
-     * 根据主键批量查询实体
-     * 
-     * @param entityClass 实体类
-     * @param ids 主键值列表
-     * @param <T> 实体类型
-     * @return 符合条件的实体列表
-     */
-    public static <T extends Model<?>> List<T> findByIds(Class<T> entityClass, List<? extends Serializable> ids) {
-        if (CollectionUtils.isEmpty(ids)) {
-            return new ArrayList<>();
-        }
-        DataDriver<T> driver = DriverRegistry.getDriver(entityClass);
-        String primaryKey = getPrimaryKey(entityClass);
-        QueryCondition condition = QueryCondition.byIds(primaryKey, ids);
-        return driver.findByCondition(entityClass, condition);
-    }
-
-
 
     public static <T extends Model<?>, R extends Model<?>> void associateRelations(T model, SerializableFunction<T, R> relation, R relationModel) {
         Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);

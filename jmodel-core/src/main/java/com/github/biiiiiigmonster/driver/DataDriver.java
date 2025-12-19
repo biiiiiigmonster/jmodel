@@ -7,12 +7,33 @@ import java.util.List;
 
 /**
  * 数据驱动核心接口
- * 定义了所有底层 ORM 框架需要实现的标准操作
+ * 定义了所有底层 ORM 框架需要实现的标准操作，包括元数据查询和数据操作
  *
  * @param <T> 继承自 Model 的实体类型
  * @author jmodel-core
  */
 public interface DataDriver<T extends Model<?>> {
+
+    // ===== 元数据方法 =====
+
+    /**
+     * 获取实体类的主键字段名
+     *
+     * @param entityClass 实体类
+     * @return 主键字段名
+     */
+    String getPrimaryKey(Class<?> entityClass);
+
+    /**
+     * 获取字段对应的数据库列名
+     *
+     * @param entityClass 实体类
+     * @param fieldName   字段名
+     * @return 数据库列名
+     */
+    String getColumnName(Class<?> entityClass, String fieldName);
+
+    // ===== 数据操作方法 =====
 
     /**
      * 根据主键查找实体
