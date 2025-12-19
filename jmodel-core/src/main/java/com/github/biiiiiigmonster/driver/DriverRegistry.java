@@ -2,7 +2,7 @@ package com.github.biiiiiigmonster.driver;
 
 import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.config.CoreProperties;
-import com.github.biiiiiigmonster.driver.annotation.UseDriver;
+import com.github.biiiiiigmonster.driver.annotation.ModelDriver;
 import com.github.biiiiiigmonster.driver.exception.DriverNotRegisteredException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -142,7 +142,7 @@ public class DriverRegistry {
 
     /**
      * 获取模型的驱动类
-     * 优先从 UseDriver 注解获取，否则使用默认驱动
+     * 优先从 ModelDriver 注解获取，否则使用默认驱动
      *
      * @param modelClass 模型类
      * @return 驱动类
@@ -150,7 +150,7 @@ public class DriverRegistry {
      */
     public static Class<? extends DataDriver<?>> getDriverClass(Class<?> modelClass) {
         return MODEL_DRIVER_MAP.computeIfAbsent(modelClass, clazz -> {
-            UseDriver annotation = clazz.getAnnotation(UseDriver.class);
+            ModelDriver annotation = clazz.getAnnotation(ModelDriver.class);
             if (annotation != null) {
                 return annotation.value();
             }
