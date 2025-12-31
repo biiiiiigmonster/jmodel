@@ -117,6 +117,6 @@ public class AttributeUtils implements BeanPostProcessor {
     }
 
     public static boolean hasAttributeAnnotation(Field field) {
-        return field.getAnnotation(Computed.class) != null;
+        return field.getAnnotation(Attribute.class) != null;
     }
 }
