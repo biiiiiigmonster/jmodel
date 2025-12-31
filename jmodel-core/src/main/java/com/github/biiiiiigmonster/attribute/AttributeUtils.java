@@ -3,11 +3,10 @@ package com.github.biiiiiigmonster.attribute;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.core.util.StrUtil;
 import com.github.biiiiiigmonster.Model;
-import com.github.biiiiiigmonster.relation.RelationUtils;
 import com.github.biiiiiigmonster.SerializableFunction;
 import com.github.biiiiiigmonster.SerializedLambda;
+import com.github.biiiiiigmonster.relation.RelationUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;
@@ -93,13 +92,13 @@ public class AttributeUtils implements BeanPostProcessor {
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
         Class<?> clazz = bean.getClass();
         for (Method method : clazz.getDeclaredMethods()) {
-            attribute(bean, method, method.getAnnotation(Attribute.class));
+            attribute(bean, method, method.getAnnotation(Computed.class));
         }
 
         return bean;
     }
 
-    private void attribute(Object bean, Method method, Attribute annotation) {
+    private void attribute(Object bean, Method method, Computed annotation) {
         if (annotation == null) {
             return;
         }
@@ -108,7 +107,7 @@ public class AttributeUtils implements BeanPostProcessor {
         Class<?> modelClazz = RelationUtils.getGenericParameterType(method);
         String field = annotation.field();
         if (field.isEmpty()) {
-            field = StrUtil.removePreAndLowerFirst(method.getName(), "attribute");
+            field = method.getName();
         }
         ATTRIBUTE_MAP.put(attributeCacheKey(modelClazz, field), map);
     }
@@ -118,6 +117,6 @@ public class AttributeUtils implements BeanPostProcessor {
     }
 
     public static boolean hasAttributeAnnotation(Field field) {
-        return field.getAnnotation(Attribute.class) != null;
+        return field.getAnnotation(Computed.class) != null;
     }
 }
