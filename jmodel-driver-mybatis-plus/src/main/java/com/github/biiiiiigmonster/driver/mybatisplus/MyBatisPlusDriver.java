@@ -49,12 +49,12 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
     /**
      * 主键字段缓存
      */
-    private static final Map<Class<?>, String> PRIMARY_KEY_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Class<Model<?>>, String> PRIMARY_KEY_CACHE = new ConcurrentHashMap<>();
 
     /**
      * 列名缓存
      */
-    private static final Map<String, String> COLUMN_NAME_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Field, String> COLUMN_NAME_CACHE = new ConcurrentHashMap<>();
 
     @Override
     public void setApplicationContext(ApplicationContext context) throws BeansException {
@@ -64,7 +64,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
     // ===== 元数据方法实现 =====
 
     @Override
-    public String getPrimaryKey(Class<?> entityClass) {
+    public String getPrimaryKey(Class<Model<?>> entityClass) {
         return PRIMARY_KEY_CACHE.computeIfAbsent(entityClass, clazz -> {
             for (Field field : getAllFields(clazz)) {
                 TableId tableId = field.getAnnotation(TableId.class);
@@ -77,24 +77,20 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
     }
 
     @Override
-    public String getColumnName(Class<?> entityClass, String fieldName) {
-        String cacheKey = entityClass.getName() + "." + fieldName;
-        return COLUMN_NAME_CACHE.computeIfAbsent(cacheKey, key -> {
+    public String getColumnName(Field field) {
+        return COLUMN_NAME_CACHE.computeIfAbsent(field, key -> {
             try {
-                Field field = getField(entityClass, fieldName);
-                if (field != null) {
-                    TableField tableField = field.getAnnotation(TableField.class);
-                    if (tableField != null && !tableField.value().isEmpty()) {
-                        return tableField.value();
-                    }
-                    TableId tableId = field.getAnnotation(TableId.class);
-                    if (tableId != null && !tableId.value().isEmpty()) {
-                        return tableId.value();
-                    }
+                TableField tableField = key.getAnnotation(TableField.class);
+                if (tableField != null && !tableField.value().isEmpty()) {
+                    return tableField.value();
                 }
-                return StrUtil.toUnderlineCase(fieldName);
+                TableId tableId = key.getAnnotation(TableId.class);
+                if (tableId != null && !tableId.value().isEmpty()) {
+                    return tableId.value();
+                }
+                return StrUtil.toUnderlineCase(key.getName());
             } catch (Exception e) {
-                return StrUtil.toUnderlineCase(fieldName);
+                return StrUtil.toUnderlineCase(key.getName());
             }
         });
     }
@@ -158,19 +154,6 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
             throw e;
         } catch (Exception e) {
             throw new DriverOperationException("deleteById", getClass(), e);
-        }
-    }
-
-    @Override
-    public int delete(Model<?> entity) {
-        try {
-            BaseMapper<Model<?>> mapper = getMapper((Class<Model<?>>) entity.getClass());
-            Serializable id = (Serializable) entity.primaryKeyValue();
-            return mapper.deleteById(id);
-        } catch (DriverOperationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new DriverOperationException("delete", getClass(), e);
         }
     }
 

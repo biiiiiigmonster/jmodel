@@ -296,10 +296,10 @@ public class RelationUtils {
      * @param foreignField 字段
      * @return 数据库列名
      */
-    public static String getColumn(Field foreignField) {
+    public static <T extends Model<?>> String getColumn(Field foreignField) {
         Class<?> entityClass = foreignField.getDeclaringClass();
-        DataDriver<?> driver = DriverRegistry.getDriver((Class<? extends Model<?>>) entityClass);
-        return driver.getColumnName(entityClass, foreignField.getName());
+        DataDriver<T> driver = DriverRegistry.getDriver((Class<T>) entityClass);
+        return driver.getColumnName(foreignField);
     }
 
     public static Class<?> getGenericType(Field field) {
@@ -344,9 +344,10 @@ public class RelationUtils {
      * @param clazz model class
      * @return 主键字段名
      */
-    public static String getPrimaryKey(Class<?> clazz) {
-        DataDriver<?> driver = DriverRegistry.getDriver((Class<? extends Model<?>>) clazz);
-        return driver.getPrimaryKey(clazz);
+    public static <T extends Model<?>> String getPrimaryKey(Class<?> clazz) {
+        Class<T> modelClazz = (Class<T>) clazz;
+        DataDriver<T> driver = DriverRegistry.getDriver(modelClazz);
+        return driver.getPrimaryKey(modelClazz);
     }
 
     /**

@@ -3,6 +3,7 @@ package com.github.biiiiiigmonster.driver;
 import com.github.biiiiiigmonster.Model;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.List;
 
 /**
@@ -22,16 +23,15 @@ public interface DataDriver<T extends Model<?>> {
      * @param entityClass 实体类
      * @return 主键字段名
      */
-    String getPrimaryKey(Class<?> entityClass);
+    String getPrimaryKey(Class<T> entityClass);
 
     /**
      * 获取字段对应的数据库列名
      *
-     * @param entityClass 实体类
-     * @param fieldName   字段名
+     * @param field 字段
      * @return 数据库列名
      */
-    String getColumnName(Class<?> entityClass, String fieldName);
+    String getColumnName(Field field);
 
     // ===== 数据操作方法 =====
 
@@ -84,5 +84,8 @@ public interface DataDriver<T extends Model<?>> {
      * @param entity 要删除的实体
      * @return 删除是否成功
      */
-    int delete(T entity);
+    @SuppressWarnings("unchecked")
+    default int delete(T entity) {
+        return deleteById((Class<T>) entity.getClass(), (Serializable) entity.primaryKeyValue());
+    };
 }
