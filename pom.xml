@@ -12,6 +12,7 @@
     <url>https://github.com/biiiiiigmonster/jmodel</url>
 
     <modules>
+        <module>jmodel-all</module>
         <module>jmodel-core</module>
         <module>jmodel-processor</module>
         <module>jmodel-router</module>
@@ -82,6 +83,11 @@
             <dependency>
                 <groupId>io.github.biiiiiigmonster</groupId>
                 <artifactId>jmodel-driver-mybatis-plus</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.biiiiiigmonster</groupId>
+                <artifactId>jmodel-all</artifactId>
                 <version>${revision}</version>
             </dependency>
             <!-- External dependencies -->
