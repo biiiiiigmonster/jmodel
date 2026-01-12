@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -46,7 +45,7 @@ import java.util.stream.Collectors;
 public class SerializedLambda implements Serializable {
 
     private static final long serialVersionUID = 8025925345765570181L;
-    private static final Map<String, WeakReference<Field>> LAMBDA_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, WeakReference<Field>> LAMBDA_CACHE = new ConcurrentHashMap<>();
 
     private Class<?> capturingClass;
     private String functionalInterfaceClass;
@@ -180,15 +179,11 @@ public class SerializedLambda implements Serializable {
 
     public static Field getField(SerializableFunction<?, ?> column) {
         Class<?> clazz = column.getClass();
-        String name = clazz.getName();
-        return Optional.ofNullable(LAMBDA_CACHE.get(name))
-                .map(WeakReference::get)
-                .orElseGet(() -> {
-                    SerializedLambda lambda = resolve(column);
-                    Field field = ReflectUtil.getField(lambda.getImplClass(), methodToProperty(lambda.getImplMethodName()));
-                    LAMBDA_CACHE.put(name, new WeakReference<>(field));
-                    return field;
-                });
+        return LAMBDA_CACHE.computeIfAbsent(clazz, k -> {
+            SerializedLambda lambda = resolve(column);
+            Field field = ReflectUtil.getField(lambda.getImplClass(), methodToProperty(lambda.getImplMethodName()));
+            return new WeakReference<>(field);
+        }).get();
     }
 
     private static String methodToProperty(String name) {

@@ -7,9 +7,10 @@ import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.driver.DataDriver;
 import com.github.biiiiiigmonster.driver.DriverRegistry;
 import com.github.biiiiiigmonster.driver.QueryCondition;
-import com.github.biiiiiigmonster.relation.annotation.config.Morph;
 import com.github.biiiiiigmonster.relation.annotation.config.MorphAlias;
+import com.github.biiiiiigmonster.relation.annotation.config.MorphId;
 import com.github.biiiiiigmonster.relation.annotation.config.MorphName;
+import com.github.biiiiiigmonster.relation.annotation.config.MorphType;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -19,9 +20,9 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -32,9 +33,9 @@ public abstract class Relation {
     protected Field relatedField;
     protected Model<?> model;
 
-    private static final Map<String, String> MORPH_ALIAS_MAP = new HashMap<>();
+    private static final Map<String, String> MORPH_ALIAS_MAP = new ConcurrentHashMap<>();
 
-    private static final Map<String, String[]> MORPH_MAP = new HashMap<>();
+    private static final Map<Class<?>, Morph> MORPH_MAP = new ConcurrentHashMap<>();
 
     public Relation(Field relatedField) {
         this.relatedField = relatedField;
@@ -88,23 +89,29 @@ public abstract class Relation {
                 .orElse(clazz.getName()));
     }
 
-    public static String[] getMorph(Class<?> clazz) {
-        String key = clazz.getName();
-        return MORPH_MAP.computeIfAbsent(key, k -> {
-            Morph morph = clazz.getAnnotation(Morph.class);
-            if (morph != null) {
-                return new String[]{morph.type(), morph.id()};
-            }
-
-            String name = StrUtil.lowerFirst(clazz.getSimpleName());
-            MorphName morphName = clazz.getAnnotation(MorphName.class);
+    public static Morph getMorph(Class<?> clazz) {
+        return MORPH_MAP.computeIfAbsent(clazz, k -> {
+            String name = StrUtil.lowerFirst(k.getSimpleName());
+            MorphName morphName = k.getAnnotation(MorphName.class);
             if (morphName != null && StringUtils.isNotBlank(morphName.value())) {
                 name = morphName.value();
             }
 
             String type = String.format("%sType", name);
             String id = String.format("%sId", name);
-            return new String[]{type, id};
+
+            for (Field field : k.getDeclaredFields()) {
+                MorphType morphType = field.getAnnotation(MorphType.class);
+                if (morphType != null) {
+                    type = field.getName();
+                }
+                MorphId morphId = field.getAnnotation(MorphId.class);
+                if (morphId != null) {
+                    id = field.getName();
+                }
+            }
+
+            return new Morph(type, id);
         });
     }
 

@@ -17,15 +17,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 public class AttributeUtils implements BeanPostProcessor {
-    private static final Map<String, Map<Object, Method>> ATTRIBUTE_MAP = new HashMap<>();
+    private static final Map<Field, Map<Object, Method>> ATTRIBUTE_MAP = new ConcurrentHashMap<>();
 
     public static Map<Object, Method> getComputedMethod(Field attribute) {
-        return ATTRIBUTE_MAP.get(attributeCacheKey(attribute.getDeclaringClass(), attribute.getName()));
+        return ATTRIBUTE_MAP.get(attribute);
     }
 
     public static <T extends Model<?>> void append(T obj, String... attributes) {
@@ -109,11 +110,7 @@ public class AttributeUtils implements BeanPostProcessor {
         if (field.isEmpty()) {
             field = method.getName();
         }
-        ATTRIBUTE_MAP.put(attributeCacheKey(modelClazz, field), map);
-    }
-
-    private static String attributeCacheKey(Class<?> clazz, String field) {
-        return String.format("%s.%s", clazz.getName(), field);
+        ATTRIBUTE_MAP.put(ReflectUtil.getField(modelClazz, field), map);
     }
 
     public static boolean hasAttributeAnnotation(Field field) {
