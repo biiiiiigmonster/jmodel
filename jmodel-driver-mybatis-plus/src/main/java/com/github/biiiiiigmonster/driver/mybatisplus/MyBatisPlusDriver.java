@@ -14,9 +14,9 @@ import com.github.biiiiiigmonster.driver.exception.DriverOperationException;
 import com.github.biiiiiigmonster.driver.exception.QueryConditionException;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -34,12 +34,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 @SuppressWarnings("unchecked")
-public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationContextAware {
+public class MyBatisPlusDriver implements DataDriver<Model<?>> {
 
     /**
      * Spring 应用上下文
      */
-    private static ApplicationContext applicationContext;
+    @Resource
+    private ApplicationContext applicationContext;
 
     /**
      * Mapper 缓存，避免重复查找
@@ -55,11 +56,6 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
      * 列名缓存
      */
     private static final Map<Field, String> COLUMN_NAME_CACHE = new ConcurrentHashMap<>();
-
-    @Override
-    public void setApplicationContext(ApplicationContext context) throws BeansException {
-        applicationContext = context;
-    }
 
     // ===== 元数据方法实现 =====
 
@@ -282,17 +278,5 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>>, ApplicationConte
             current = current.getSuperclass();
         }
         return fields.toArray(new Field[0]);
-    }
-
-    private Field getField(Class<?> clazz, String fieldName) {
-        Class<?> current = clazz;
-        while (current != null && current != Object.class) {
-            try {
-                return current.getDeclaredField(fieldName);
-            } catch (NoSuchFieldException e) {
-                current = current.getSuperclass();
-            }
-        }
-        return null;
     }
 }
