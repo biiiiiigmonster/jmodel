@@ -75,82 +75,48 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>> {
     @Override
     public String getColumnName(Field field) {
         return COLUMN_NAME_CACHE.computeIfAbsent(field, key -> {
-            try {
-                TableField tableField = key.getAnnotation(TableField.class);
-                if (tableField != null && !tableField.value().isEmpty()) {
-                    return tableField.value();
-                }
-                TableId tableId = key.getAnnotation(TableId.class);
-                if (tableId != null && !tableId.value().isEmpty()) {
-                    return tableId.value();
-                }
-                return StrUtil.toUnderlineCase(key.getName());
-            } catch (Exception e) {
-                return StrUtil.toUnderlineCase(key.getName());
+            TableField tableField = key.getAnnotation(TableField.class);
+            if (tableField != null && !tableField.value().isEmpty()) {
+                return tableField.value();
             }
+            TableId tableId = key.getAnnotation(TableId.class);
+            if (tableId != null && !tableId.value().isEmpty()) {
+                return tableId.value();
+            }
+            return StrUtil.toUnderlineCase(key.getName());
         });
     }
     // ===== 数据操作方法实现 =====
 
     @Override
     public Model<?> findById(Class<Model<?>> entityClass, Serializable id) {
-        try {
-            BaseMapper<Model<?>> mapper = getMapper(entityClass);
-            return mapper.selectById(id);
-        } catch (DriverOperationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new DriverOperationException("findById", getClass(), e);
-        }
+        BaseMapper<Model<?>> mapper = getMapper(entityClass);
+        return mapper.selectById(id);
     }
 
     @Override
     public List<Model<?>> findByCondition(Class<Model<?>> entityClass, QueryCondition condition) {
-        try {
-            BaseMapper<Model<?>> mapper = getMapper(entityClass);
-            QueryWrapper<Model<?>> wrapper = buildQueryWrapper(condition);
-            return mapper.selectList(wrapper);
-        } catch (DriverOperationException | QueryConditionException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new DriverOperationException("findByCondition", getClass(), e);
-        }
+        BaseMapper<Model<?>> mapper = getMapper(entityClass);
+        QueryWrapper<Model<?>> wrapper = buildQueryWrapper(condition);
+        return mapper.selectList(wrapper);
     }
 
     @Override
     public int insert(Model<?> entity) {
-        try {
-            BaseMapper<Model<?>> mapper = getMapper((Class<Model<?>>) entity.getClass());
-            return mapper.insert(entity);
-        } catch (DriverOperationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new DriverOperationException("insert", getClass(), e);
-        }
+        BaseMapper<Model<?>> mapper = getMapper((Class<Model<?>>) entity.getClass());
+        return mapper.insert(entity);
     }
 
     @Override
     public int update(Model<?> entity) {
-        try {
-            BaseMapper<Model<?>> mapper = getMapper((Class<Model<?>>) entity.getClass());
-            return mapper.updateById(entity);
-        } catch (DriverOperationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new DriverOperationException("update", getClass(), e);
-        }
+        BaseMapper<Model<?>> mapper = getMapper((Class<Model<?>>) entity.getClass());
+        return mapper.updateById(entity);
     }
 
     @Override
     public int deleteById(Class<Model<?>> entityClass, Serializable id) {
-        try {
-            BaseMapper<Model<?>> mapper = getMapper(entityClass);
-            return mapper.deleteById(id);
-        } catch (DriverOperationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new DriverOperationException("deleteById", getClass(), e);
-        }
+        BaseMapper<Model<?>> mapper = getMapper(entityClass);
+        return mapper.deleteById(id);
     }
 
     /**
