@@ -17,6 +17,7 @@
 package com.github.biiiiiigmonster;
 
 import cn.hutool.core.util.ReflectUtil;
+import lombok.Getter;
 import org.springframework.util.SerializationUtils;
 
 import java.io.ByteArrayInputStream;
@@ -52,6 +53,7 @@ public class SerializedLambda implements Serializable {
     private String functionalInterfaceMethodName;
     private String functionalInterfaceMethodSignature;
     private String implClass;
+    @Getter
     private String implMethodName;
     private String implMethodSignature;
     private int implMethodKind;
@@ -144,15 +146,6 @@ public class SerializedLambda implements Serializable {
      */
     public String getImplClassName() {
         return normalizedName(implClass);
-    }
-
-    /**
-     * 获取实现者的方法名称
-     *
-     * @return 方法名称
-     */
-    public String getImplMethodName() {
-        return implMethodName;
     }
 
     /**
