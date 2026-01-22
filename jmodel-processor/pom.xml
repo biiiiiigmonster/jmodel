@@ -15,6 +15,11 @@
     <name>jmodel-processor</name>
     <description>ORM with DSL for Java - Metamodel Annotation Processor</description>
 
+    <properties>
+        <junit-jupiter.version>5.9.3</junit-jupiter.version>
+        <compile-testing.version>0.19</compile-testing.version>
+    </properties>
+
     <dependencies>
         <!-- Note: jmodel-processor does NOT depend on jmodel-core at compile time -->
         <!-- The annotation processor detects Model subclasses by checking the type hierarchy -->
@@ -24,14 +29,14 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.9.3</version>
+            <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- Google compile-testing for annotation processor testing -->
         <dependency>
             <groupId>com.google.testing.compile</groupId>
             <artifactId>compile-testing</artifactId>
-            <version>0.19</version>
+            <version>${compile-testing.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
