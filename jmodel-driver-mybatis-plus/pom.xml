@@ -57,11 +57,6 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
         <!-- Metamodel module for generated classes -->
         <dependency>
             <groupId>io.github.biiiiiigmonster</groupId>
