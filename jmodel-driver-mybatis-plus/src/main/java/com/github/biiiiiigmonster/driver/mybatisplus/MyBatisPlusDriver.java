@@ -89,8 +89,8 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>> {
     // ===== 数据操作方法实现 =====
 
     @Override
-    public List<Model<?>> findByCondition(Class<Model<?>> entityClass, QueryCondition condition) {
-        BaseMapper<Model<?>> mapper = getMapper(entityClass);
+    public List<Model<?>> findByCondition(QueryCondition<Model<?>> condition) {
+        BaseMapper<Model<?>> mapper = getMapper(condition.getEntityClass());
         QueryWrapper<Model<?>> wrapper = buildQueryWrapper(condition);
         return mapper.selectList(wrapper);
     }
@@ -186,7 +186,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>> {
      * @param condition 查询条件
      * @return QueryWrapper 实例
      */
-    private QueryWrapper<Model<?>> buildQueryWrapper(QueryCondition condition) {
+    private QueryWrapper<Model<?>> buildQueryWrapper(QueryCondition<Model<?>> condition) {
         QueryWrapper<Model<?>> wrapper = new QueryWrapper<>();
 
         if (condition == null || condition.getCriteria().isEmpty()) {

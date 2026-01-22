@@ -1,5 +1,6 @@
 package com.github.biiiiiigmonster.driver;
 
+import com.github.biiiiiigmonster.Model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -15,7 +16,9 @@ import java.util.List;
  * @author jmodel-core
  */
 @Getter
-public class QueryCondition {
+@AllArgsConstructor
+public class QueryCondition<T extends Model<?>> implements Serializable {
+    private final Class<T> entityClass;
     private final List<Criterion> criteria = new ArrayList<>();
 
     /**
@@ -23,8 +26,8 @@ public class QueryCondition {
      *
      * @return 查询条件实例
      */
-    public static QueryCondition create() {
-        return new QueryCondition();
+    public static <T extends Model<?>> QueryCondition<T> create(Class<T> modelClass) {
+        return new QueryCondition<>(modelClass);
     }
 
     /**
@@ -34,7 +37,7 @@ public class QueryCondition {
      * @param value 值
      * @return 当前查询条件实例
      */
-    public QueryCondition eq(String field, Object value) {
+    public QueryCondition<T> eq(String field, Object value) {
         criteria.add(new Criterion(field, CriterionType.EQ, value));
         return this;
     }
@@ -46,7 +49,7 @@ public class QueryCondition {
      * @param values 值列表
      * @return 当前查询条件实例
      */
-    public QueryCondition in(String field, List<?> values) {
+    public QueryCondition<T> in(String field, List<?> values) {
         criteria.add(new Criterion(field, CriterionType.IN, values));
         return this;
     }
@@ -58,7 +61,7 @@ public class QueryCondition {
      * @param value 值
      * @return 当前查询条件实例
      */
-    public QueryCondition gt(String field, Object value) {
+    public QueryCondition<T> gt(String field, Object value) {
         criteria.add(new Criterion(field, CriterionType.GT, value));
         return this;
     }
@@ -70,7 +73,7 @@ public class QueryCondition {
      * @param value 值
      * @return 当前查询条件实例
      */
-    public QueryCondition lt(String field, Object value) {
+    public QueryCondition<T> lt(String field, Object value) {
         criteria.add(new Criterion(field, CriterionType.LT, value));
         return this;
     }
@@ -82,7 +85,7 @@ public class QueryCondition {
      * @param pattern 模式
      * @return 当前查询条件实例
      */
-    public QueryCondition like(String field, String pattern) {
+    public QueryCondition<T> like(String field, String pattern) {
         criteria.add(new Criterion(field, CriterionType.LIKE, pattern));
         return this;
     }
@@ -93,7 +96,7 @@ public class QueryCondition {
      * @param field 字段名
      * @return 当前查询条件实例
      */
-    public QueryCondition isNull(String field) {
+    public QueryCondition<T> isNull(String field) {
         criteria.add(new Criterion(field, CriterionType.IS_NULL, null));
         return this;
     }
@@ -104,31 +107,9 @@ public class QueryCondition {
      * @param field 字段名
      * @return 当前查询条件实例
      */
-    public QueryCondition isNotNull(String field) {
+    public QueryCondition<T> isNotNull(String field) {
         criteria.add(new Criterion(field, CriterionType.IS_NOT_NULL, null));
         return this;
-    }
-
-    /**
-     * 便捷方法：批量主键查询
-     *
-     * @param primaryKeyField 主键字段名
-     * @param ids             主键值列表
-     * @return 查询条件实例
-     */
-    public static QueryCondition byIds(String primaryKeyField, List<? extends Serializable> ids) {
-        return create().in(primaryKeyField, new ArrayList<>(ids));
-    }
-
-    /**
-     * 便捷方法：字段值批量查询（用于关联查询优化）
-     *
-     * @param fieldName 字段名
-     * @param values    值列表
-     * @return 查询条件实例
-     */
-    public static QueryCondition byFieldValues(String fieldName, List<?> values) {
-        return create().in(fieldName, new ArrayList<>(values));
     }
 
     /**

@@ -46,19 +46,18 @@ public interface DataDriver<T extends Model<?>> {
      * @return 查找到的实体，如果不存在则返回 null
      */
     default T findById(Class<T> entityClass, Serializable id) {
-        QueryCondition condition = QueryCondition.create().eq(getPrimaryKey(entityClass), id);
-        List<T> results = findByCondition(entityClass, condition);
+        QueryCondition<T> condition = QueryCondition.create(entityClass).eq(getPrimaryKey(entityClass), id);
+        List<T> results = findByCondition(condition);
         return CollectionUtils.isEmpty(results) ? null : results.get(0);
     }
 
     /**
      * 根据条件查询实体列表
      *
-     * @param entityClass 实体类
      * @param condition   查询条件
      * @return 符合条件的实体列表
      */
-    List<T> findByCondition(Class<T> entityClass, QueryCondition condition);
+    List<T> findByCondition(QueryCondition<T> condition);
 
     /**
      * 插入新实体

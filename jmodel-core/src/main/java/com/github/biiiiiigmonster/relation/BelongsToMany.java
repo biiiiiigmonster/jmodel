@@ -166,7 +166,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
         DataDriver<P> driver = DriverRegistry.getDriver(pivotClass);
         String foreignPivotColumn = RelationUtils.getColumn(foreignPivotField);
 
-        QueryCondition condition = QueryCondition.create()
+        QueryCondition<P> condition = QueryCondition.create(pivotClass)
                 .eq(foreignPivotColumn, localValue);
 
         if (foreignValues != null && !foreignValues.isEmpty()) {
@@ -175,7 +175,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
         }
 
         // 查询要删除的记录
-        List<P> toDelete = driver.findByCondition(pivotClass, condition);
+        List<P> toDelete = driver.findByCondition(condition);
         // 逐个删除
         for (P pivot : toDelete) {
             driver.delete(pivot);

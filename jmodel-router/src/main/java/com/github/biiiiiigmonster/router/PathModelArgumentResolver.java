@@ -63,8 +63,8 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
     protected <T extends Model<?>> T getModel(String value, String fieldName, Class<?> parameterType) {
         Class<T> entityClass = (Class<T>) parameterType;
         DataDriver<T> driver = DriverRegistry.getDriver(entityClass);
-        QueryCondition condition = QueryCondition.create().eq(fieldName, value);
-        List<T> results = driver.findByCondition(entityClass, condition);
+        QueryCondition<T> condition = QueryCondition.create(entityClass).eq(fieldName, value);
+        List<T> results = driver.findByCondition(condition);
         return CollectionUtils.isEmpty(results) ? null : results.get(0);
     }
 

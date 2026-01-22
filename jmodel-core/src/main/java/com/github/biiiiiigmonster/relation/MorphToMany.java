@@ -60,7 +60,7 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
         String foreignPivotColumn = RelationUtils.getColumn(foreignPivotField);
         String morphTypeColumn = RelationUtils.getColumn(morphPivotType);
         
-        QueryCondition condition = QueryCondition.create()
+        QueryCondition<MP> condition = QueryCondition.create(morphPivotClass)
                 .eq(foreignPivotColumn, localValue)
                 .eq(morphTypeColumn, getMorphAlias());
         
@@ -70,7 +70,7 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
         }
         
         // 查询要删除的记录
-        List<MP> toDelete = driver.findByCondition(morphPivotClass, condition);
+        List<MP> toDelete = driver.findByCondition(condition);
         // 逐个删除
         for (MP pivot : toDelete) {
             driver.delete(pivot);

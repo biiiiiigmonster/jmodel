@@ -53,10 +53,10 @@ public abstract class Relation {
      */
     protected <T extends Model<?>> List<T> getResult(Class<T> entityClass, Consumer<QueryCondition> conditionEnhancer) {
         DataDriver<T> driver = DriverRegistry.getDriver(entityClass);
-        QueryCondition condition = QueryCondition.create();
+        QueryCondition<T> condition = QueryCondition.create(entityClass);
         conditionEnhancer.accept(condition);
 
-        return driver.findByCondition(entityClass, condition);
+        return driver.findByCondition(condition);
     }
 
     /**
