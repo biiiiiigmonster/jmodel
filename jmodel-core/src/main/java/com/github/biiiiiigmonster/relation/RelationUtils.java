@@ -319,14 +319,6 @@ public class RelationUtils {
         return getTypeClass((ParameterizedType) method.getGenericParameterTypes()[0]);
     }
 
-    public static Class<?> getGenericReturnType(Method method) {
-        if (!List.class.isAssignableFrom(method.getReturnType())) {
-            return method.getReturnType();
-        }
-
-        return getTypeClass((ParameterizedType) method.getGenericReturnType());
-    }
-
     private static Class<?> getTypeClass(ParameterizedType type) {
         Type[] typeArguments = type.getActualTypeArguments();
         for (Type typeArgument : typeArguments) {
@@ -426,7 +418,7 @@ public class RelationUtils {
 
     private static <R extends Model<?>> void attachRelations(Relation relation, List<R> relationModels) {
         if (relation instanceof BelongsToMany) {
-            ((BelongsToMany) relation).attach(relationModels);
+            ((BelongsToMany<? extends Pivot<?>>) relation).attach(relationModels);
         }
     }
 
@@ -456,7 +448,7 @@ public class RelationUtils {
 
     private static <R extends Model<?>> void detachRelations(Relation relation, List<R> relationModels) {
         if (relation instanceof BelongsToMany) {
-            ((BelongsToMany) relation).detach(relationModels);
+            ((BelongsToMany<? extends Pivot<?>>) relation).detach(relationModels);
         }
     }
 
@@ -510,7 +502,7 @@ public class RelationUtils {
 
     private static <R extends Model<?>> void syncRelations(Relation relation, List<R> relationModels, boolean detaching) {
         if (relation instanceof BelongsToMany) {
-            ((BelongsToMany) relation).sync(relationModels, detaching);
+            ((BelongsToMany<? extends Pivot<?>>) relation).sync(relationModels, detaching);
         }
     }
 
@@ -540,7 +532,7 @@ public class RelationUtils {
 
     private static <R extends Model<?>> void toggleRelations(Relation relation, List<R> relationModels) {
         if (relation instanceof BelongsToMany) {
-            ((BelongsToMany) relation).toggle(relationModels);
+            ((BelongsToMany<? extends Pivot<?>>) relation).toggle(relationModels);
         }
     }
 }
