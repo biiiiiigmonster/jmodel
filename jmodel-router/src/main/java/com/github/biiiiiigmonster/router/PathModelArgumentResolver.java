@@ -52,8 +52,7 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         }
 
         String fieldName = ann.routeKey().isEmpty() ? RelationUtils.getPrimaryKey(parameter.getParameterType()) : ann.routeKey();
-        Field field = ReflectUtil.getField(parameter.getParameterType(), fieldName);
-        Model<?> model = getModel(value, field);
+        Model<?> model = getModel(value, fieldName, parameter.getParameterType());
         if (model != null && ann.scopeBinding()) {
             scopeBinding(model, parameter, request);
         }
@@ -61,11 +60,10 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         return model;
     }
 
-    protected <T extends Model<?>> T getModel(String value, Field routeField) {
-        Class<T> entityClass = (Class<T>) routeField.getDeclaringClass();
+    protected <T extends Model<?>> T getModel(String value, String fieldName, Class<?> parameterType) {
+        Class<T> entityClass = (Class<T>) parameterType;
         DataDriver<T> driver = DriverRegistry.getDriver(entityClass);
-        String columnName = RelationUtils.getColumn(routeField);
-        QueryCondition condition = QueryCondition.create().eq(columnName, value);
+        QueryCondition condition = QueryCondition.create().eq(fieldName, value);
         List<T> results = driver.findByCondition(entityClass, condition);
         return CollectionUtils.isEmpty(results) ? null : results.get(0);
     }
@@ -73,25 +71,21 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
     protected void scopeBinding(Model<?> model, MethodParameter parameter, NativeWebRequest request) {
         String key = PATH_MODEL_VARIABLES;
         int scope = RequestAttributes.SCOPE_REQUEST;
-        LinkedHashMap<String, Object> pathVars = (LinkedHashMap<String, Object>) request.getAttribute(key, scope);
+        LinkedHashMap<String, Model<?>> pathVars = (LinkedHashMap<String, Model<?>>) request.getAttribute(key, scope);
         if (pathVars == null) {
             return;
         }
 
-        Map.Entry<String, Object> parent = null;
-        for (Map.Entry<String, Object> entry : pathVars.entrySet()) {
+        Map.Entry<String, Model<?>> parent = null;
+        for (Map.Entry<String, Model<?>> entry : pathVars.entrySet()) {
             parent = entry;
         }
         if (parent == null) {
             return;
         }
 
-        RelationUtils.load(model, parent.getKey());
-        Object associate = ReflectUtil.getFieldValue(model, parent.getKey());
-        if (associate instanceof List) {
-            throw new ModelNotFoundException(parameter.getParameterType());
-        }
-        if (((Model<?>) associate).isNot((Model<?>) parent.getValue())) {
+        Model<?> scopeChild = model.get(parent.getKey(), Model.class);
+        if (scopeChild.isNot(parent.getValue())) {
             throw new ModelNotFoundException(parameter.getParameterType());
         }
     }
@@ -101,15 +95,15 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
                                        ModelAndViewContainer mavContainer, NativeWebRequest request) {
         String key = PATH_MODEL_VARIABLES;
         int scope = RequestAttributes.SCOPE_REQUEST;
-        LinkedHashMap<String, Object> pathVars = (LinkedHashMap<String, Object>) request.getAttribute(key, scope);
+        LinkedHashMap<String, Model<?>> pathVars = (LinkedHashMap<String, Model<?>>) request.getAttribute(key, scope);
         if (pathVars == null) {
             pathVars = new LinkedHashMap<>();
             request.setAttribute(key, pathVars, scope);
         }
-        pathVars.put(name, arg);
+        pathVars.put(name, (Model<?>) arg);
     }
 
-    protected void handleMissingValue(String name, MethodParameter parameter, NativeWebRequest request) {
+    protected void handleMissingValue(String name, MethodParameter parameter) {
         throw new ModelNotFoundException(parameter.getParameterType());
     }
 

@@ -89,12 +89,6 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>> {
     // ===== 数据操作方法实现 =====
 
     @Override
-    public Model<?> findById(Class<Model<?>> entityClass, Serializable id) {
-        BaseMapper<Model<?>> mapper = getMapper(entityClass);
-        return mapper.selectById(id);
-    }
-
-    @Override
     public List<Model<?>> findByCondition(Class<Model<?>> entityClass, QueryCondition condition) {
         BaseMapper<Model<?>> mapper = getMapper(entityClass);
         QueryWrapper<Model<?>> wrapper = buildQueryWrapper(condition);

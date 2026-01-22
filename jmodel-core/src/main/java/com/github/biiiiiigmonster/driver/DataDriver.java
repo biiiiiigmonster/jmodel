@@ -1,6 +1,7 @@
 package com.github.biiiiiigmonster.driver;
 
 import com.github.biiiiiigmonster.Model;
+import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -31,7 +32,9 @@ public interface DataDriver<T extends Model<?>> {
      * @param field 字段
      * @return 数据库列名
      */
-    String getColumnName(Field field);
+    default String getColumnName(Field field) {
+        return field.getName();
+    }
 
     // ===== 数据操作方法 =====
 
@@ -42,7 +45,11 @@ public interface DataDriver<T extends Model<?>> {
      * @param id          主键值
      * @return 查找到的实体，如果不存在则返回 null
      */
-    T findById(Class<T> entityClass, Serializable id);
+    default T findById(Class<T> entityClass, Serializable id) {
+        QueryCondition condition = QueryCondition.create().eq(getPrimaryKey(entityClass), id);
+        List<T> results = findByCondition(entityClass, condition);
+        return CollectionUtils.isEmpty(results) ? null : results.get(0);
+    }
 
     /**
      * 根据条件查询实体列表
@@ -59,7 +66,9 @@ public interface DataDriver<T extends Model<?>> {
      * @param entity 要插入的实体
      * @return 插入是否成功
      */
-    int insert(T entity);
+    default int insert(T entity) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * 更新现有实体
@@ -67,7 +76,9 @@ public interface DataDriver<T extends Model<?>> {
      * @param entity 要更新的实体
      * @return 更新是否成功
      */
-    int update(T entity);
+    default int update(T entity) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * 根据主键删除实体
@@ -76,7 +87,9 @@ public interface DataDriver<T extends Model<?>> {
      * @param id          主键值
      * @return 删除是否成功
      */
-    int deleteById(Class<T> entityClass, Serializable id);
+    default int deleteById(Class<T> entityClass, Serializable id) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * 删除实体
