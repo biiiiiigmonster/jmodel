@@ -2,8 +2,6 @@ package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ReflectUtil;
 import com.github.biiiiiigmonster.Model;
-import com.github.biiiiiigmonster.driver.DataDriver;
-import com.github.biiiiiigmonster.driver.DriverRegistry;
 import com.github.biiiiiigmonster.driver.QueryCondition;
 import com.github.biiiiiigmonster.relation.annotation.BelongsTo;
 import com.github.biiiiiigmonster.relation.annotation.MorphTo;
@@ -45,7 +43,7 @@ public abstract class HasOneOrMany extends Relation {
         return (Class<R>) foreignField.getDeclaringClass();
     }
 
-    protected Consumer<QueryCondition> foreignConditionEnhancer(List<?> keys) {
+    protected <R extends Model<?>> Consumer<QueryCondition<R>> foreignConditionEnhancer(List<?> keys) {
         String columnName = RelationUtils.getColumn(foreignField);
         return condition -> condition.in(columnName, keys);
     }

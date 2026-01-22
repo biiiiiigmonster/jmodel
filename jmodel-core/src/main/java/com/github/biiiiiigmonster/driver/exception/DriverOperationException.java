@@ -13,7 +13,7 @@ import lombok.Getter;
 public class DriverOperationException extends RuntimeException {
     
     private final String operation;
-    private final Class<? extends DataDriver<?>> driverClass;
+    private final Class<? extends DataDriver> driverClass;
     
     /**
      * 构造驱动操作异常
@@ -22,7 +22,7 @@ public class DriverOperationException extends RuntimeException {
      * @param driverClass 驱动类
      * @param cause 原始异常
      */
-    public DriverOperationException(String operation, Class<? extends DataDriver<?>> driverClass, Throwable cause) {
+    public DriverOperationException(String operation, Class<? extends DataDriver> driverClass, Throwable cause) {
         super(String.format("驱动 '%s' 执行操作 '%s' 失败", driverClass, operation), cause);
         this.operation = operation;
         this.driverClass = driverClass;
@@ -35,7 +35,7 @@ public class DriverOperationException extends RuntimeException {
      * @param driverClass 驱动类
      * @param message 错误消息
      */
-    public DriverOperationException(String operation, Class<? extends DataDriver<?>> driverClass, String message) {
+    public DriverOperationException(String operation, Class<? extends DataDriver> driverClass, String message) {
         super(String.format("驱动 '%s' 执行操作 '%s' 失败: %s", driverClass, operation, message));
         this.operation = operation;
         this.driverClass = driverClass;

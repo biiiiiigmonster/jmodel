@@ -29,6 +29,6 @@ public class CoreProperties {
         /**
          * 默认驱动类
          */
-        private Class<? extends DataDriver<?>> defaultDriver;
+        private Class<? extends DataDriver> defaultDriver;
     }
 }

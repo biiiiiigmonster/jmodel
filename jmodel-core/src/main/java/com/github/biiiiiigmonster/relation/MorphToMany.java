@@ -37,8 +37,8 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
         return morphPivotClass;
     }
 
-    protected Consumer<QueryCondition> pivotConditionEnhancer(List<?> keys) {
-        Consumer<QueryCondition> superCond = super.pivotConditionEnhancer(keys);
+    protected Consumer<QueryCondition<MP>> pivotConditionEnhancer(List<?> keys) {
+        Consumer<QueryCondition<MP>> superCond = super.pivotConditionEnhancer(keys);
         String morphTypeColumn = RelationUtils.getColumn(morphPivotType);
         return superCond.andThen(cond -> cond.eq(morphTypeColumn, getMorphAlias()));
     }
@@ -56,19 +56,19 @@ public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
 
     @Override
     protected void pivotDeleteByCondition(Object localValue, List<Object> foreignValues) {
-        DataDriver<MP> driver = DriverRegistry.getDriver(morphPivotClass);
+        DataDriver driver = DriverRegistry.getDriver(morphPivotClass);
         String foreignPivotColumn = RelationUtils.getColumn(foreignPivotField);
         String morphTypeColumn = RelationUtils.getColumn(morphPivotType);
-        
+
         QueryCondition<MP> condition = QueryCondition.create(morphPivotClass)
                 .eq(foreignPivotColumn, localValue)
                 .eq(morphTypeColumn, getMorphAlias());
-        
+
         if (foreignValues != null && !foreignValues.isEmpty()) {
             String relatedPivotColumn = RelationUtils.getColumn(relatedPivotField);
             condition.in(relatedPivotColumn, foreignValues);
         }
-        
+
         // 查询要删除的记录
         List<MP> toDelete = driver.findByCondition(condition);
         // 逐个删除

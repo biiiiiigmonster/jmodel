@@ -19,23 +19,22 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author jmodel-core
  */
 @Component
-@SuppressWarnings("unchecked")
 public class DriverRegistry {
 
     /**
      * 已注册的驱动映射表（按Class注册）
      */
-    private static final Map<Class<? extends DataDriver<?>>, DataDriver<?>> DRIVER_MAP = new ConcurrentHashMap<>();
+    private static final Map<Class<? extends DataDriver>, DataDriver> DRIVER_MAP = new ConcurrentHashMap<>();
 
     /**
      * 模型类到驱动类的映射缓存
      */
-    private static final Map<Class<?>, Class<? extends DataDriver<?>>> MODEL_DRIVER_MAP = new ConcurrentHashMap<>();
+    private static final Map<Class<? extends Model<?>>, Class<? extends DataDriver>> MODEL_DRIVER_MAP = new ConcurrentHashMap<>();
 
     /**
      * 默认驱动类
      */
-    private static volatile Class<? extends DataDriver<?>> defaultDriverClass;
+    private static volatile Class<? extends DataDriver> defaultDriverClass;
 
     @Resource
     private CoreProperties coreProperties;
@@ -48,15 +47,14 @@ public class DriverRegistry {
      */
     @PostConstruct
     public void init() {
-        if (coreProperties.getDriver() != null
-                && coreProperties.getDriver().getDefaultDriver() != null) {
+        if (coreProperties.getDriver().getDefaultDriver() != null) {
             defaultDriverClass = coreProperties.getDriver().getDefaultDriver();
         }
 
         // 自动扫描并注册所有DataDriver实现
         Map<String, DataDriver> drivers = applicationContext.getBeansOfType(DataDriver.class);
-        for (DataDriver<?> driver : drivers.values()) {
-            Class<? extends DataDriver<?>> driverClass = (Class<? extends DataDriver<?>>) driver.getClass();
+        for (DataDriver driver : drivers.values()) {
+            Class<? extends DataDriver> driverClass = driver.getClass();
             DRIVER_MAP.put(driverClass, driver);
         }
     }
@@ -65,17 +63,16 @@ public class DriverRegistry {
      * 获取模型对应的驱动
      *
      * @param modelClass 模型类
-     * @param <T>        模型类型
      * @return 对应的数据驱动
      * @throws DriverNotRegisteredException 如果驱动未注册
      */
-    public static <T extends Model<?>> DataDriver<T> getDriver(Class<T> modelClass) {
-        Class<? extends DataDriver<?>> driverClass = getDriverClass(modelClass);
-        DataDriver<?> driver = DRIVER_MAP.get(driverClass);
+    public static DataDriver getDriver(Class<? extends Model<?>> modelClass) {
+        Class<? extends DataDriver> driverClass = getDriverClass(modelClass);
+        DataDriver driver = DRIVER_MAP.get(driverClass);
         if (driver == null) {
             throw new DriverNotRegisteredException(driverClass.getName(), modelClass);
         }
-        return (DataDriver<T>) driver;
+        return driver;
     }
 
     /**
@@ -86,7 +83,7 @@ public class DriverRegistry {
      * @return 驱动类
      * @throws DriverNotRegisteredException 如果没有默认驱动且模型未指定驱动
      */
-    public static Class<? extends DataDriver<?>> getDriverClass(Class<?> modelClass) {
+    public static Class<? extends DataDriver> getDriverClass(Class<? extends Model<?>> modelClass) {
         return MODEL_DRIVER_MAP.computeIfAbsent(modelClass, clazz -> {
             ModelDriver annotation = clazz.getAnnotation(ModelDriver.class);
             if (annotation != null) {
@@ -105,7 +102,7 @@ public class DriverRegistry {
      * @param driverClass 驱动类
      * @return 如果已注册返回 true，否则返回 false
      */
-    public static boolean isDriverRegistered(Class<? extends DataDriver<?>> driverClass) {
+    public static boolean isDriverRegistered(Class<? extends DataDriver> driverClass) {
         return DRIVER_MAP.containsKey(driverClass);
     }
 }

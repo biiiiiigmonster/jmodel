@@ -4,16 +4,13 @@ import cn.hutool.core.util.ReflectUtil;
 import com.github.biiiiiigmonster.attribute.AttributeUtils;
 import com.github.biiiiiigmonster.driver.DataDriver;
 import com.github.biiiiiigmonster.driver.DriverRegistry;
-import com.github.biiiiiigmonster.driver.QueryCondition;
 import com.github.biiiiiigmonster.event.ModelEventPublisher;
 import com.github.biiiiiigmonster.relation.Pivot;
-import com.github.biiiiiigmonster.relation.Relation;
 import com.github.biiiiiigmonster.relation.RelationOption;
 import com.github.biiiiiigmonster.relation.RelationType;
 import com.github.biiiiiigmonster.relation.RelationUtils;
 import lombok.Getter;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.List;
 
@@ -62,7 +59,7 @@ public abstract class Model<T extends Model<?>> {
     }
 
     public Boolean save() {
-        DataDriver<T> driver = DriverRegistry.getDriver((Class<T>) getClass());
+        DataDriver driver = DriverRegistry.getDriver((Class<? extends Model<?>>) getClass());
         boolean isNew = primaryKeyValue() == null;
         int res;
 
@@ -72,7 +69,7 @@ public abstract class Model<T extends Model<?>> {
         if (isNew) {
             // 发布creating事件
             ModelEventPublisher.publishCreating((T) this);
-            res = driver.insert((T) this);
+            res = driver.insert(this);
             if (res > 0) {
                 // 发布created事件
                 ModelEventPublisher.publishCreated((T) this);
@@ -80,7 +77,7 @@ public abstract class Model<T extends Model<?>> {
         } else {
             // 发布updating事件
             ModelEventPublisher.publishUpdating((T) this);
-            res = driver.update((T) this);
+            res = driver.update(this);
             if (res > 0) {
                 // 发布updated事件
                 ModelEventPublisher.publishUpdated((T) this);
@@ -96,12 +93,12 @@ public abstract class Model<T extends Model<?>> {
     }
 
     public Boolean delete() {
-        DataDriver<T> driver = DriverRegistry.getDriver((Class<T>) getClass());
+        DataDriver driver = DriverRegistry.getDriver((Class<? extends Model<?>>) getClass());
 
         // 发布deleting事件
         ModelEventPublisher.publishDeleting((T) this);
 
-        int result = driver.delete((T) this);
+        int result = driver.delete(this);
 
         if (result > 0) {
             // 发布deleted事件

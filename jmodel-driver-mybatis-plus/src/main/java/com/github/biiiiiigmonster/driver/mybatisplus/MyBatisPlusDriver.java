@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 @SuppressWarnings("unchecked")
-public class MyBatisPlusDriver implements DataDriver<Model<?>> {
+public class MyBatisPlusDriver implements DataDriver {
 
     /**
      * Spring 应用上下文
@@ -45,12 +45,12 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>> {
     /**
      * Mapper 缓存，避免重复查找
      */
-    private static final Map<Class<?>, BaseMapper<?>> MAPPER_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Class<? extends Model<?>>, BaseMapper<?>> MAPPER_CACHE = new ConcurrentHashMap<>();
 
     /**
      * 主键字段缓存
      */
-    private static final Map<Class<Model<?>>, String> PRIMARY_KEY_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Class<? extends Model<?>>, String> PRIMARY_KEY_CACHE = new ConcurrentHashMap<>();
 
     /**
      * 列名缓存
@@ -60,7 +60,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>> {
     // ===== 元数据方法实现 =====
 
     @Override
-    public String getPrimaryKey(Class<Model<?>> entityClass) {
+    public String getPrimaryKey(Class<? extends Model<?>> entityClass) {
         return PRIMARY_KEY_CACHE.computeIfAbsent(entityClass, clazz -> {
             for (Field field : getAllFields(clazz)) {
                 TableId tableId = field.getAnnotation(TableId.class);
@@ -89,26 +89,26 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>> {
     // ===== 数据操作方法实现 =====
 
     @Override
-    public List<Model<?>> findByCondition(QueryCondition<Model<?>> condition) {
-        BaseMapper<Model<?>> mapper = getMapper(condition.getEntityClass());
-        QueryWrapper<Model<?>> wrapper = buildQueryWrapper(condition);
+    public <T extends Model<?>> List<T> findByCondition(QueryCondition<T> condition) {
+        BaseMapper<T> mapper = (BaseMapper<T>) getMapper(condition.getEntityClass());
+        QueryWrapper<T> wrapper = buildQueryWrapper(condition);
         return mapper.selectList(wrapper);
     }
 
     @Override
     public int insert(Model<?> entity) {
-        BaseMapper<Model<?>> mapper = getMapper((Class<Model<?>>) entity.getClass());
+        BaseMapper<Model<?>> mapper = getMapper((Class<? extends Model<?>>) entity.getClass());
         return mapper.insert(entity);
     }
 
     @Override
     public int update(Model<?> entity) {
-        BaseMapper<Model<?>> mapper = getMapper((Class<Model<?>>) entity.getClass());
+        BaseMapper<Model<?>> mapper = getMapper((Class<? extends Model<?>>) entity.getClass());
         return mapper.updateById(entity);
     }
 
     @Override
-    public int deleteById(Class<Model<?>> entityClass, Serializable id) {
+    public int deleteById(Class<? extends Model<?>> entityClass, Serializable id) {
         BaseMapper<Model<?>> mapper = getMapper(entityClass);
         return mapper.deleteById(id);
     }
@@ -119,7 +119,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>> {
      * @param entityClass 实体类
      * @return 对应的 BaseMapper
      */
-    private BaseMapper<Model<?>> getMapper(Class<Model<?>> entityClass) {
+    private BaseMapper<Model<?>> getMapper(Class<? extends Model<?>> entityClass) {
         return (BaseMapper<Model<?>>) MAPPER_CACHE.computeIfAbsent(entityClass, clazz -> {
             // 根据实体类名推断 Mapper 名称
             String mapperBeanName = getMapperBeanName(clazz);
@@ -147,7 +147,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>> {
      * @param entityClass 实体类
      * @return Mapper Bean 名称
      */
-    private String getMapperBeanName(Class<?> entityClass) {
+    private String getMapperBeanName(Class<? extends Model<?>> entityClass) {
         String simpleName = entityClass.getSimpleName();
         return Character.toLowerCase(simpleName.charAt(0)) + simpleName.substring(1) + "Mapper";
     }
@@ -159,7 +159,7 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>> {
      * @param entityClass 实体类
      * @return 如果匹配返回 true
      */
-    private boolean isMapperForEntity(BaseMapper<?> mapper, Class<?> entityClass) {
+    private boolean isMapperForEntity(BaseMapper<?> mapper, Class<? extends Model<?>> entityClass) {
         // 通过 Mapper 接口的泛型参数判断
         Class<?>[] interfaces = mapper.getClass().getInterfaces();
         for (Class<?> iface : interfaces) {
@@ -186,8 +186,8 @@ public class MyBatisPlusDriver implements DataDriver<Model<?>> {
      * @param condition 查询条件
      * @return QueryWrapper 实例
      */
-    private QueryWrapper<Model<?>> buildQueryWrapper(QueryCondition<Model<?>> condition) {
-        QueryWrapper<Model<?>> wrapper = new QueryWrapper<>();
+    private <T extends Model<?>> QueryWrapper<T> buildQueryWrapper(QueryCondition<T> condition) {
+        QueryWrapper<T> wrapper = new QueryWrapper<>();
 
         if (condition == null || condition.getCriteria().isEmpty()) {
             return wrapper;

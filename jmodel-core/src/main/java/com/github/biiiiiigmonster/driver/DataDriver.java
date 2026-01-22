@@ -11,10 +11,9 @@ import java.util.List;
  * 数据驱动核心接口
  * 定义了所有底层 ORM 框架需要实现的标准操作，包括元数据查询和数据操作
  *
- * @param <T> 继承自 Model 的实体类型
  * @author jmodel-core
  */
-public interface DataDriver<T extends Model<?>> {
+public interface DataDriver {
 
     // ===== 元数据方法 =====
 
@@ -24,7 +23,7 @@ public interface DataDriver<T extends Model<?>> {
      * @param entityClass 实体类
      * @return 主键字段名
      */
-    String getPrimaryKey(Class<T> entityClass);
+    String getPrimaryKey(Class<? extends Model<?>> entityClass);
 
     /**
      * 获取字段对应的数据库列名
@@ -45,7 +44,7 @@ public interface DataDriver<T extends Model<?>> {
      * @param id          主键值
      * @return 查找到的实体，如果不存在则返回 null
      */
-    default T findById(Class<T> entityClass, Serializable id) {
+    default <T extends Model<?>> T findById(Class<T> entityClass, Serializable id) {
         QueryCondition<T> condition = QueryCondition.create(entityClass).eq(getPrimaryKey(entityClass), id);
         List<T> results = findByCondition(condition);
         return CollectionUtils.isEmpty(results) ? null : results.get(0);
@@ -54,10 +53,10 @@ public interface DataDriver<T extends Model<?>> {
     /**
      * 根据条件查询实体列表
      *
-     * @param condition   查询条件
+     * @param condition 查询条件
      * @return 符合条件的实体列表
      */
-    List<T> findByCondition(QueryCondition<T> condition);
+    <T extends Model<?>> List<T> findByCondition(QueryCondition<T> condition);
 
     /**
      * 插入新实体
@@ -65,7 +64,7 @@ public interface DataDriver<T extends Model<?>> {
      * @param entity 要插入的实体
      * @return 插入是否成功
      */
-    default int insert(T entity) {
+    default int insert(Model<?> entity) {
         throw new UnsupportedOperationException();
     }
 
@@ -75,7 +74,7 @@ public interface DataDriver<T extends Model<?>> {
      * @param entity 要更新的实体
      * @return 更新是否成功
      */
-    default int update(T entity) {
+    default int update(Model<?> entity) {
         throw new UnsupportedOperationException();
     }
 
@@ -86,7 +85,7 @@ public interface DataDriver<T extends Model<?>> {
      * @param id          主键值
      * @return 删除是否成功
      */
-    default int deleteById(Class<T> entityClass, Serializable id) {
+    default int deleteById(Class<? extends Model<?>> entityClass, Serializable id) {
         throw new UnsupportedOperationException();
     }
 
@@ -97,7 +96,9 @@ public interface DataDriver<T extends Model<?>> {
      * @return 删除是否成功
      */
     @SuppressWarnings("unchecked")
-    default int delete(T entity) {
-        return deleteById((Class<T>) entity.getClass(), (Serializable) entity.primaryKeyValue());
-    };
+    default int delete(Model<?> entity) {
+        return deleteById((Class<? extends Model<?>>) entity.getClass(), (Serializable) entity.primaryKeyValue());
+    }
+
+    ;
 }

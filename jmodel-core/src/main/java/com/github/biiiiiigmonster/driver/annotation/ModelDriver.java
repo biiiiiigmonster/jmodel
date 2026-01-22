@@ -22,5 +22,5 @@ public @interface ModelDriver {
      *
      * @return 驱动类
      */
-    Class<? extends DataDriver<?>> value();
+    Class<? extends DataDriver> value();
 }

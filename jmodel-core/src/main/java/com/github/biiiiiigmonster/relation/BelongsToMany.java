@@ -75,7 +75,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
         return pivotClass;
     }
 
-    protected Consumer<QueryCondition> pivotConditionEnhancer(List<?> keys) {
+    protected Consumer<QueryCondition<P>> pivotConditionEnhancer(List<?> keys) {
         String columnName = RelationUtils.getColumn(foreignPivotField);
         return condition -> condition.in(columnName, keys);
     }
@@ -163,7 +163,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
      * @param foreignValues 外键值列表，如果为 null 则删除所有匹配本地键的记录
      */
     protected void pivotDeleteByCondition(Object localValue, List<Object> foreignValues) {
-        DataDriver<P> driver = DriverRegistry.getDriver(pivotClass);
+        DataDriver driver = DriverRegistry.getDriver(pivotClass);
         String foreignPivotColumn = RelationUtils.getColumn(foreignPivotField);
 
         QueryCondition<P> condition = QueryCondition.create(pivotClass)

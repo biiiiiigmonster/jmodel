@@ -51,8 +51,8 @@ public abstract class Relation {
      * @param entityClass       实体类型
      * @param conditionEnhancer 条件增强器，可为 null
      */
-    protected <T extends Model<?>> List<T> getResult(Class<T> entityClass, Consumer<QueryCondition> conditionEnhancer) {
-        DataDriver<T> driver = DriverRegistry.getDriver(entityClass);
+    protected <T extends Model<?>> List<T> getResult(Class<T> entityClass, Consumer<QueryCondition<T>> conditionEnhancer) {
+        DataDriver driver = DriverRegistry.getDriver(entityClass);
         QueryCondition<T> condition = QueryCondition.create(entityClass);
         conditionEnhancer.accept(condition);
 

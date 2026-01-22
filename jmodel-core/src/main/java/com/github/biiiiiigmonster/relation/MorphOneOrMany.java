@@ -2,15 +2,12 @@ package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ReflectUtil;
 import com.github.biiiiiigmonster.Model;
-import com.github.biiiiiigmonster.driver.DataDriver;
-import com.github.biiiiiigmonster.driver.DriverRegistry;
 import com.github.biiiiiigmonster.driver.QueryCondition;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.function.Consumer;
 
-@SuppressWarnings("unchecked")
 public abstract class MorphOneOrMany extends HasOneOrMany {
     protected Field morphType;
 
@@ -20,8 +17,8 @@ public abstract class MorphOneOrMany extends HasOneOrMany {
         this.morphType = morphType;
     }
 
-    protected Consumer<QueryCondition> foreignConditionEnhancer(List<?> keys) {
-        Consumer<QueryCondition> superCond = super.foreignConditionEnhancer(keys);
+    protected <R extends Model<?>> Consumer<QueryCondition<R>> foreignConditionEnhancer(List<?> keys) {
+        Consumer<QueryCondition<R>> superCond = super.foreignConditionEnhancer(keys);
         String morphTypeColumn = RelationUtils.getColumn(morphType);
         return superCond.andThen(cond -> cond.eq(morphTypeColumn, getMorphAlias()));
     }
