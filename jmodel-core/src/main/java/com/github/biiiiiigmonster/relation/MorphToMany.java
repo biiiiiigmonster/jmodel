@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class MorphToMany<T extends Model<?>, MP extends MorphPivot<?>> extends BelongsToMany<T, MP> {
-    protected Class<MP> morphPivotClass;
     protected Field morphPivotType;
     protected boolean inverse;
 
@@ -29,13 +28,8 @@ public class MorphToMany<T extends Model<?>, MP extends MorphPivot<?>> extends B
     public MorphToMany(Field relatedField, Class<MP> morphPivotClass, Field morphPivotType, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField, boolean inverse, boolean withPivot) {
         super(relatedField, morphPivotClass, foreignPivotField, relatedPivotField, foreignField, localField, withPivot);
 
-        this.morphPivotClass = morphPivotClass;
         this.morphPivotType = morphPivotType;
         this.inverse = inverse;
-    }
-
-    protected Class<MP> getPivotClass() {
-        return morphPivotClass;
     }
 
     protected Consumer<QueryCondition<MP>> pivotConditionEnhancer(List<?> keys) {
@@ -57,11 +51,11 @@ public class MorphToMany<T extends Model<?>, MP extends MorphPivot<?>> extends B
 
     @Override
     protected void pivotDeleteByCondition(Object localValue, List<Object> foreignValues) {
-        DataDriver driver = DriverRegistry.getDriver(morphPivotClass);
+        DataDriver driver = DriverRegistry.getDriver(pivotClass);
         String foreignPivotColumn = RelationUtils.getColumn(foreignPivotField);
         String morphTypeColumn = RelationUtils.getColumn(morphPivotType);
 
-        QueryCondition<MP> condition = QueryCondition.create(morphPivotClass)
+        QueryCondition<MP> condition = QueryCondition.create(pivotClass)
                 .eq(foreignPivotColumn, localValue)
                 .eq(morphTypeColumn, getMorphAlias());
 
@@ -74,7 +68,7 @@ public class MorphToMany<T extends Model<?>, MP extends MorphPivot<?>> extends B
         List<MP> toDelete = driver.findByCondition(condition);
         // 逐个删除
         for (MP pivot : toDelete) {
-            driver.delete(pivot);
+            pivot.delete();
         }
     }
 }

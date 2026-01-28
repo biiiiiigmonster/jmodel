@@ -23,7 +23,7 @@ public class HasOneThrough<T extends Model<?>, TH extends Model<?>> extends HasO
     }
 
     @Override
-    public <T extends Model<?>, R extends Model<?>> void throughMatch(List<T> models, List<TH> throughs, List<R> results) {
+    public <R extends Model<?>> void throughMatch(List<T> models, List<TH> throughs, List<R> results) {
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, throughForeignField), r -> r));
         Map<?, TH> throughDictionary = throughs.stream()

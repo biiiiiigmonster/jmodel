@@ -71,10 +71,6 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
         return getResult(getPivotClass(), pivotConditionEnhancer(localKeyValueList));
     }
 
-    protected Class<P> getPivotClass() {
-        return pivotClass;
-    }
-
     protected Consumer<QueryCondition<P>> pivotConditionEnhancer(List<?> keys) {
         String columnName = RelationUtils.getColumn(foreignPivotField);
         return condition -> condition.in(columnName, keys);
@@ -85,7 +81,7 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
         return getResult(relatedPivotKeyValueList, foreignField);
     }
 
-    protected <T extends Model<?>, R extends Model<?>> void pivotMatch(List<T> models, List<P> pivots, List<R> results) {
+    protected <R extends Model<?>> void pivotMatch(List<T> models, List<P> pivots, List<R> results) {
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
         Map<?, List<P>> pivotDictionary = pivots.stream()
@@ -178,7 +174,7 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
         List<P> toDelete = driver.findByCondition(condition);
         // 逐个删除
         for (P pivot : toDelete) {
-            driver.delete(pivot);
+            pivot.delete();
         }
     }
 

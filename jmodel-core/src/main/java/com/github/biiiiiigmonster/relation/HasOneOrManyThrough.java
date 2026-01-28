@@ -38,7 +38,7 @@ public abstract class HasOneOrManyThrough<T extends Model<?>, TH extends Model<?
         return results;
     }
 
-    protected <T extends Model<?>> List<TH> getThroughResult(List<T> models) {
+    protected List<TH> getThroughResult(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
         if (CollectionUtils.isEmpty(localKeyValueList)) {
             return new ArrayList<>();
@@ -53,7 +53,7 @@ public abstract class HasOneOrManyThrough<T extends Model<?>, TH extends Model<?
         return getResult(throughKeyValueList, throughForeignField);
     }
 
-    public abstract <T extends Model<?>, R extends Model<?>> void throughMatch(List<T> models, List<TH> throughs, List<R> results);
+    public abstract <R extends Model<?>> void throughMatch(List<T> models, List<TH> throughs, List<R> results);
 
     @Override
     public <R extends Model<?>> void match(List<T> models, List<R> results) {

@@ -51,9 +51,9 @@ public abstract class Relation<T extends Model<?>> {
      * @param entityClass       实体类型
      * @param conditionEnhancer 条件增强器，可为 null
      */
-    protected <T extends Model<?>> List<T> getResult(Class<T> entityClass, Consumer<QueryCondition<T>> conditionEnhancer) {
+    protected <R extends Model<?>> List<R> getResult(Class<R> entityClass, Consumer<QueryCondition<R>> conditionEnhancer) {
         DataDriver driver = DriverRegistry.getDriver(entityClass);
-        QueryCondition<T> condition = QueryCondition.create(entityClass);
+        QueryCondition<R> condition = QueryCondition.create(entityClass);
         conditionEnhancer.accept(condition);
 
         return driver.findByCondition(condition);
@@ -62,12 +62,12 @@ public abstract class Relation<T extends Model<?>> {
     /**
      * 获取结果
      */
-    protected <T extends Model<?>> List<T> getResult(List<?> keys, Field relatedField) {
+    protected <R extends Model<?>> List<R> getResult(List<?> keys, Field relatedField) {
         if (CollectionUtils.isEmpty(keys)) {
             return new ArrayList<>();
         }
 
-        Class<T> entityClass = (Class<T>) relatedField.getDeclaringClass();
+        Class<R> entityClass = (Class<R>) relatedField.getDeclaringClass();
         String columnName = RelationUtils.getColumn(relatedField);
         return getResult(entityClass, cond -> cond.in(columnName, keys));
     }

@@ -27,7 +27,7 @@ public class MorphTo<T extends Model<?>> extends BelongsTo<T> {
         return super.getEager(filterMorph(models));
     }
 
-    protected <T extends Model<?>> List<T> filterMorph(List<T> models) {
+    protected List<T> filterMorph(List<T> models) {
         String morphAlias = getMorphAlias();
         return models.stream()
                 .filter(model -> ReflectUtil.getFieldValue(model, morphType).equals(morphAlias))

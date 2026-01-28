@@ -99,6 +99,4 @@ public interface DataDriver {
     default int delete(Model<?> entity) {
         return deleteById((Class<? extends Model<?>>) entity.getClass(), (Serializable) entity.primaryKeyValue());
     }
-
-    ;
 }
