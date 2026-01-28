@@ -1,5 +1,6 @@
 package com.github.biiiiiigmonster.router;
 
+import cn.hutool.core.map.MapUtil;
 import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.ModelNotFoundException;
 import com.github.biiiiiigmonster.driver.DataDriver;
@@ -49,10 +50,11 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
             return null;
         }
 
-        String fieldName = ann.routeKey().isEmpty() ? RelationUtils.getPrimaryKey(parameter.getParameterType()) : ann.routeKey();
-        Model<?> model = getModel(value, fieldName, (Class<? extends Model<?>>) parameter.getParameterType());
+        Class<? extends Model<?>> modelClass = (Class<? extends Model<?>>) parameter.getParameterType();
+        String fieldName = ann.routeKey().isEmpty() ? RelationUtils.getPrimaryKey(modelClass) : ann.routeKey();
+        Model<?> model = getModel(value, fieldName, modelClass);
         if (model != null && ann.scopeBinding()) {
-            scopeBinding(model, parameter, request);
+            scopeBinding(model, request);
         }
 
         return model;
@@ -65,7 +67,7 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         return CollectionUtils.isEmpty(results) ? null : results.get(0);
     }
 
-    protected void scopeBinding(Model<?> model, MethodParameter parameter, NativeWebRequest request) {
+    protected void scopeBinding(Model<?> model, NativeWebRequest request) {
         String key = PATH_MODEL_VARIABLES;
         int scope = RequestAttributes.SCOPE_REQUEST;
         LinkedHashMap<String, Model<?>> pathVars = (LinkedHashMap<String, Model<?>>) request.getAttribute(key, scope);
@@ -73,17 +75,14 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
             return;
         }
 
-        Map.Entry<String, Model<?>> parent = null;
-        for (Map.Entry<String, Model<?>> entry : pathVars.entrySet()) {
-            parent = entry;
-        }
+        Map.Entry<String, Model<?>> parent = CollectionUtils.lastElement(pathVars.entrySet());
         if (parent == null) {
             return;
         }
 
-        Model<?> scopeChild = model.get(parent.getKey(), Model.class);
-        if (scopeChild.isNot(parent.getValue())) {
-            throw new ModelNotFoundException(parameter.getParameterType());
+        Model<?> scopeParent = model.get(parent.getKey(), Model.class);
+        if (scopeParent.isNot(parent.getValue())) {
+            throw new ModelNotFoundException(model.getClass());
         }
     }
 
