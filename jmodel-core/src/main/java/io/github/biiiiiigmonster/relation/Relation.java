@@ -1,0 +1,122 @@
+package io.github.biiiiiigmonster.relation;
+
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
+import io.github.biiiiiigmonster.Model;
+import io.github.biiiiiigmonster.driver.DataDriver;
+import io.github.biiiiiigmonster.driver.DriverRegistry;
+import io.github.biiiiiigmonster.driver.QueryCondition;
+import io.github.biiiiiigmonster.relation.annotation.config.MorphAlias;
+import io.github.biiiiiigmonster.relation.annotation.config.MorphId;
+import io.github.biiiiiigmonster.relation.annotation.config.MorphName;
+import io.github.biiiiiigmonster.relation.annotation.config.MorphType;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+@Getter
+@Slf4j
+@SuppressWarnings("unchecked")
+public abstract class Relation<T extends Model<?>> {
+    protected Field relatedField;
+    protected T model;
+
+    private static final Map<String, String> MORPH_ALIAS_MAP = new ConcurrentHashMap<>();
+
+    private static final Map<Class<?>, Morph> MORPH_MAP = new ConcurrentHashMap<>();
+
+    public Relation(Field relatedField) {
+        this.relatedField = relatedField;
+    }
+
+    public abstract <R extends Model<?>> List<R> getEager(List<T> models);
+
+    public abstract <R extends Model<?>> void match(List<T> models, List<R> results);
+
+    /**
+     * 统一的结果获取方法，支持条件扩展
+     *
+     * @param entityClass       实体类型
+     * @param conditionEnhancer 条件增强器，可为 null
+     */
+    protected <R extends Model<?>> List<R> getResult(Class<R> entityClass, Consumer<QueryCondition<R>> conditionEnhancer) {
+        DataDriver driver = DriverRegistry.getDriver(entityClass);
+        QueryCondition<R> condition = QueryCondition.create(entityClass);
+        conditionEnhancer.accept(condition);
+
+        return driver.findByCondition(condition);
+    }
+
+    /**
+     * 获取结果
+     */
+    protected <R extends Model<?>> List<R> getResult(List<?> keys, Field relatedField) {
+        if (CollectionUtils.isEmpty(keys)) {
+            return new ArrayList<>();
+        }
+
+        Class<R> entityClass = (Class<R>) relatedField.getDeclaringClass();
+        String columnName = RelationUtils.getColumn(relatedField);
+        return getResult(entityClass, cond -> cond.in(columnName, keys));
+    }
+
+    public static <T extends Model<?>> List<?> relatedKeyValueList(List<T> models, Field field) {
+        return models.stream()
+                .map(o -> ReflectUtil.getFieldValue(o, field))
+                .filter(ObjectUtil::isNotEmpty)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    public static String getMorphAlias(Class<?> clazz, Class<?> within) {
+        String key = clazz.getName() + within.getName();
+        return MORPH_ALIAS_MAP.computeIfAbsent(key, k -> Arrays.stream(clazz.getAnnotationsByType(MorphAlias.class))
+                .filter(m -> m.in().length == 0 || Arrays.stream(m.in()).collect(Collectors.toSet()).contains(within))
+                .max(Comparator.comparingInt(m -> m.in().length))
+                .map(m -> StringUtils.isBlank(m.value()) ? clazz.getSimpleName() : m.value())
+                .orElse(clazz.getName()));
+    }
+
+    public static Morph getMorph(Class<?> clazz) {
+        return MORPH_MAP.computeIfAbsent(clazz, k -> {
+            String name = StrUtil.lowerFirst(k.getSimpleName());
+            MorphName morphName = k.getAnnotation(MorphName.class);
+            if (morphName != null && StringUtils.isNotBlank(morphName.value())) {
+                name = morphName.value();
+            }
+
+            String type = String.format("%sType", name);
+            String id = String.format("%sId", name);
+
+            for (Field field : k.getDeclaredFields()) {
+                MorphType morphType = field.getAnnotation(MorphType.class);
+                if (morphType != null) {
+                    type = field.getName();
+                }
+                MorphId morphId = field.getAnnotation(MorphId.class);
+                if (morphId != null) {
+                    id = field.getName();
+                }
+            }
+
+            return new Morph(type, id);
+        });
+    }
+
+    public Relation<T> setModel(T model) {
+        this.model = model;
+        return this;
+    }
+}

@@ -17,7 +17,7 @@ mybatis-plus:
     jdbc-type-for-null: null
     local-cache-scope: statement
   mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.github.biiiiiigmonster.entity
+  type-aliases-package: io.github.biiiiiigmonster.entity
   global-config:
     db-config:
       id-type: auto
@@ -26,4 +26,4 @@ mybatis-plus:
 jmodel:
   core:
     driver:
-      default-driver: com.github.biiiiiigmonster.driver.mybatisplus.MyBatisPlusDriver
+      default-driver: io.github.biiiiiigmonster.driver.mybatisplus.MyBatisPlusDriver

@@ -1,0 +1,30 @@
+package io.github.biiiiiigmonster.entity;
+
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import io.github.biiiiiigmonster.Model;
+import io.github.biiiiiigmonster.relation.annotation.config.MorphName;
+import io.github.biiiiiigmonster.relation.annotation.MorphTo;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@TableName
+@EqualsAndHashCode(callSuper = false)
+@MorphName("imageable")
+public class Image extends Model<Image> {
+    @TableId
+    private Long id;
+    private String url;
+    private String imageableType;
+    private Long imageableId;
+
+    @TableField(exist = false)
+    @MorphTo
+    private User user;
+
+    @TableField(exist = false)
+    @MorphTo
+    private Post post;
+}

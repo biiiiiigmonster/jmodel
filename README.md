@@ -36,7 +36,7 @@ jmodel是一个为Java设计的ORM框架，提供了优雅的DSL查询语法和�
 一对一是最基本的关联类型。例如，一个`User`模型可能与一个`Phone`模型相关联。要定义这种关联，我们在`User`类中添加一个`phone`字段：
 
 ```java
-import com.github.biiiiiigmonster.Model;
+import io.github.biiiiiigmonster.Model;
 
 @TableName
 class User extends Model<User> {
@@ -143,7 +143,7 @@ assertEquals(posts.get(0).getUser(), user);
 我们已经探讨了如何访问子模型的记录，现在让我们定义一个从子模型访问父模型的关联。要定义这种关联，请在子模型上使用`@BelongsTo`注解：
 
 ```java
-import com.github.biiiiiigmonster.Model;
+import io.github.biiiiiigmonster.Model;
 
 @TableName
 class Phone extends Model<Phone> {
@@ -175,7 +175,7 @@ User user = phone.get(Phone::getUser);
 
 ```java
 
-import com.github.biiiiiigmonster.Model;
+import io.github.biiiiiigmonster.Model;
 
 @TableName
 class Mechanic extends Model<Mechanic> {
@@ -192,7 +192,7 @@ class Mechanic extends Model<Mechanic> {
 "远程"一对多关联通过中间关联提供了方便的快捷方式。例如，如果一个`Country`模型通过中间的`User`模型拥有多个`Post`模型，我们可以直接访问一个国家的所有帖子：
 
 ```java
-import com.github.biiiiiigmonster.Model;
+import io.github.biiiiiigmonster.Model;
 
 @TableName
 class Country extends Model<Country> {
@@ -211,7 +211,7 @@ class Country extends Model<Country> {
 多对多关联使用`@BelongsToMany`注解定义：
 
 ```java
-import com.github.biiiiiigmonster.Model;
+import io.github.biiiiiigmonster.Model;
 
 @TableName
 class User extends Model<User> {
@@ -271,7 +271,7 @@ for (Role role : roles) {
 多态一对一关联类似于典型的一对一关联；但是，目标模型可以属于多种类型的模型。例如，`Post`模型和`User`模型可能共享与`Image`模型的关联：
 
 ```java
-import com.github.biiiiiigmonster.Model;
+import io.github.biiiiiigmonster.Model;
 
 @TableName
 class User extends Model<User> {
@@ -312,7 +312,7 @@ class Image extends Model<Image> {
 多态关联允许目标模型属于多种类型的模型。例如，假设您的应用中有`Post`和`Video`模型，并且每个都可以有多个`Comment`模型。使用多态关联，您可以使用单个`comments`关联访问两种模型的所有评论：
 
 ```java
-import com.github.biiiiiigmonster.Model;
+import io.github.biiiiiigmonster.Model;
 
 @TableName
 class Post extends Model<Post> {
@@ -376,7 +376,7 @@ public class Post extends Model<Post> {
 多态多对多关联表示如标签系统等复杂关联。例如，您的应用可能允许用户标记帖子和视频。使用多态多对多关联，您可以使用单个`tags`关联访问这两种模型的所有标签：
 
 ```java
-import com.github.biiiiiigmonster.Model;
+import io.github.biiiiiigmonster.Model;
 
 @TableName
 class Post extends Model<Post> {
@@ -402,7 +402,7 @@ class Video extends Model<Video> {
 要定义多态多对多关联的反向，请在相关模型上使用`@MorphedByMany`注解：
 
 ```java
-import com.github.biiiiiigmonster.Model;
+import io.github.biiiiiigmonster.Model;
 
 @TableName
 class Tag extends Model<Tag> {

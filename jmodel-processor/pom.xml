@@ -23,7 +23,7 @@
     <dependencies>
         <!-- Note: jmodel-processor does NOT depend on jmodel-core at compile time -->
         <!-- The annotation processor detects Model subclasses by checking the type hierarchy -->
-        <!-- using the fully qualified class name "com.github.biiiiiigmonster.Model" -->
+        <!-- using the fully qualified class name "io.github.biiiiiigmonster.Model" -->
 
         <!-- Test dependencies -->
         <dependency>
