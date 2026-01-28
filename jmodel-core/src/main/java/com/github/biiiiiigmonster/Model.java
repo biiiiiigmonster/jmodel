@@ -146,7 +146,7 @@ public abstract class Model<T extends Model<?>> {
     }
 
     public Object primaryKeyValue() {
-        return ReflectUtil.getFieldValue(this, RelationUtils.getPrimaryKey(getClass()));
+        return ReflectUtil.getFieldValue(this, RelationUtils.getPrimaryKey((Class<? extends Model<?>>) getClass()));
     }
 
     public boolean is(Model<?> model) {

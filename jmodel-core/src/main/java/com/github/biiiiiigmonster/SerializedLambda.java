@@ -179,7 +179,7 @@ public class SerializedLambda implements Serializable {
         }).get();
     }
 
-    private static String methodToProperty(String name) {
+    public static String methodToProperty(String name) {
         if (name.startsWith("is")) {
             name = name.substring(2);
         } else if (name.startsWith("get") || name.startsWith("set")) {

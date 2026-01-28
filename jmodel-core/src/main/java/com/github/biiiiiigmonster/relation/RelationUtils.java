@@ -256,7 +256,7 @@ public class RelationUtils {
 
         newList.addAll(oldList);
         return new ArrayList<>(newList.stream().collect(Collectors.toMap(
-                r -> ReflectUtil.getFieldValue(r, RelationUtils.getPrimaryKey(r.getClass())),
+                r -> ReflectUtil.getFieldValue(r, RelationUtils.getPrimaryKey((Class<? extends Model<?>>) r.getClass())),
                 r -> r,
                 (o1, o2) -> o1
         )).values());
@@ -302,32 +302,32 @@ public class RelationUtils {
         return driver.getColumnName(foreignField);
     }
 
-    public static Class<?> getGenericType(Field field) {
+    public static Class<? extends Model<?>> getGenericType(Field field) {
         if (!List.class.isAssignableFrom(field.getType())) {
-            return field.getType();
+            return (Class<? extends Model<?>>) field.getType();
         }
 
         return getTypeClass((ParameterizedType) field.getGenericType());
     }
 
-    public static Class<?> getGenericParameterType(Method method) {
+    public static Class<? extends Model<?>> getGenericParameterType(Method method) {
         Class<?> paramClazz = method.getParameterTypes()[0];
         if (!List.class.isAssignableFrom(paramClazz)) {
-            return paramClazz;
+            return (Class<? extends Model<?>>) paramClazz;
         }
 
         return getTypeClass((ParameterizedType) method.getGenericParameterTypes()[0]);
     }
 
-    private static Class<?> getTypeClass(ParameterizedType type) {
+    private static Class<? extends Model<?>> getTypeClass(ParameterizedType type) {
         Type[] typeArguments = type.getActualTypeArguments();
         for (Type typeArgument : typeArguments) {
             if (typeArgument instanceof Class) {
-                return (Class<?>) typeArgument;
+                return (Class<? extends Model<?>>) typeArgument;
             }
         }
 
-        return Object.class;
+        return null;
     }
 
     /**
@@ -336,10 +336,9 @@ public class RelationUtils {
      * @param clazz model class
      * @return 主键字段名
      */
-    public static String getPrimaryKey(Class<?> clazz) {
-        Class<? extends Model<?>> modelClazz = (Class<? extends Model<?>>) clazz;
-        DataDriver driver = DriverRegistry.getDriver(modelClazz);
-        return driver.getPrimaryKey(modelClazz);
+    public static String getPrimaryKey(Class<? extends Model<?>> clazz) {
+        DataDriver driver = DriverRegistry.getDriver(clazz);
+        return driver.getPrimaryKey(clazz);
     }
 
     /**
@@ -348,7 +347,7 @@ public class RelationUtils {
      * @param clazz model class
      * @return 外键字段名
      */
-    public static String getForeignKey(Class<?> clazz) {
+    public static String getForeignKey(Class<? extends Model<?>> clazz) {
         String primaryKey = getPrimaryKey(clazz);
         String simpleName = clazz.getSimpleName();
         return StrUtil.lowerFirst(simpleName) + StrUtil.upperFirst(primaryKey);
