@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class BelongsTo extends Relation {
+public class BelongsTo<T extends Model<?>> extends Relation<T> {
     protected Field foreignField;
     protected Field ownerField;
 
@@ -25,13 +25,13 @@ public class BelongsTo extends Relation {
     }
 
     @Override
-    public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
+    public <R extends Model<?>> List<R> getEager(List<T> models) {
         List<?> ownerKeyValueList = relatedKeyValueList(models, foreignField);
         return getResult(ownerKeyValueList, ownerField);
     }
 
     @Override
-    public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
+    public <R extends Model<?>> void match(List<T> models, List<R> results) {
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, ownerField), r -> r));
 

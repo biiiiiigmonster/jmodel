@@ -1,6 +1,7 @@
 package com.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ReflectUtil;
+import com.github.biiiiiigmonster.Model;
 import com.github.biiiiiigmonster.driver.DataDriver;
 import com.github.biiiiiigmonster.driver.DriverRegistry;
 import com.github.biiiiiigmonster.driver.QueryCondition;
@@ -9,7 +10,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class MorphToMany<MP extends MorphPivot<?>> extends BelongsToMany<MP> {
+public class MorphToMany<T extends Model<?>, MP extends MorphPivot<?>> extends BelongsToMany<T, MP> {
     protected Class<MP> morphPivotClass;
     protected Field morphPivotType;
     protected boolean inverse;

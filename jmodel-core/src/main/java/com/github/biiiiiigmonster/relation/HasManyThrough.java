@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class HasManyThrough<TH extends Model<?>> extends HasOneOrManyThrough<TH> {
+public class HasManyThrough<T extends Model<?>, TH extends Model<?>> extends HasOneOrManyThrough<T, TH> {
 
     /**
      * @param relatedField        Project.deployments

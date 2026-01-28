@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class HasOneThrough<TH extends Model<?>> extends HasOneOrManyThrough<TH> {
+public class HasOneThrough<T extends Model<?>, TH extends Model<?>> extends HasOneOrManyThrough<T, TH> {
 
     /**
      * @param relatedField        Mechanic.carOwner

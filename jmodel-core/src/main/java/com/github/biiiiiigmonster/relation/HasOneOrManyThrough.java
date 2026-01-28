@@ -10,7 +10,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation {
+public abstract class HasOneOrManyThrough<T extends Model<?>, TH extends Model<?>> extends Relation<T> {
     protected Class<TH> throughClass;
     protected Field foreignField;
     protected Field throughForeignField;
@@ -28,7 +28,7 @@ public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation 
     }
 
     @Override
-    public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
+    public <R extends Model<?>> List<R> getEager(List<T> models) {
         List<TH> throughs = getThroughResult(models);
         List<R> results = getThroughForeignResult(throughs);
 
@@ -56,6 +56,6 @@ public abstract class HasOneOrManyThrough<TH extends Model<?>> extends Relation 
     public abstract <T extends Model<?>, R extends Model<?>> void throughMatch(List<T> models, List<TH> throughs, List<R> results);
 
     @Override
-    public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
+    public <R extends Model<?>> void match(List<T> models, List<R> results) {
     }
 }

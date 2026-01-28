@@ -8,7 +8,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.function.Consumer;
 
-public abstract class MorphOneOrMany extends HasOneOrMany {
+public abstract class MorphOneOrMany<T extends Model<?>> extends HasOneOrMany<T> {
     protected Field morphType;
 
     public MorphOneOrMany(Field relatedField, Field morphType, Field foreignField, Field localField, boolean chaperone) {

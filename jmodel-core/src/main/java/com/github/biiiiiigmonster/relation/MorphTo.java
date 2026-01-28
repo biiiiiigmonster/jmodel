@@ -7,7 +7,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MorphTo extends BelongsTo {
+public class MorphTo<T extends Model<?>> extends BelongsTo<T> {
     protected Field morphType;
 
     /**
@@ -23,7 +23,7 @@ public class MorphTo extends BelongsTo {
     }
 
     @Override
-    public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
+    public <R extends Model<?>> List<R> getEager(List<T> models) {
         return super.getEager(filterMorph(models));
     }
 
@@ -35,7 +35,7 @@ public class MorphTo extends BelongsTo {
     }
 
     @Override
-    public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
+    public <R extends Model<?>> void match(List<T> models, List<R> results) {
         super.match(filterMorph(models), results);
     }
 

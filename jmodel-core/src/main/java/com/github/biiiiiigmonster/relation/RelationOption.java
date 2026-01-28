@@ -48,6 +48,11 @@ public class RelationOption<T extends Model<?>> {
         return new RelationOption<>(clazz, fieldName);
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T extends Model<?>> RelationOption<T> of(T model, String fieldName) {
+        return new RelationOption<>((Class<T>) model.getClass(), fieldName);
+    }
+
     @SafeVarargs
     public final <R extends Model<?>, F> RelationOption<T> appendNested(SerializableFunction<R, F>... relations) {
         nestedRelations.addAll(Arrays.stream(relations).map(RelationOption::of).collect(Collectors.toList()));
@@ -60,16 +65,16 @@ public class RelationOption<T extends Model<?>> {
         return this;
     }
 
-    public void nested(List<RelationOption<?>> relations) {
-        nestedRelations = relations;
+    public <R extends Model<?>> void nested(List<RelationOption<R>> relations) {
+        nestedRelations = new ArrayList<>(relations);
     }
 
     public boolean isRelatedFieldList() {
         return relationType.isResultList();
     }
 
-    public Relation getRelation() {
-        return relationType.getRelation(clazz, fieldName);
+    public Relation<T> getRelation() {
+        return relationType.getRelation(this);
     }
 
     public boolean isNested() {

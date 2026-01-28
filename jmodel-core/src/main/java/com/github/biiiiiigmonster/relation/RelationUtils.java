@@ -41,7 +41,7 @@ public class RelationUtils {
             return;
         }
 
-        load(ListUtil.toList(obj), processRelations(obj.getClass(), Arrays.asList(relations)), false);
+        load(ListUtil.toList(obj), processRelations(obj, Arrays.asList(relations)), false);
     }
 
     @SafeVarargs
@@ -50,7 +50,7 @@ public class RelationUtils {
             return;
         }
 
-        load(ListUtil.toList(obj), processRelations(obj.getClass(), SerializedLambda.resolveFieldNames(relations)), false);
+        load(ListUtil.toList(obj), processRelations(obj, SerializedLambda.resolveFieldNames(relations)), false);
     }
 
     @SafeVarargs
@@ -67,7 +67,7 @@ public class RelationUtils {
             return;
         }
 
-        load(list, processRelations(list.get(0).getClass(), Arrays.asList(relations)), false);
+        load(list, processRelations(list.get(0), Arrays.asList(relations)), false);
     }
 
     @SafeVarargs
@@ -76,7 +76,7 @@ public class RelationUtils {
             return;
         }
 
-        load(list, processRelations(list.get(0).getClass(), SerializedLambda.resolveFieldNames(relations)), false);
+        load(list, processRelations(list.get(0), SerializedLambda.resolveFieldNames(relations)), false);
     }
 
     @SafeVarargs
@@ -93,7 +93,7 @@ public class RelationUtils {
             return;
         }
 
-        load(ListUtil.toList(obj), processRelations(obj.getClass(), Arrays.asList(relations)), loadForce);
+        load(ListUtil.toList(obj), processRelations(obj, Arrays.asList(relations)), loadForce);
     }
 
     @SafeVarargs
@@ -102,7 +102,7 @@ public class RelationUtils {
             return;
         }
 
-        load(ListUtil.toList(obj), processRelations(obj.getClass(), SerializedLambda.resolveFieldNames(relations)), loadForce);
+        load(ListUtil.toList(obj), processRelations(obj, SerializedLambda.resolveFieldNames(relations)), loadForce);
     }
 
     @SafeVarargs
@@ -119,7 +119,7 @@ public class RelationUtils {
             return;
         }
 
-        load(list, processRelations(list.get(0).getClass(), Arrays.asList(relations)), loadForce);
+        load(list, processRelations(list.get(0), Arrays.asList(relations)), loadForce);
     }
 
     @SafeVarargs
@@ -128,7 +128,7 @@ public class RelationUtils {
             return;
         }
 
-        load(list, processRelations(list.get(0).getClass(), SerializedLambda.resolveFieldNames(relations)), loadForce);
+        load(list, processRelations(list.get(0), SerializedLambda.resolveFieldNames(relations)), loadForce);
     }
 
     @SafeVarargs
@@ -145,7 +145,7 @@ public class RelationUtils {
             return;
         }
 
-        load(list, processRelations(list.get(0).getClass(), Arrays.asList(relations)), true);
+        load(list, processRelations(list.get(0), Arrays.asList(relations)), true);
     }
 
     @SafeVarargs
@@ -154,7 +154,7 @@ public class RelationUtils {
             return;
         }
 
-        load(list, processRelations(list.get(0).getClass(), SerializedLambda.resolveFieldNames(relations)), true);
+        load(list, processRelations(list.get(0), SerializedLambda.resolveFieldNames(relations)), true);
     }
 
     @SafeVarargs
@@ -171,7 +171,7 @@ public class RelationUtils {
             return;
         }
 
-        load(ListUtil.toList(obj), processRelations(obj.getClass(), Arrays.asList(relations)), true);
+        load(ListUtil.toList(obj), processRelations(obj, Arrays.asList(relations)), true);
     }
 
     @SafeVarargs
@@ -180,7 +180,7 @@ public class RelationUtils {
             return;
         }
 
-        load(ListUtil.toList(obj), processRelations(obj.getClass(), SerializedLambda.resolveFieldNames(relations)), true);
+        load(ListUtil.toList(obj), processRelations(obj, SerializedLambda.resolveFieldNames(relations)), true);
     }
 
     @SafeVarargs
@@ -198,7 +198,7 @@ public class RelationUtils {
      * @param loadForce
      * @param <T>
      */
-    private static <T extends Model<?>> void load(List<T> models, List<RelationOption<?>> list, boolean loadForce) {
+    private static <T extends Model<?>> void load(List<T> models, List<RelationOption<T>> list, boolean loadForce) {
         if (ObjectUtil.isEmpty(models)) {
             return;
         }
@@ -206,7 +206,7 @@ public class RelationUtils {
         list.forEach((relationOption) -> handle(models, relationOption, loadForce));
     }
 
-    private static <T extends Model<?>, R extends Model<?>> void handle(List<T> models, RelationOption<?> relationOption, boolean loadForce) {
+    private static <T extends Model<?>, R extends Model<?>> void handle(List<T> models, RelationOption<T> relationOption, boolean loadForce) {
         // 分离
         List<T> eager = new ArrayList<>();
         List<T> exists = new ArrayList<>();
@@ -230,12 +230,17 @@ public class RelationUtils {
                 }
             }
         }
-        Relation relation = relationOption.getRelation();
+        Relation<T> relation = relationOption.getRelation();
         // 合并关联结果
         List<R> mergeResults = merge(existResults, relation.getEager(eager));
         // 嵌套处理
         if (relationOption.isNested()) {
-            load(mergeResults, relationOption.getNestedRelations(), loadForce);
+            List<RelationOption<? extends Model<?>>> nestedRelations = relationOption.getNestedRelations();
+            List<RelationOption<R>> nestedRelationOptions = new ArrayList<>();
+            for (RelationOption<? extends Model<?>> nestedRelation : nestedRelations) {
+                nestedRelationOptions.add((RelationOption<R>) nestedRelation);
+            }
+            load(mergeResults, nestedRelationOptions, loadForce);
         }
 
         // 合并父模型数据
@@ -262,7 +267,11 @@ public class RelationUtils {
         )).values());
     }
 
-    private static <T extends Model<?>, R extends Model<?>> List<RelationOption<?>> processRelations(Class<T> clazz, List<String> relations) {
+    private static <T extends Model<?>> List<RelationOption<T>> processRelations(T model, List<String> relations) {
+        return processRelations((Class<T>) model.getClass(), relations);
+    }
+
+    private static <T extends Model<?>, R extends Model<?>> List<RelationOption<T>> processRelations(Class<T> clazz, List<String> relations) {
         Map<String, List<String>> map = relations.stream()
                 .filter(ObjectUtil::isNotEmpty)
                 .collect(Collectors.toMap(
@@ -278,11 +287,12 @@ public class RelationUtils {
                         LinkedHashMap::new
                 ));
 
-        List<RelationOption<?>> list = new ArrayList<>();
+        List<RelationOption<T>> list = new ArrayList<>();
         map.forEach((fieldName, nestedRelations) -> {
-            RelationOption<?> relationOption = RelationOption.of(clazz, fieldName);
+            RelationOption<T> relationOption = RelationOption.of(clazz, fieldName);
             if (!CollectionUtils.isEmpty(nestedRelations)) {
-                relationOption.nested(processRelations((Class<R>) getGenericType(relationOption.getRelatedField()), nestedRelations));
+                List<RelationOption<R>> nestedRelationOptions = processRelations((Class<R>) getGenericType(relationOption.getRelatedField()), nestedRelations);
+                relationOption.nested(nestedRelationOptions);
             }
             list.add(relationOption);
         });
@@ -354,184 +364,184 @@ public class RelationUtils {
     }
 
     public static <T extends Model<?>, R extends Model<?>> void associateRelations(T model, SerializableFunction<T, R> relation, R relationModel) {
-        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
         associateRelations(relationClass, Collections.singletonList(relationModel));
     }
 
     public static <T extends Model<?>, R extends Model<?>> void associateRelations(T model, SerializableFunction<T, List<R>> relation, R... relationModels) {
-        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
         associateRelations(relationClass, Arrays.asList(relationModels));
     }
 
     public static <T extends Model<?>, R extends Model<?>> void associateRelations(T model, SerializableFunction<T, List<R>> relation, List<R> relationModels) {
-        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
         associateRelations(relationClass, relationModels);
     }
 
     public static <T extends Model<?>, R extends Model<?>> void associateRelations(T model, String relation, R... relationModels) {
-        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(model, relation).getRelation().setModel(model);
 
         associateRelations(relationClass, Arrays.asList(relationModels));
     }
 
     public static <T extends Model<?>, R extends Model<?>> void associateRelations(T model, String relation, List<R> relationModels) {
-        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(model, relation).getRelation().setModel(model);
 
         associateRelations(relationClass, relationModels);
     }
 
-    private static <R extends Model<?>> void associateRelations(Relation relation, List<R> relationModels) {
+    private static <T extends Model<?>, R extends Model<?>> void associateRelations(Relation<T> relation, List<R> relationModels) {
         if (relation instanceof HasOneOrMany) {
-            ((HasOneOrMany) relation).associate(relationModels);
+            ((HasOneOrMany<T>) relation).associate(relationModels);
         } else if (relation instanceof BelongsTo) {
-            ((BelongsTo) relation).associate(relationModels.get(0));
+            ((BelongsTo<T>) relation).associate(relationModels.get(0));
         }
     }
 
     public static <T extends Model<?>, R extends Model<?>> void attachRelations(T model, SerializableFunction<T, List<R>> relation, R... models) {
-        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
         attachRelations(relationClass, Arrays.asList(models));
     }
 
     public static <T extends Model<?>, R extends Model<?>> void attachRelations(T model, SerializableFunction<T, List<R>> relation, List<R> models) {
-        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
         attachRelations(relationClass, models);
     }
 
     public static <T extends Model<?>, R extends Model<?>> void attachRelations(T model, String relation, R... models) {
-        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(model, relation).getRelation().setModel(model);
 
         attachRelations(relationClass, Arrays.asList(models));
     }
 
     public static <T extends Model<?>, R extends Model<?>> void attachRelations(T model, String relation, List<R> models) {
-        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(model, relation).getRelation().setModel(model);
 
         attachRelations(relationClass, models);
     }
 
-    private static <R extends Model<?>> void attachRelations(Relation relation, List<R> relationModels) {
+    private static <T extends Model<?>, R extends Model<?>> void attachRelations(Relation<T> relation, List<R> relationModels) {
         if (relation instanceof BelongsToMany) {
-            ((BelongsToMany<? extends Pivot<?>>) relation).attach(relationModels);
+            ((BelongsToMany<T, ? extends Pivot<?>>) relation).attach(relationModels);
         }
     }
 
     public static <T extends Model<?>, R extends Model<?>> void detachRelations(T model, SerializableFunction<T, List<R>> relation, R... models) {
-        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
         detachRelations(relationClass, Arrays.asList(models));
     }
 
     public static <T extends Model<?>, R extends Model<?>> void detachRelations(T model, SerializableFunction<T, List<R>> relation, List<R> models) {
-        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
         detachRelations(relationClass, models);
     }
 
     public static <T extends Model<?>, R extends Model<?>> void detachRelations(T model, String relation, R... models) {
-        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(model, relation).getRelation().setModel(model);
 
         detachRelations(relationClass, Arrays.asList(models));
     }
 
     public static <T extends Model<?>, R extends Model<?>> void detachRelations(T model, String relation, List<R> models) {
-        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(model, relation).getRelation().setModel(model);
 
         detachRelations(relationClass, models);
     }
 
-    private static <R extends Model<?>> void detachRelations(Relation relation, List<R> relationModels) {
+    private static <T extends Model<?>, R extends Model<?>> void detachRelations(Relation<T> relation, List<R> relationModels) {
         if (relation instanceof BelongsToMany) {
-            ((BelongsToMany<? extends Pivot<?>>) relation).detach(relationModels);
+            ((BelongsToMany<T, ? extends Pivot<?>>) relation).detach(relationModels);
         }
     }
 
     public static <T extends Model<?>, R extends Model<?>> void syncRelations(T model, SerializableFunction<T, List<R>> relation, R... models) {
-        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
         syncRelations(relationClass, Arrays.asList(models), true);
     }
 
     public static <T extends Model<?>, R extends Model<?>> void syncRelations(T model, SerializableFunction<T, List<R>> relation, List<R> models) {
-        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
         syncRelations(relationClass, models, true);
     }
 
     public static <T extends Model<?>, R extends Model<?>> void syncRelations(T model, String relation, R... models) {
-        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(model, relation).getRelation().setModel(model);
 
         syncRelations(relationClass, Arrays.asList(models), true);
     }
 
     public static <T extends Model<?>, R extends Model<?>> void syncRelations(T model, String relation, List<R> models) {
-        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(model, relation).getRelation().setModel(model);
 
         syncRelations(relationClass, models, true);
     }
 
     public static <T extends Model<?>, R extends Model<?>> void syncWithoutDetachingRelations(T model, SerializableFunction<T, List<R>> relation, R... models) {
-        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
         syncRelations(relationClass, Arrays.asList(models), false);
     }
 
     public static <T extends Model<?>, R extends Model<?>> void syncWithoutDetachingRelations(T model, SerializableFunction<T, List<R>> relation, List<R> models) {
-        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
         syncRelations(relationClass, models, false);
     }
 
     public static <T extends Model<?>, R extends Model<?>> void syncWithoutDetachingRelations(T model, String relation, R... models) {
-        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(model, relation).getRelation().setModel(model);
 
         syncRelations(relationClass, Arrays.asList(models), false);
     }
 
     public static <T extends Model<?>, R extends Model<?>> void syncWithoutDetachingRelations(T model, String relation, List<R> models) {
-        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(model, relation).getRelation().setModel(model);
 
         syncRelations(relationClass, models, false);
     }
 
-    private static <R extends Model<?>> void syncRelations(Relation relation, List<R> relationModels, boolean detaching) {
+    private static <T extends Model<?>, R extends Model<?>> void syncRelations(Relation<T> relation, List<R> relationModels, boolean detaching) {
         if (relation instanceof BelongsToMany) {
-            ((BelongsToMany<? extends Pivot<?>>) relation).sync(relationModels, detaching);
+            ((BelongsToMany<T, ? extends Pivot<?>>) relation).sync(relationModels, detaching);
         }
     }
 
     public static <T extends Model<?>, R extends Model<?>> void toggleRelations(T model, SerializableFunction<T, List<R>> relation, R... models) {
-        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
         toggleRelations(relationClass, Arrays.asList(models));
     }
 
     public static <T extends Model<?>, R extends Model<?>> void toggleRelations(T model, SerializableFunction<T, List<R>> relation, List<R> models) {
-        Relation relationClass = RelationOption.of(relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(relation).getRelation().setModel(model);
 
         toggleRelations(relationClass, models);
     }
 
     public static <T extends Model<?>, R extends Model<?>> void toggleRelations(T model, String relation, R... models) {
-        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(model, relation).getRelation().setModel(model);
 
         toggleRelations(relationClass, Arrays.asList(models));
     }
 
     public static <T extends Model<?>, R extends Model<?>> void toggleRelations(T model, String relation, List<R> models) {
-        Relation relationClass = RelationOption.of(model.getClass(), relation).getRelation().setModel(model);
+        Relation<T> relationClass = RelationOption.of(model, relation).getRelation().setModel(model);
 
         toggleRelations(relationClass, models);
     }
 
-    private static <R extends Model<?>> void toggleRelations(Relation relation, List<R> relationModels) {
+    private static <T extends Model<?>, R extends Model<?>> void toggleRelations(Relation<T> relation, List<R> relationModels) {
         if (relation instanceof BelongsToMany) {
-            ((BelongsToMany<? extends Pivot<?>>) relation).toggle(relationModels);
+            ((BelongsToMany<T, ? extends Pivot<?>>) relation).toggle(relationModels);
         }
     }
 }

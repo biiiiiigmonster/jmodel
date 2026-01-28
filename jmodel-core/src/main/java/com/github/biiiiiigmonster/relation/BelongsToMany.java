@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class BelongsToMany<P extends Pivot<?>> extends Relation {
+public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relation<T> {
     @Getter
     protected Class<P> pivotClass;
     @Getter
@@ -54,7 +54,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
     }
 
     @Override
-    public <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models) {
+    public <R extends Model<?>> List<R> getEager(List<T> models) {
         List<P> pivots = getPivotResult(models);
         List<R> results = getForeignResult(pivots);
         pivotMatch(models, pivots, results);
@@ -62,7 +62,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
         return results;
     }
 
-    protected <T extends Model<?>> List<P> getPivotResult(List<T> models) {
+    protected List<P> getPivotResult(List<T> models) {
         List<?> localKeyValueList = relatedKeyValueList(models, localField);
         if (CollectionUtils.isEmpty(localKeyValueList)) {
             return new ArrayList<>();
@@ -113,7 +113,7 @@ public class BelongsToMany<P extends Pivot<?>> extends Relation {
     }
 
     @Override
-    public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
+    public <R extends Model<?>> void match(List<T> models, List<R> results) {
     }
 
     public <R extends Model<?>> void attach(List<R> attachModels) {

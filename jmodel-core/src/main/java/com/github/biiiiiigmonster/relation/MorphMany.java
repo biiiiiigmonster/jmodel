@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class MorphMany extends MorphOneOrMany {
+public class MorphMany<T extends Model<?>> extends MorphOneOrMany<T> {
     /**
      * @param relatedField (Post|Video).comments
      * @param morphType    Comment.commentable_type
@@ -22,7 +22,7 @@ public class MorphMany extends MorphOneOrMany {
     }
 
     @Override
-    public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
+    public <R extends Model<?>> void match(List<T> models, List<R> results) {
         Map<?, List<R>> dictionary = results.stream()
                 .filter(r -> ReflectUtil.getFieldValue(r, morphType).equals(getMorphAlias()))
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignField)));

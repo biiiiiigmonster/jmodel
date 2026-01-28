@@ -29,9 +29,9 @@ import java.util.stream.Collectors;
 @Getter
 @Slf4j
 @SuppressWarnings("unchecked")
-public abstract class Relation {
+public abstract class Relation<T extends Model<?>> {
     protected Field relatedField;
-    protected Model<?> model;
+    protected T model;
 
     private static final Map<String, String> MORPH_ALIAS_MAP = new ConcurrentHashMap<>();
 
@@ -41,9 +41,9 @@ public abstract class Relation {
         this.relatedField = relatedField;
     }
 
-    public abstract <T extends Model<?>, R extends Model<?>> List<R> getEager(List<T> models);
+    public abstract <R extends Model<?>> List<R> getEager(List<T> models);
 
-    public abstract <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results);
+    public abstract <R extends Model<?>> void match(List<T> models, List<R> results);
 
     /**
      * 统一的结果获取方法，支持条件扩展
@@ -115,7 +115,7 @@ public abstract class Relation {
         });
     }
 
-    public Relation setModel(Model<?> model) {
+    public Relation<T> setModel(T model) {
         this.model = model;
         return this;
     }

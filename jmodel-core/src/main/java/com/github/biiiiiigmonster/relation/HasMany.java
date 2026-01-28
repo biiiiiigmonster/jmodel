@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class HasMany extends HasOneOrMany {
+public class HasMany<T extends Model<?>> extends HasOneOrMany<T> {
     /**
      * @param relatedField Post.comments
      * @param foreignField Comment.post_id
@@ -21,7 +21,7 @@ public class HasMany extends HasOneOrMany {
     }
 
     @Override
-    public <T extends Model<?>, R extends Model<?>> void match(List<T> models, List<R> results) {
+    public <R extends Model<?>> void match(List<T> models, List<R> results) {
         Map<?, List<R>> dictionary = results.stream()
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignField)));
 
