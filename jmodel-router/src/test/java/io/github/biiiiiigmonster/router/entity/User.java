@@ -20,6 +20,6 @@ public class User extends Model<User> {
     private String email;
 
     @TableField(exist = false)
-    @HasMany(foreignKey = "userId")
+    @HasMany
     private List<Post> posts;
 }

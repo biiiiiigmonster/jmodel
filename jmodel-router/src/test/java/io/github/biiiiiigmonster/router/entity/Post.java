@@ -18,6 +18,6 @@ public class Post extends Model<Post> {
     private String title;
 
     @TableField(exist = false)
-    @BelongsTo(foreignKey = "userId")
+    @BelongsTo
     private User user;
 }
