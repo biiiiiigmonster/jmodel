@@ -1,11 +1,16 @@
 package io.github.biiiiiigmonster.driver;
 
 import io.github.biiiiiigmonster.Model;
+import io.github.biiiiiigmonster.annotation.PrimaryKey;
 import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 数据驱动核心接口
@@ -14,6 +19,15 @@ import java.util.List;
  * @author jmodel-core
  */
 public interface DataDriver {
+    /**
+     * 主键字段缓存
+     */
+    Map<Class<? extends Model<?>>, String> PRIMARY_KEY_CACHE = new ConcurrentHashMap<>();
+
+    /**
+     * 列名缓存
+     */
+    Map<Field, String> COLUMN_NAME_CACHE = new ConcurrentHashMap<>();
 
     // ===== 元数据方法 =====
 
@@ -23,7 +37,17 @@ public interface DataDriver {
      * @param entityClass 实体类
      * @return 主键字段名
      */
-    String getPrimaryKey(Class<? extends Model<?>> entityClass);
+    default String getPrimaryKey(Class<? extends Model<?>> entityClass) {
+        return PRIMARY_KEY_CACHE.computeIfAbsent(entityClass, clazz -> {
+            for (Field field : getAllFields(clazz)) {
+                PrimaryKey primaryKey = field.getAnnotation(PrimaryKey.class);
+                if (primaryKey != null) {
+                    return field.getName();
+                }
+            }
+            return "id";
+        });
+    }
 
     /**
      * 获取字段对应的数据库列名
@@ -32,7 +56,7 @@ public interface DataDriver {
      * @return 数据库列名
      */
     default String getColumnName(Field field) {
-        return field.getName();
+        return COLUMN_NAME_CACHE.computeIfAbsent(field, Field::getName);
     }
 
     // ===== 数据操作方法 =====
@@ -98,5 +122,15 @@ public interface DataDriver {
     @SuppressWarnings("unchecked")
     default int delete(Model<?> entity) {
         return deleteById((Class<? extends Model<?>>) entity.getClass(), (Serializable) entity.primaryKeyValue());
+    }
+
+    static Field[] getAllFields(Class<?> clazz) {
+        List<Field> fields = new ArrayList<>();
+        Class<?> current = clazz;
+        while (current != null && current != Object.class) {
+            fields.addAll(Arrays.asList(current.getDeclaredFields()));
+            current = current.getSuperclass();
+        }
+        return fields.toArray(new Field[0]);
     }
 }

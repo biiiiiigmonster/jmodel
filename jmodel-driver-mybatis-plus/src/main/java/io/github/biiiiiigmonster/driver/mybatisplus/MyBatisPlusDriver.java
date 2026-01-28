@@ -19,8 +19,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,22 +45,12 @@ public class MyBatisPlusDriver implements DataDriver {
      */
     private static final Map<Class<? extends Model<?>>, BaseMapper<?>> MAPPER_CACHE = new ConcurrentHashMap<>();
 
-    /**
-     * 主键字段缓存
-     */
-    private static final Map<Class<? extends Model<?>>, String> PRIMARY_KEY_CACHE = new ConcurrentHashMap<>();
-
-    /**
-     * 列名缓存
-     */
-    private static final Map<Field, String> COLUMN_NAME_CACHE = new ConcurrentHashMap<>();
-
     // ===== 元数据方法实现 =====
 
     @Override
     public String getPrimaryKey(Class<? extends Model<?>> entityClass) {
         return PRIMARY_KEY_CACHE.computeIfAbsent(entityClass, clazz -> {
-            for (Field field : getAllFields(clazz)) {
+            for (Field field : DataDriver.getAllFields(clazz)) {
                 TableId tableId = field.getAnnotation(TableId.class);
                 if (tableId != null) {
                     return field.getName();
@@ -228,15 +216,5 @@ public class MyBatisPlusDriver implements DataDriver {
         }
 
         return wrapper;
-    }
-
-    private Field[] getAllFields(Class<?> clazz) {
-        List<Field> fields = new ArrayList<>();
-        Class<?> current = clazz;
-        while (current != null && current != Object.class) {
-            fields.addAll(Arrays.asList(current.getDeclaredFields()));
-            current = current.getSuperclass();
-        }
-        return fields.toArray(new Field[0]);
     }
 }
