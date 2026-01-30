@@ -56,14 +56,14 @@ jobs:
       - name: Build and run tests
         run: |
           # Build all modules and run tests in a single Maven execution
-          mvn clean test
+          mvn -B package --file pom.xml
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Publish to Maven Central
         run: |
-          # Use central-publishing-maven-plugin to publish
-          mvn deploy -DskipTests -pl jmodel-core,jmodel-processor,jmodel-router
+          # Deploy all modules (parent pom excluded via maven.deploy.skip in pom.xml)
+          mvn deploy -Pdeploy
         env:
           MAVEN_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN }}

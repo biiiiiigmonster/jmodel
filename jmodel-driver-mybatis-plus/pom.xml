@@ -15,6 +15,10 @@
     <name>jmodel-driver-mybatis-plus</name>
     <description>ORM with DSL for Java - MyBatis-Plus Driver Implementation</description>
 
+    <properties>
+        <mybatis-plus.version>3.5.3.2</mybatis-plus.version>
+    </properties>
+
     <dependencies>
         <!-- Internal module dependency -->
         <dependency>
@@ -38,6 +42,7 @@
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>${mybatis-plus.version}</version>
         </dependency>
 
         <!-- Test dependencies -->
@@ -55,11 +60,6 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
         <!-- Metamodel module for generated classes -->
