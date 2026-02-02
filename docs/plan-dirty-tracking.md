@@ -47,12 +47,12 @@ JModel 是一个类似 Laravel Eloquent 的 Java ORM 框架。当前框架支持
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         运行时数据流                                 │
 │                                                                     │
-│   DB 加载 ──► syncOriginal() ──► setter调用 ──► trackChange()       │
-│                    │                                 │              │
-│                    ▼                                 ▼              │
-│              original Map                      changes Set          │
-│                    │                                 │              │
-│                    └────────► save() ◄───────────────┘              │
+│   实体创建 ──► setter调用 ──► trackChange() ──► 惰性建立快照          │
+│   (任意方式)        │               │               │               │
+│                    │               ▼               ▼               │
+│                    │         changes Set     original Map          │
+│                    │               │               │               │
+│                    └───────► save() ◄──────────────┘               │
 │                                  │                                  │
 │                                  ▼                                  │
 │                         快照对比（兜底检测）                          │
@@ -119,10 +119,11 @@ public abstract class Model<T extends Model<?>> {
     // === 新增字段 ===
     
     /**
-     * 原始值快照（数据库加载时或 save 后的值）
+     * 原始值快照（惰性初始化：首次 setter 调用时创建）
      * key: 字段名, value: 原始值
+     * 初始值为 null，表示尚未建立快照
      */
-    private transient Map<String, Object> $jmodel$original = new HashMap<>();
+    private transient Map<String, Object> $jmodel$original = null;
     
     /**
      * 已变更的字段名集合（setter 调用时记录）
@@ -139,6 +140,7 @@ public abstract class Model<T extends Model<?>> {
 ```
 
 > **命名约定**：内部字段使用 `$jmodel$` 前缀，避免与用户字段冲突。
+> **惰性初始化**：`$jmodel$original` 初始为 `null`，在首次 setter 调用时创建快照。
 
 #### 2.4.2 新增方法
 
@@ -162,23 +164,30 @@ public abstract class Model<T extends Model<?>> {
 
 #### 2.4.3 快照对比逻辑
 
-在 `save()` 方法中，执行数据库操作前进行快照对比：
+在 `save()` 方法中，执行数据库操作前进行快照对比，检测未通过 setter 追踪的变更：
 
 ```java
 public Boolean save() {
-    // 1. 快照对比（兜底检测直接赋值和反射赋值）
+    // 1. 如果 original 为 null（从未调用过 setter），先建立快照
+    //    注意：此时快照包含当前值，无法检测之前的直接赋值变更
+    if (this.$jmodel$original == null) {
+        syncOriginal();
+    }
+    
+    // 2. 快照对比（兜底检测：自快照建立后的直接赋值和反射赋值）
     detectUntrackedChanges();
     
-    // 2. 保存前的变更快照（供 wasChanged 使用）
+    // 3. 保存前的变更快照（供 wasChanged 使用）
     Map<String, Object> currentChanges = new HashMap<>(getDirty());
     
-    // 3. 原有逻辑：发布事件、执行数据库操作
+    // 4. 原有逻辑：发布事件、执行数据库操作
     // ...
     
-    // 4. 保存成功后
+    // 5. 保存成功后
     if (res > 0) {
         this.$jmodel$savedChanges = currentChanges;
-        syncOriginal();
+        syncOriginal();  // 重置快照
+        this.$jmodel$changes.clear();  // 清空变更记录
     }
     
     return res > 0;
@@ -186,6 +195,7 @@ public Boolean save() {
 
 private void detectUntrackedChanges() {
     // 遍历所有持久化字段，对比 original 与当前值
+    // 检测未通过 setter 追踪到的变更（如直接赋值、反射赋值）
     for (Field field : getTrackableFields()) {
         String name = field.getName();
         Object original = this.$jmodel$original.get(name);
@@ -198,40 +208,101 @@ private void detectUntrackedChanges() {
 }
 ```
 
-### 2.5 DataDriver 集成
+### 2.5 惰性初始化策略
 
-#### 2.5.1 查询后自动同步
+#### 2.5.1 设计原则
 
-所有从数据库加载实体的方法，返回前需调用 `syncOriginal()`：
+通过惰性初始化在首次 setter 调用时自动创建快照。
 
-**需修改的方法**：
-- `DataDriver.findById()`
-- `DataDriver.findByCondition()`
-- 关系加载相关方法
+这样做的好处：
+- 无论实体如何创建（ORM 查询、直接 mapper 查询、new 创建），都能追踪
+- 用户的使用方式不受任何限制
 
-**修改方式**：在 `MyBatisPlusDriver`（及其他 Driver 实现）的查询方法中，对返回的实体调用 `syncOriginal()`。
+#### 2.5.2 惰性初始化架构
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    实体生命周期                                  │
+│                                                                 │
+│  创建实体（任意方式）                                             │
+│  ├─ ORM 查询                                                    │
+│  ├─ mapper.selectOne()      ──► original = null                 │
+│  └─ new User()                                                  │
+│                                                                 │
+│       │                                                         │
+│       ▼                                                         │
+│                                                                 │
+│  首次调用 setter（增强后）                                        │
+│       │                                                         │
+│       ▼                                                         │
+│  ┌─────────────────────────────────────────────────┐            │
+│  │  $jmodel$trackChange("name", oldVal, newVal)    │            │
+│  │                                                 │            │
+│  │  if (original == null) {                        │            │
+│  │      syncOriginal();  // 惰性创建快照            │            │
+│  │  }                                              │            │
+│  │  // 记录变更...                                  │            │
+│  └─────────────────────────────────────────────────┘            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### 2.5.3 实现要点
+
+**`$jmodel$trackChange` 方法**：
 
 ```java
-// MyBatisPlusDriver.java
-@Override
-public <T extends Model<?>> T findById(Class<T> modelClass, Object id) {
-    T entity = mapper.selectById(id);
-    if (entity != null) {
-        entity.syncOriginal();
+public void $jmodel$trackChange(String field, Object oldValue, Object newValue) {
+    // 惰性初始化：首次追踪时创建快照
+    if (this.$jmodel$original == null) {
+        syncOriginal();
     }
-    return entity;
+    
+    // 比较新值与原始值（不是 oldValue，因为可能有多次修改）
+    Object originalValue = this.$jmodel$original.get(field);
+    if (!Objects.equals(originalValue, newValue)) {
+        this.$jmodel$changes.add(field);
+    } else {
+        // 如果恢复为原始值，移除变更标记
+        this.$jmodel$changes.remove(field);
+    }
 }
 ```
 
-#### 2.5.2 批量查询
+#### 2.5.4 场景分析
 
-批量查询返回的 List 中，每个实体都需要调用 `syncOriginal()`。
+| 场景 | 行为 | 结果 |
+|------|------|------|
+| 通过 ORM 查询后用 setter 修改 | 首次 setter 时快照 | ✅ 正确追踪 |
+| 直接 mapper 查询后用 setter 修改 | 首次 setter 时快照 | ✅ 正确追踪 |
+| `new User()` 后用 setter 设置字段 | 首次 setter 时快照（字段全为 null/默认值） | ✅ 所有设置的字段都是 dirty |
+| 先直接字段赋值，再用 setter 修改 | 首次 setter 时快照已包含直接赋值的值 | ⚠️ 直接赋值的变更丢失 |
+| 先反射赋值，再用 setter 修改 | 首次 setter 时快照已包含反射赋值的值 | ⚠️ 反射赋值的变更丢失 |
+
+#### 2.5.5 已知限制（可接受）
+
+在以下场景中，变更可能无法被正确追踪：
+
+| 场景 | 是否可追踪 | 说明 |
+|------|-----------|------|
+| 只用 setter 修改 | ✅ 完全追踪 | 推荐方式 |
+| 先 setter 修改 A，后直接赋值 B | ✅ A 可追踪，⚠️ B 需 save 前对比 | 首次 setter 时建立快照 |
+| 先直接赋值，后 setter 修改 | ⚠️ 直接赋值丢失 | 快照时已包含直接赋值的值 |
+| 只用直接赋值/反射赋值 | ⚠️ 需 save 前对比 | 快照在首次 setter 时才建立 |
+
+**说明**：
+- 惰性快照在**首次 setter 调用时**建立
+- 如果在 setter 调用前已通过直接赋值修改了字段，快照会包含修改后的值
+- `save()` 前的快照对比可以检测**自快照建立后**的直接赋值变更
+
+**最佳实践**：
+- 优先使用 setter 方法修改字段
+- 如果必须使用直接赋值，在直接赋值**之前**先调用 `syncOriginal()` 手动建立快照
 
 ---
 
 ## 3. 模块结构
 
-### 3.1 新增模块
+### 3.1 模块变更
 
 ```
 jmodel/
@@ -242,17 +313,13 @@ jmodel/
 │           └── tracking/           # 新增：追踪相关工具类
 │               └── TrackingUtils.java
 │
-├── jmodel-enhance-plugin/          # 新增：Maven 插件模块
-│   ├── pom.xml
-│   └── src/main/java/
-│       └── io/github/biiiiiigmonster/enhance/
-│           ├── JModelEnhanceMojo.java      # Maven Mojo
-│           ├── ModelClassEnhancer.java     # 字节码增强逻辑
-│           └── SetterInterceptor.java      # Setter 拦截器
-│
-└── jmodel-driver-mybatis-plus/     # 现有：MyBatis-Plus 驱动
+└── jmodel-enhance-plugin/          # 新增：Maven 插件模块
+    ├── pom.xml
     └── src/main/java/
-        └── ...Driver.java          # 修改：查询后调用 syncOriginal
+        └── io/github/biiiiiigmonster/enhance/
+            ├── JModelEnhanceMojo.java      # Maven Mojo
+            ├── ModelClassEnhancer.java     # 字节码增强逻辑
+            └── SetterInterceptor.java      # Setter 拦截器
 ```
 
 ### 3.2 依赖关系
@@ -263,9 +330,6 @@ jmodel-enhance-plugin
 
 jmodel-core
     └── no new dependencies (tracking logic is self-contained)
-
-jmodel-driver-mybatis-plus
-    └── depends on: jmodel-core (unchanged)
 ```
 
 ---
@@ -300,14 +364,14 @@ jmodel-driver-mybatis-plus
 | P2-07 | 处理 Lombok 生成的 setter 兼容性 | P1 | 待开始 |
 | P2-08 | 添加增强日志输出 | P2 | 待开始 |
 
-### Phase 3: DataDriver 集成
+### Phase 3: 集成验证
 
 | 任务 ID | 任务描述 | 优先级 | 状态 |
 |---------|----------|--------|------|
-| P3-01 | 修改 `MyBatisPlusDriver.findById()` | P0 | 待开始 |
-| P3-02 | 修改 `MyBatisPlusDriver.findByCondition()` | P0 | 待开始 |
-| P3-03 | 修改关系加载方法（RelationUtils 相关） | P1 | 待开始 |
-| P3-04 | 确保批量查询的每个实体都调用 syncOriginal | P0 | 待开始 |
+| P3-01 | 验证通过 ORM 查询的实体能正确追踪 | P0 | 待开始 |
+| P3-02 | 验证直接 mapper 查询的实体能正确追踪 | P0 | 待开始 |
+| P3-03 | 验证 `new` 创建的实体能正确追踪 | P0 | 待开始 |
+| P3-04 | 文档说明已知限制和最佳实践 | P1 | 待开始 |
 
 ### Phase 4: 测试
 
@@ -458,9 +522,9 @@ public void $jmodel$trackChange(String field, Object oldValue, Object newValue);
 ### 6.2 基本使用
 
 ```java
-// 从数据库加载用户（自动 syncOriginal）
+// 从数据库加载用户
 User user = User.find(1L);
-System.out.println("isDirty", user.isDirty());  // false
+System.out.println("isDirty", user.isDirty());  // false（首次调用时惰性建立快照）
 
 // 修改字段
 user.setName("新名字");
@@ -529,13 +593,18 @@ User user = User.find(1L);
 // 直接字段赋值（不通过 setter）
 user.name = "新名字";
 
-// 此时 isDirty 可能返回 false（setter 未被调用）
-// 但 save() 时会进行快照对比，检测到变更
+// 此时如果没有调用过任何 setter，isDirty() 会触发惰性快照
+// 但此时快照已经包含直接赋值的值，所以 isDirty("name") 返回 false
+System.out.println("isDirty name", user.isDirty("name"));  // false（快照时已是新值）
+
+// 不过 save() 前的快照对比可以检测到与原始数据库值的差异
 user.save();
 
-// 保存后可以正确获取变更
+// 保存后可以正确获取变更（通过 save 前快照对比检测到）
 System.out.println("wasChanged name", user.wasChanged("name"));  // true
 ```
+
+> **最佳实践**：建议使用 setter 方法修改字段，以确保变更能被实时追踪。
 
 ---
 
@@ -673,19 +742,16 @@ System.out.println("wasChanged name", user.wasChanged("name"));  // true
 
 ```
 jmodel-core/src/main/java/io/github/biiiiiigmonster/
-├── Model.java                          # 需修改
+├── Model.java                          # 需修改（添加 dirty-tracking 方法）
 ├── tracking/
-│   └── TrackingUtils.java              # 新增
+│   └── TrackingUtils.java              # 新增（获取可追踪字段等工具方法）
 
 jmodel-enhance-plugin/
 ├── pom.xml                             # 新增
 └── src/main/java/io/github/biiiiiigmonster/enhance/
-    ├── JModelEnhanceMojo.java          # 新增
-    ├── ModelClassEnhancer.java         # 新增
-    └── SetterInterceptor.java          # 新增
-
-jmodel-driver-mybatis-plus/src/main/java/io/github/biiiiiigmonster/driver/mybatisplus/
-└── MyBatisPlusDriver.java              # 需修改
+    ├── JModelEnhanceMojo.java          # 新增（Maven 插件入口）
+    ├── ModelClassEnhancer.java         # 新增（字节码增强逻辑）
+    └── SetterInterceptor.java          # 新增（Setter 拦截器）
 ```
 
 ### 11.2 参考资料
