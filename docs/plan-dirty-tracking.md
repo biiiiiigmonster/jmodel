@@ -340,16 +340,16 @@ jmodel-core
 
 | 任务 ID | 任务描述 | 优先级 | 状态 |
 |---------|----------|--------|------|
-| P1-01 | 在 Model 中添加 `$jmodel$original`, `$jmodel$changes`, `$jmodel$savedChanges` 字段 | P0 | 待开始 |
-| P1-02 | 实现 `$jmodel$trackChange(field, oldVal, newVal)` 方法 | P0 | 待开始 |
-| P1-03 | 实现 `isDirty()` 系列方法 | P0 | 待开始 |
-| P1-04 | 实现 `getDirty()` 系列方法（含 only 过滤） | P0 | 待开始 |
-| P1-05 | 实现 `getOriginal()` 系列方法 | P0 | 待开始 |
-| P1-06 | 实现 `wasChanged()` 和 `getChanges()` 方法 | P0 | 待开始 |
-| P1-07 | 实现 `syncOriginal()` 系列方法 | P0 | 待开始 |
-| P1-08 | 创建 `TrackingUtils` 工具类（获取可追踪字段列表等） | P1 | 待开始 |
-| P1-09 | 实现快照对比逻辑 `detectUntrackedChanges()` | P0 | 待开始 |
-| P1-10 | 修改 `save()` 方法，集成 dirty-tracking | P0 | 待开始 |
+| P1-01 | 在 Model 中添加 `$jmodel$original`, `$jmodel$changes`, `$jmodel$savedChanges` 字段 | P0 | ✅ 已完成 |
+| P1-02 | 实现 `$jmodel$trackChange(field, oldVal, newVal)` 方法 | P0 | ✅ 已完成 |
+| P1-03 | 实现 `isDirty()` 系列方法 | P0 | ✅ 已完成 |
+| P1-04 | 实现 `getDirty()` 系列方法（含 only 过滤） | P0 | ✅ 已完成 |
+| P1-05 | 实现 `getOriginal()` 系列方法 | P0 | ✅ 已完成 |
+| P1-06 | 实现 `wasChanged()` 和 `getChanges()` 方法 | P0 | ✅ 已完成 |
+| P1-07 | 实现 `syncOriginal()` 系列方法 | P0 | ✅ 已完成 |
+| P1-08 | 创建 `TrackingUtils` 工具类（获取可追踪字段列表等） | P1 | ✅ 已完成（集成在 Model 内部） |
+| P1-09 | 实现快照对比逻辑 `detectUntrackedChanges()` | P0 | ✅ 已完成 |
+| P1-10 | 修改 `save()` 方法，集成 dirty-tracking | P0 | ✅ 已完成 |
 
 ### Phase 2: ByteBuddy 增强插件
 
