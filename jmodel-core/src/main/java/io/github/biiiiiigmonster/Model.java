@@ -434,7 +434,7 @@ public abstract class Model<T extends Model<?>> {
     @SafeVarargs
     public final <R> boolean isDirty(SerializableFunction<T, R>... columns) {
         String[] fields = Arrays.stream(columns)
-                .map(SerializedLambda::getFieldName)
+                .map(col -> SerializedLambda.getField(col).getName())
                 .toArray(String[]::new);
         return isDirty(fields);
     }
@@ -519,7 +519,7 @@ public abstract class Model<T extends Model<?>> {
      * @return 原始值
      */
     public <R> R getOriginal(SerializableFunction<T, R> column) {
-        String fieldName = SerializedLambda.getFieldName(column);
+        String fieldName = SerializedLambda.getField(column).getName();
         return (R) getOriginal(fieldName);
     }
 

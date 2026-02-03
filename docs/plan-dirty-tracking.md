@@ -355,14 +355,14 @@ jmodel-core
 
 | 任务 ID | 任务描述 | 优先级 | 状态 |
 |---------|----------|--------|------|
-| P2-01 | 创建 `jmodel-enhance-plugin` Maven 模块 | P0 | 待开始 |
-| P2-02 | 添加 ByteBuddy 和 Maven Plugin API 依赖 | P0 | 待开始 |
-| P2-03 | 实现 `JModelEnhanceMojo`（Maven 插件入口） | P0 | 待开始 |
-| P2-04 | 实现 Model 子类扫描逻辑 | P0 | 待开始 |
-| P2-05 | 实现可追踪字段识别逻辑（排除关系字段等） | P0 | 待开始 |
-| P2-06 | 实现 setter 方法增强逻辑 | P0 | 待开始 |
-| P2-07 | 处理 Lombok 生成的 setter 兼容性 | P1 | 待开始 |
-| P2-08 | 添加增强日志输出 | P2 | 待开始 |
+| P2-01 | 创建 `jmodel-enhance-plugin` Maven 模块 | P0 | ✅ 已完成 |
+| P2-02 | 添加 ByteBuddy 和 Maven Plugin API 依赖 | P0 | ✅ 已完成 |
+| P2-03 | 实现 `JModelEnhanceMojo`（Maven 插件入口） | P0 | ✅ 已完成 |
+| P2-04 | 实现 Model 子类扫描逻辑 | P0 | ✅ 已完成 |
+| P2-05 | 实现可追踪字段识别逻辑（排除关系字段等） | P0 | ✅ 已完成 |
+| P2-06 | 实现 setter 方法增强逻辑 | P0 | ✅ 已完成 |
+| P2-07 | 处理 Lombok 生成的 setter 兼容性 | P1 | ✅ 已完成 |
+| P2-08 | 添加增强日志输出 | P2 | ✅ 已完成 |
 
 ### Phase 3: 集成验证
 
