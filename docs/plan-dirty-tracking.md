@@ -47,18 +47,17 @@ JModel 是一个类似 Laravel Eloquent 的 Java ORM 框架。当前框架支持
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         运行时数据流                                 │
 │                                                                     │
-│   实体创建 ──► setter调用 ──► trackChange() ──► 惰性建立快照          │
-│   (任意方式)        │               │               │               │
-│                    │               ▼               ▼               │
-│                    │         changes Set     original Map          │
-│                    │               │               │               │
-│                    └───────► save() ◄──────────────┘               │
-│                                  │                                  │
-│                                  ▼                                  │
-│                         快照对比（兜底检测）                          │
-│                                  │                                  │
-│                                  ▼                                  │
-│                      syncOriginal() + 保存 changes                  │
+│   实体创建（ORM/new）──► setter调用 ──► trackChange() ──► 忽略       │
+│           │                                  (original=null)        │
+│           │                                                         │
+│           ▼                                                         │
+│   syncOriginal() ──► 建立快照 ──► original Map                      │
+│           │                                                         │
+│           ▼                                                         │
+│   setter调用 ──► trackChange() ──► 记录到 changes Set               │
+│           │                                                         │
+│           ▼                                                         │
+│       save() ──► 快照对比（兜底）──► 保存 changes ──► syncOriginal() │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -164,85 +163,86 @@ public abstract class Model<T extends Model<?>> {
 
 #### 2.4.3 快照对比逻辑
 
-在 `save()` 方法中，执行数据库操作前进行快照对比，检测未通过 setter 追踪的变更：
+在 `save()` 方法中，处理追踪状态和变更检测：
 
 ```java
 public Boolean save() {
-    // 1. 如果 original 为 null（从未调用过 setter），先建立快照
-    //    注意：此时快照包含当前值，无法检测之前的直接赋值变更
-    if (this.$jmodel$original == null) {
+    // 1. 记录是否处于未追踪状态
+    boolean wasUntracked = (this.$jmodel$original == null);
+    
+    // 2. 如果未追踪，先建立快照（用于 wasChanged 检测）
+    if (wasUntracked) {
         syncOriginal();
     }
     
-    // 2. 快照对比（兜底检测：自快照建立后的直接赋值和反射赋值）
+    // 3. 快照对比（兜底检测：直接赋值和反射赋值）
     detectUntrackedChanges();
     
-    // 3. 保存前的变更快照（供 wasChanged 使用）
+    // 4. 保存前的变更快照（供 wasChanged 使用）
     Map<String, Object> currentChanges = new HashMap<>(getDirty());
     
-    // 4. 原有逻辑：发布事件、执行数据库操作
+    // 5. 原有逻辑：发布事件、执行数据库操作
     // ...
     
-    // 5. 保存成功后
+    // 6. 保存成功后
     if (res > 0) {
         this.$jmodel$savedChanges = currentChanges;
-        syncOriginal();  // 重置快照
-        this.$jmodel$changes.clear();  // 清空变更记录
+        syncOriginal();  // 重置快照，开始追踪后续变更
     }
     
     return res > 0;
 }
 
 private void detectUntrackedChanges() {
+    if (this.$jmodel$original == null) {
+        return;
+    }
+    
     // 遍历所有持久化字段，对比 original 与当前值
     // 检测未通过 setter 追踪到的变更（如直接赋值、反射赋值）
     for (Field field : getTrackableFields()) {
         String name = field.getName();
-        Object original = this.$jmodel$original.get(name);
-        Object current = ReflectUtil.getFieldValue(this, name);
+        Object originalValue = this.$jmodel$original.get(name);
+        Object currentValue = ReflectUtil.getFieldValue(this, name);
         
-        if (!Objects.equals(original, current)) {
+        if (!Objects.equals(originalValue, currentValue)) {
             this.$jmodel$changes.add(name);
         }
     }
 }
 ```
 
-### 2.5 惰性初始化策略
+### 2.5 显式启用追踪策略
 
 #### 2.5.1 设计原则
 
-通过惰性初始化在首次 setter 调用时自动创建快照。
+**核心问题**：ORM 框架（如 MyBatis-Plus）在从数据库加载数据时，也是通过 setter 方法设置字段值。如果在 setter 中自动触发追踪，会把 ORM 填充误认为用户修改。
 
-这样做的好处：
-- 无论实体如何创建（ORM 查询、直接 mapper 查询、new 创建），都能追踪
-- 用户的使用方式不受任何限制
+**解决方案**：采用显式启用追踪的策略：
+- 默认不追踪：实体创建后处于 `UNTRACKED` 状态
+- 显式启用：调用 `syncOriginal()` 后进入 `TRACKING` 状态
+- save 后自动启用：`save()` 成功后自动进入 `TRACKING` 状态
 
-#### 2.5.2 惰性初始化架构
+#### 2.5.2 实体状态机
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    实体生命周期                                  │
+│                      实体状态机                                  │
 │                                                                 │
-│  创建实体（任意方式）                                             │
-│  ├─ ORM 查询                                                    │
-│  ├─ mapper.selectOne()      ──► original = null                 │
-│  └─ new User()                                                  │
-│                                                                 │
+│   UNTRACKED（未追踪）                                            │
 │       │                                                         │
-│       ▼                                                         │
-│                                                                 │
-│  首次调用 setter（增强后）                                        │
+│       │  ORM 填充、new 创建 ──► setter 调用 ──► 不做任何追踪      │
 │       │                                                         │
+│       │  syncOriginal() 显式调用                                 │
+│       │  或 save() 成功后                                        │
 │       ▼                                                         │
-│  ┌─────────────────────────────────────────────────┐            │
-│  │  $jmodel$trackChange("name", oldVal, newVal)    │            │
-│  │                                                 │            │
-│  │  if (original == null) {                        │            │
-│  │      syncOriginal();  // 惰性创建快照            │            │
-│  │  }                                              │            │
-│  │  // 记录变更...                                  │            │
-│  └─────────────────────────────────────────────────┘            │
+│   TRACKING（追踪中）                                             │
+│       │                                                         │
+│       │  setter 调用 ──► 记录变更到 changes                      │
+│       │                                                         │
+│       │  save() 成功后                                          │
+│       ▼                                                         │
+│   TRACKING（追踪中）──► 重置 original，清空 changes              │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -252,12 +252,12 @@ private void detectUntrackedChanges() {
 
 ```java
 public void $jmodel$trackChange(String field, Object oldValue, Object newValue) {
-    // 惰性初始化：首次追踪时创建快照
+    // 关键：未追踪状态下不做任何事
     if (this.$jmodel$original == null) {
-        syncOriginal();
+        return;
     }
     
-    // 比较新值与原始值（不是 oldValue，因为可能有多次修改）
+    // 追踪状态下记录变更
     Object originalValue = this.$jmodel$original.get(field);
     if (!Objects.equals(originalValue, newValue)) {
         this.$jmodel$changes.add(field);
@@ -268,35 +268,57 @@ public void $jmodel$trackChange(String field, Object oldValue, Object newValue) 
 }
 ```
 
+**`syncOriginal` 方法**：
+
+```java
+public void syncOriginal() {
+    this.$jmodel$original = new HashMap<>();
+    for (Field field : getTrackableFields()) {
+        Object value = ReflectUtil.getFieldValue(this, field.getName());
+        this.$jmodel$original.put(field.getName(), value);
+    }
+    this.$jmodel$changes.clear();
+}
+```
+
 #### 2.5.4 场景分析
 
 | 场景 | 行为 | 结果 |
 |------|------|------|
-| 通过 ORM 查询后用 setter 修改 | 首次 setter 时快照 | ✅ 正确追踪 |
-| 直接 mapper 查询后用 setter 修改 | 首次 setter 时快照 | ✅ 正确追踪 |
-| `new User()` 后用 setter 设置字段 | 首次 setter 时快照（字段全为 null/默认值） | ✅ 所有设置的字段都是 dirty |
-| 先直接字段赋值，再用 setter 修改 | 首次 setter 时快照已包含直接赋值的值 | ⚠️ 直接赋值的变更丢失 |
-| 先反射赋值，再用 setter 修改 | 首次 setter 时快照已包含反射赋值的值 | ⚠️ 反射赋值的变更丢失 |
+| ORM 查询后直接修改 | setter 调用时 original=null | ❌ 不追踪（需先调用 syncOriginal） |
+| ORM 查询 → syncOriginal → 修改 | 启用追踪后修改 | ✅ 正确追踪 |
+| new User() → 设置字段 → save | save 时 original=null | ✅ save 后自动启用追踪 |
+| save 后修改 | 已处于追踪状态 | ✅ 正确追踪 |
 
-#### 2.5.5 已知限制（可接受）
+#### 2.5.5 使用模式
 
-在以下场景中，变更可能无法被正确追踪：
+**模式1：查询后手动启用追踪**
+```java
+User user = userMapper.selectById(1L);
+user.syncOriginal();  // 显式启用追踪
+user.setName("新名字");
+user.isDirty("name");  // true
+```
 
-| 场景 | 是否可追踪 | 说明 |
-|------|-----------|------|
-| 只用 setter 修改 | ✅ 完全追踪 | 推荐方式 |
-| 先 setter 修改 A，后直接赋值 B | ✅ A 可追踪，⚠️ B 需 save 前对比 | 首次 setter 时建立快照 |
-| 先直接赋值，后 setter 修改 | ⚠️ 直接赋值丢失 | 快照时已包含直接赋值的值 |
-| 只用直接赋值/反射赋值 | ⚠️ 需 save 前对比 | 快照在首次 setter 时才建立 |
+**模式2：save 后自动追踪**
+```java
+User user = new User();
+user.setName("张三");
+user.save();  // save 成功后自动启用追踪
 
-**说明**：
-- 惰性快照在**首次 setter 调用时**建立
-- 如果在 setter 调用前已通过直接赋值修改了字段，快照会包含修改后的值
-- `save()` 前的快照对比可以检测**自快照建立后**的直接赋值变更
+user.setName("李四");
+user.isDirty("name");  // true（相对于"张三"）
+```
+
+#### 2.5.6 已知限制
+
+| 场景 | 说明 |
+|------|------|
+| 查询后未调用 syncOriginal | 变更不被追踪，isDirty 返回 false |
+| 首次 save 前的变更 | wasChanged 可用（通过 save 时快照对比） |
 
 **最佳实践**：
-- 优先使用 setter 方法修改字段
-- 如果必须使用直接赋值，在直接赋值**之前**先调用 `syncOriginal()` 手动建立快照
+- 查询后立即调用 `syncOriginal()` 开始追踪
 
 ---
 
@@ -523,8 +545,10 @@ public void $jmodel$trackChange(String field, Object oldValue, Object newValue);
 
 ```java
 // 从数据库加载用户
-User user = User.find(1L);
-System.out.println("isDirty", user.isDirty());  // false（首次调用时惰性建立快照）
+User user = userMapper.selectById(1L);
+
+// 启用追踪（重要！）
+user.syncOriginal();
 
 // 修改字段
 user.setName("新名字");
@@ -585,26 +609,23 @@ public class UserEventListener {
 }
 ```
 
-### 6.5 直接字段赋值（快照对比兜底）
+### 6.5 新建实体的追踪
 
 ```java
-User user = User.find(1L);
+// 新建实体，首次 save 前不追踪
+User user = new User();
+user.setName("张三");
+user.setEmail("test@test.com");
+user.isDirty("name");  // false（未启用追踪）
 
-// 直接字段赋值（不通过 setter）
-user.name = "新名字";
-
-// 此时如果没有调用过任何 setter，isDirty() 会触发惰性快照
-// 但此时快照已经包含直接赋值的值，所以 isDirty("name") 返回 false
-System.out.println("isDirty name", user.isDirty("name"));  // false（快照时已是新值）
-
-// 不过 save() 前的快照对比可以检测到与原始数据库值的差异
+// save 成功后自动启用追踪
 user.save();
 
-// 保存后可以正确获取变更（通过 save 前快照对比检测到）
-System.out.println("wasChanged name", user.wasChanged("name"));  // true
+// 后续修改可以被追踪
+user.setName("李四");
+user.isDirty("name");  // true
+user.getOriginal("name");  // "张三"
 ```
-
-> **最佳实践**：建议使用 setter 方法修改字段，以确保变更能被实时追踪。
 
 ---
 
@@ -623,7 +644,9 @@ System.out.println("wasChanged name", user.wasChanged("name"));  // true
 
 | 场景 | 是否支持 | 说明 |
 |------|----------|------|
-| Lombok setter | ✅ | 通过字节码增强拦截 |
+| syncOriginal 后 setter 修改 | ✅ | 实时追踪 |
+| syncOriginal 前 setter 修改 | ❌ 不追踪 | 未启用追踪状态 |
+| save 后 setter 修改 | ✅ | save 后自动启用追踪 |
 | 直接字段赋值 | ✅ | 通过 save 前快照对比 |
 | 反射赋值 | ✅ | 通过 save 前快照对比 |
 | 关系字段修改 | ❌ 不追踪 | 关系字段有独立的事件机制 |
@@ -653,10 +676,10 @@ System.out.println("wasChanged name", user.wasChanged("name"));  // true
 ### 8.1 单元测试
 
 ```java
-// 1. 基本 dirty 检测
-@Test void testIsDirty_afterSetterCall_returnsTrue()
-@Test void testIsDirty_noChanges_returnsFalse()
-@Test void testIsDirty_specificField_returnsCorrectly()
+// 1. 追踪状态测试
+@Test void testIsDirty_beforeSyncOriginal_returnsFalse()
+@Test void testIsDirty_afterSyncOriginal_andSetterCall_returnsTrue()
+@Test void testSetterCall_beforeSyncOriginal_noTracking()
 
 // 2. getDirty 测试
 @Test void testGetDirty_returnsAllChangedFields()
@@ -664,7 +687,7 @@ System.out.println("wasChanged name", user.wasChanged("name"));  // true
 @Test void testGetDirty_noChanges_returnsEmptyMap()
 
 // 3. getOriginal 测试
-@Test void testGetOriginal_returnsLoadedValue()
+@Test void testGetOriginal_returnsSyncedValue()
 @Test void testGetOriginal_withDefault_returnsDefaultWhenNull()
 
 // 4. wasChanged 测试
@@ -672,14 +695,16 @@ System.out.println("wasChanged name", user.wasChanged("name"));  // true
 @Test void testWasChanged_beforeSave_returnsFalse()
 
 // 5. syncOriginal 测试
+@Test void testSyncOriginal_enablesTracking()
 @Test void testSyncOriginal_clearsChanges()
 @Test void testSyncOriginal_updatesOriginalValues()
 
-// 6. 直接赋值测试
-@Test void testDirectFieldAssignment_detectedOnSave()
+// 6. save 后自动追踪
+@Test void testSave_enablesTrackingAutomatically()
+@Test void testSave_afterSave_setterCallIsTracked()
 
-// 7. 反射赋值测试
-@Test void testReflectionAssignment_detectedOnSave()
+// 7. 直接赋值测试
+@Test void testDirectFieldAssignment_detectedOnSave()
 
 // 8. 关系字段不追踪
 @Test void testRelationField_notTracked()
@@ -718,10 +743,11 @@ System.out.println("wasChanged name", user.wasChanged("name"));  // true
 
 ### 10.1 功能验收
 
-- [ ] 通过 setter 修改字段后，`isDirty()` 返回 true
-- [ ] 直接字段赋值后，`save()` 时能检测到变更
-- [ ] 反射赋值后，`save()` 时能检测到变更
-- [ ] `getOriginal()` 返回数据库加载时的值
+- [ ] 调用 `syncOriginal()` 后，setter 修改字段能被追踪
+- [ ] 未调用 `syncOriginal()` 时，setter 修改不触发追踪
+- [ ] `save()` 成功后自动启用追踪
+- [ ] 直接字段赋值后，`save()` 时能通过快照对比检测到变更
+- [ ] `getOriginal()` 返回 `syncOriginal()` 调用时的值
 - [ ] `save()` 后 `isDirty()` 返回 false
 - [ ] `save()` 后 `wasChanged()` 返回正确结果
 - [ ] 关系字段不被追踪
