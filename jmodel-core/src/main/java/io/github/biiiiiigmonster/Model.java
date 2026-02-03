@@ -308,15 +308,24 @@ public abstract class Model<T extends Model<?>> {
     /**
      * 记录字段变更（由增强后的 setter 调用）
      * 方法名使用 $jmodel$ 前缀避免与用户方法冲突
+     * <p>
+     * 重要：此方法只在快照已建立后才追踪变更。快照通过以下方式建立：
+     * <ul>
+     *   <li>手动调用 {@link #syncOriginal()}</li>
+     *   <li>首次调用 {@link #isDirty()}、{@link #getDirty()} 或 {@link #getOriginal(String)}</li>
+     * </ul>
+     * 这样可以避免在 ORM 框架填充实体时误追踪变更。
      *
      * @param field    字段名
      * @param oldValue 旧值（setter 调用前的值）
      * @param newValue 新值（setter 将要设置的值）
      */
     public void $jmodel$trackChange(String field, Object oldValue, Object newValue) {
-        // 惰性初始化：首次追踪时创建快照
+        // 如果 original 为 null，说明还没建立快照，不追踪变更
+        // 这样可以避免在 ORM 框架填充实体时误追踪
+        // 快照需要通过 syncOriginal() 或 isDirty()/getDirty()/getOriginal() 来建立
         if (this.$jmodel$original == null) {
-            syncOriginal();
+            return;
         }
 
         // 比较新值与原始值（不是 oldValue，因为可能有多次修改）
@@ -396,8 +405,10 @@ public abstract class Model<T extends Model<?>> {
      * @return 如果有字段被修改返回 true
      */
     public boolean isDirty() {
-        // 如果从未建立快照，尝试进行快照对比
+        // 惰性初始化：首次调用时建立快照
         if (this.$jmodel$original == null) {
+            syncOriginal();
+            // 刚建立快照，没有变更
             return false;
         }
         // 先执行快照对比检测未追踪的变更
@@ -412,7 +423,10 @@ public abstract class Model<T extends Model<?>> {
      * @return 如果指定的任一字段被修改返回 true
      */
     public boolean isDirty(String... fields) {
+        // 惰性初始化：首次调用时建立快照
         if (this.$jmodel$original == null) {
+            syncOriginal();
+            // 刚建立快照，没有变更
             return false;
         }
         // 先执行快照对比检测未追踪的变更
@@ -447,7 +461,10 @@ public abstract class Model<T extends Model<?>> {
      * @return Map<字段名, 当前值>
      */
     public Map<String, Object> getDirty() {
+        // 惰性初始化：首次调用时建立快照
         if (this.$jmodel$original == null) {
+            syncOriginal();
+            // 刚建立快照，没有变更
             return new HashMap<>();
         }
         // 先执行快照对比检测未追踪的变更
@@ -481,8 +498,9 @@ public abstract class Model<T extends Model<?>> {
      * @return 原始值的副本
      */
     public Map<String, Object> getOriginal() {
+        // 惰性初始化：首次调用时建立快照
         if (this.$jmodel$original == null) {
-            return new HashMap<>();
+            syncOriginal();
         }
         return new HashMap<>(this.$jmodel$original);
     }
@@ -494,8 +512,9 @@ public abstract class Model<T extends Model<?>> {
      * @return 原始值，如果不存在返回 null
      */
     public Object getOriginal(String field) {
+        // 惰性初始化：首次调用时建立快照
         if (this.$jmodel$original == null) {
-            return null;
+            syncOriginal();
         }
         return this.$jmodel$original.get(field);
     }

@@ -49,12 +49,19 @@ public class ModelClassEnhancer {
     private List<Pattern> compiledIncludes = new ArrayList<>();
     private List<Pattern> compiledExcludes = new ArrayList<>();
 
-    public ModelClassEnhancer(File classesDirectory, ClassLoader classLoader, Log log) {
+    public ModelClassEnhancer(File classesDirectory, ClassLoader classLoader, Log log, boolean verbose) {
         this.classesDirectory = classesDirectory;
         this.classLoader = classLoader;
         this.log = log;
+        this.verbose = verbose;
         this.fieldResolver = new TrackingFieldResolver(log);
     }
+
+    public ModelClassEnhancer(File classesDirectory, ClassLoader classLoader, Log log) {
+        this(classesDirectory, classLoader, log, false);
+    }
+
+    private boolean verbose = false;
 
     public void setIncludePatterns(List<String> patterns) {
         this.includePatterns = patterns;
@@ -113,6 +120,10 @@ public class ModelClassEnhancer {
 
                 // Check if it's a Model subclass (but not Model itself)
                 if (!isEnhanceableModelSubclass(clazz)) {
+                    if (verbose && className.contains("entity")) {
+                        logInfo("Checking class: " + className + " - superclass: " + 
+                            (clazz.getSuperclass() != null ? clazz.getSuperclass().getName() : "null"));
+                    }
                     logDebug("Skipping (not Model subclass): " + className);
                     result.addSkippedClass(className, "not a Model subclass");
                     continue;
@@ -273,12 +284,11 @@ public class ModelClassEnhancer {
             }
         }
 
-        // Apply the enhancement using Advice (code is inlined at compile-time)
+        // Apply the enhancement using Advice.visit (code is inlined at compile-time)
         // The SetterAdvice.onEnter method will be inlined into each setter
-        builder = builder.method(setterMatcher)
-                .intercept(Advice.to(SetterAdvice.class).wrap(
-                        net.bytebuddy.implementation.SuperMethodCall.INSTANCE
-                ));
+        // Using visit() instead of intercept() to preserve the original method body
+        // SetterAdvice is in jmodel-core module to ensure runtime availability
+        builder = builder.visit(Advice.to(io.github.biiiiiigmonster.tracking.SetterAdvice.class).on(setterMatcher));
 
         // Save the enhanced class
         DynamicType.Unloaded<?> unloaded = builder.make();
@@ -349,87 +359,6 @@ public class ModelClassEnhancer {
     private void logWarn(String message) {
         if (log != null) {
             log.warn("[JModel Enhance] " + message);
-        }
-    }
-
-    /**
-     * Advice class for setter method enhancement.
-     * <p>
-     * This class is used by ByteBuddy at compile-time to inline tracking code
-     * into setter methods. The code in onEnter() is directly embedded into
-     * the target methods, so there's no runtime dependency on this class.
-     * <p>
-     * Enhanced setter will look like:
-     * <pre>{@code
-     * public void setName(String name) {
-     *     // Injected code (from onEnter):
-     *     String fieldName = ...; // extracted from method name
-     *     Object oldValue = this.name;
-     *     this.$jmodel$trackChange(fieldName, oldValue, name);
-     *     
-     *     // Original code:
-     *     this.name = name;
-     * }
-     * }</pre>
-     */
-    public static class SetterAdvice {
-
-        /**
-         * Called before the original setter method executes.
-         * This code is inlined into the setter at compile-time.
-         *
-         * @param self       the Model instance
-         * @param methodName the name of the setter method (e.g., "setName")
-         * @param newValue   the new value being set
-         */
-        @Advice.OnMethodEnter
-        public static void onEnter(
-                @Advice.This Object self,
-                @Advice.Origin("#m") String methodName,
-                @Advice.Argument(0) Object newValue) {
-
-            // Extract field name from setter method name (setName -> name)
-            if (methodName == null || !methodName.startsWith("set") || methodName.length() <= 3) {
-                return;
-            }
-
-            String fieldName = Character.toLowerCase(methodName.charAt(3)) + methodName.substring(4);
-
-            // Get current value before setter executes
-            Object oldValue = null;
-            try {
-                Field field = findFieldInHierarchy(self.getClass(), fieldName);
-                if (field != null) {
-                    field.setAccessible(true);
-                    oldValue = field.get(self);
-                }
-            } catch (Exception ignored) {
-                // Ignore errors getting old value
-            }
-
-            // Call trackChange on the Model
-            if (self instanceof Model) {
-                try {
-                    ((Model<?>) self).$jmodel$trackChange(fieldName, oldValue, newValue);
-                } catch (Exception ignored) {
-                    // Ignore tracking errors to not break the setter
-                }
-            }
-        }
-
-        /**
-         * Finds a field in the class hierarchy.
-         */
-        private static Field findFieldInHierarchy(Class<?> clazz, String fieldName) {
-            Class<?> current = clazz;
-            while (current != null && current != Object.class) {
-                try {
-                    return current.getDeclaredField(fieldName);
-                } catch (NoSuchFieldException e) {
-                    current = current.getSuperclass();
-                }
-            }
-            return null;
         }
     }
 }

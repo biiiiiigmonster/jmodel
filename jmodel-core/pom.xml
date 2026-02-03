@@ -15,6 +15,10 @@
     <name>jmodel-core</name>
     <description>ORM with DSL for Java - Core Module</description>
 
+    <properties>
+        <bytebuddy.version>1.14.11</bytebuddy.version>
+    </properties>
+
     <dependencies>
         <!-- Core dependencies -->
         <dependency>
@@ -32,6 +36,12 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <!-- ByteBuddy for SetterAdvice annotations -->
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>${bytebuddy.version}</version>
         </dependency>
     </dependencies>
 

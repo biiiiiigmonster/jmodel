@@ -46,7 +46,7 @@ import java.util.List;
 @Mojo(
         name = "enhance",
         defaultPhase = LifecyclePhase.PROCESS_CLASSES,
-        requiresDependencyResolution = ResolutionScope.COMPILE,
+        requiresDependencyResolution = ResolutionScope.TEST,
         threadSafe = true
 )
 public class JModelEnhanceMojo extends AbstractMojo {
@@ -111,7 +111,8 @@ public class JModelEnhanceMojo extends AbstractMojo {
             ModelClassEnhancer enhancer = new ModelClassEnhancer(
                     classesDirectory,
                     projectClassLoader,
-                    verbose ? getLog() : null
+                    getLog(),
+                    verbose
             );
 
             // Set include/exclude patterns
@@ -145,7 +146,7 @@ public class JModelEnhanceMojo extends AbstractMojo {
 
     /**
      * Creates a ClassLoader that includes the project's compiled classes
-     * and all compile-scope dependencies.
+     * and all test-scope dependencies.
      */
     private ClassLoader createProjectClassLoader() throws MojoExecutionException {
         try {
@@ -154,16 +155,19 @@ public class JModelEnhanceMojo extends AbstractMojo {
             // Add compiled classes directory
             urls.add(classesDirectory.toURI().toURL());
 
-            // Add compile classpath elements (dependencies)
-            List<String> classpathElements = project.getCompileClasspathElements();
+            // Add test classpath elements (includes compile dependencies + test dependencies)
+            List<String> classpathElements = project.getTestClasspathElements();
             for (String element : classpathElements) {
-                urls.add(new File(element).toURI().toURL());
+                File elementFile = new File(element);
+                if (elementFile.exists()) {
+                    urls.add(elementFile.toURI().toURL());
+                }
             }
 
             if (verbose) {
-                getLog().debug("[JModel Enhance] ClassLoader URLs:");
+                getLog().info("[JModel Enhance] ClassLoader URLs count: " + urls.size());
                 for (URL url : urls) {
-                    getLog().debug("  - " + url);
+                    getLog().debug("[JModel Enhance] ClassLoader URL: " + url);
                 }
             }
 
