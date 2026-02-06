@@ -115,6 +115,24 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
             </plugin>
+            <!-- JModel ByteBuddy Enhancement: enhance test entity setters for dirty tracking -->
+            <plugin>
+                <groupId>io.github.biiiiiigmonster</groupId>
+                <artifactId>jmodel-enhance-plugin</artifactId>
+                <version>${revision}</version>
+                <executions>
+                    <execution>
+                        <id>enhance-test-classes</id>
+                        <phase>process-test-classes</phase>
+                        <goals>
+                            <goal>enhance</goal>
+                        </goals>
+                        <configuration>
+                            <classesDirectory>${project.build.testOutputDirectory}</classesDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>

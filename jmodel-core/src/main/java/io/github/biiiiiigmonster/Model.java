@@ -93,10 +93,9 @@ public abstract class Model<T extends Model<?>> {
      * 在未追踪状态（original == null）下不做任何事。
      *
      * @param field    字段名
-     * @param oldValue 旧值（当前字段值）
      * @param newValue 新值（即将设置的值）
      */
-    public void $jmodel$trackChange(String field, Object oldValue, Object newValue) {
+    public void $jmodel$trackChange(String field, Object newValue) {
         // 未追踪状态下不做任何事
         if (this.$jmodel$original == null) {
             return;

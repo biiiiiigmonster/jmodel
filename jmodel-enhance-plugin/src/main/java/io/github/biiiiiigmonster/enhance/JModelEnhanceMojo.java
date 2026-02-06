@@ -28,9 +28,12 @@ import java.io.File;
 public class JModelEnhanceMojo extends AbstractMojo {
 
     /**
-     * 编译输出目录（target/classes）
+     * 编译输出目录（默认 target/classes）。
+     * <p>
+     * 可在 Maven 配置中覆盖此参数，例如设置为 {@code ${project.build.testOutputDirectory}}
+     * 以增强测试类。
      */
-    @Parameter(defaultValue = "${project.build.outputDirectory}", required = true, readonly = true)
+    @Parameter(defaultValue = "${project.build.outputDirectory}", required = true)
     private File classesDirectory;
 
     /**

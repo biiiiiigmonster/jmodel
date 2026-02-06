@@ -46,9 +46,9 @@ public class SetterInterceptor implements AsmVisitorWrapper.ForDeclaredMethods.M
     private static final String TRACK_CHANGE_NAME = "$jmodel$trackChange";
 
     /**
-     * $jmodel$trackChange 方法描述符：(String, Object, Object) -> void
+     * $jmodel$trackChange 方法描述符：(String, Object) -> void
      */
-    private static final String TRACK_CHANGE_DESC = "(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V";
+    private static final String TRACK_CHANGE_DESC = "(Ljava/lang/String;Ljava/lang/Object;)V";
 
     private final String fieldName;
     private final String fieldDescriptor;
@@ -92,18 +92,31 @@ public class SetterInterceptor implements AsmVisitorWrapper.ForDeclaredMethods.M
         }
 
         /**
-         * 注入 {@code this.$jmodel$trackChange("fieldName", this.field, param)} 字节码
+         * 重新计算 maxStack 以容纳注入的追踪代码。
+         * <p>
+         * 注入的 {@code $jmodel$trackChange} 调用最多需要 4 个栈槽位：
+         * <ul>
+         *   <li>引用类型字段：this + fieldName + newValue = 3 槽位</li>
+         *   <li>long/double 字段（装箱前）：this + fieldName + newValue(2 slots) = 4 槽位</li>
+         * </ul>
+         * 在原始 maxStack 基础上增加 2 个槽位，确保充足。
+         */
+        @Override
+        public void visitMaxs(int maxStack, int maxLocals) {
+            super.visitMaxs(maxStack + 2, maxLocals);
+        }
+
+        /**
+         * 注入 {@code this.$jmodel$trackChange("fieldName", param)} 字节码
          * <p>
          * 生成的字节码序列（以 String 字段为例）：
          * <pre>
          * ALOAD 0                                          // push this
          * LDC "name"                                       // push field name
-         * ALOAD 0                                          // push this (for GETFIELD)
-         * GETFIELD com/example/User.name:Ljava/lang/String; // get current value
-         * ALOAD 1                                          // push setter parameter
-         * INVOKEVIRTUAL Model.$jmodel$trackChange(String, Object, Object)V
+         * ALOAD 1                                          // push setter parameter (new value)
+         * INVOKEVIRTUAL Model.$jmodel$trackChange(String, Object)V
          * </pre>
-         * 对于基本类型字段（如 int），会在 GETFIELD 和参数加载后插入自动装箱指令。
+         * 对于基本类型字段（如 int），会在参数加载后插入自动装箱指令。
          */
         private void injectTrackingCall() {
             // 1. Push 'this'（方法调用的接收者）
@@ -112,18 +125,13 @@ public class SetterInterceptor implements AsmVisitorWrapper.ForDeclaredMethods.M
             // 2. Push 字段名常量
             super.visitLdcInsn(fieldName);
 
-            // 3. Push 当前字段值 (this.field)，基本类型自动装箱
-            super.visitVarInsn(Opcodes.ALOAD, 0);
-            super.visitFieldInsn(Opcodes.GETFIELD, fieldOwnerInternalName, fieldName, fieldDescriptor);
-            emitBoxing(fieldDescriptor);
-
-            // 4. Push setter 参数值，基本类型自动装箱
+            // 3. Push setter 参数值（新值），基本类型自动装箱
             Type fieldType = Type.getType(fieldDescriptor);
             int loadOpcode = fieldType.getOpcode(Opcodes.ILOAD);
             super.visitVarInsn(loadOpcode, 1);
             emitBoxing(fieldDescriptor);
 
-            // 5. 调用 $jmodel$trackChange
+            // 4. 调用 $jmodel$trackChange
             super.visitMethodInsn(
                 Opcodes.INVOKEVIRTUAL,
                 MODEL_INTERNAL_NAME,

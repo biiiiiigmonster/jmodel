@@ -37,6 +37,12 @@ public class ModelClassEnhancer implements Closeable {
     private static final String RELATION_META_ANNOTATION = "io.github.biiiiiigmonster.relation.annotation.config.Relation";
     private static final String ATTRIBUTE_ANNOTATION = "io.github.biiiiiigmonster.attribute.Attribute";
 
+    /**
+     * 增强标记字段名。增强后会在类中添加此 synthetic 字段，
+     * 下次扫描时检测到该字段即跳过，防止重复增强。
+     */
+    private static final String ENHANCED_MARKER_FIELD = "$jmodel$enhanced$";
+
     private final File classesDirectory;
     private final ClassFileLocator classFileLocator;
     private final TypePool typePool;
@@ -99,6 +105,12 @@ public class ModelClassEnhancer implements Closeable {
                     continue;
                 }
 
+                // 防重复增强：检查标记字段
+                if (isAlreadyEnhanced(typeDescription)) {
+                    log.debug("[JModel Enhance] Already enhanced, skipping: " + className);
+                    continue;
+                }
+
                 // 获取当前类声明的可追踪字段
                 List<FieldDescription.InDefinedShape> trackableFields = getTrackableFields(typeDescription);
                 if (trackableFields.isEmpty()) {
@@ -115,6 +127,18 @@ public class ModelClassEnhancer implements Closeable {
         }
 
         return count;
+    }
+
+    /**
+     * 检查类是否已被增强过（通过检测标记字段）
+     */
+    private boolean isAlreadyEnhanced(TypeDescription type) {
+        for (FieldDescription.InDefinedShape field : type.getDeclaredFields()) {
+            if (ENHANCED_MARKER_FIELD.equals(field.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -248,6 +272,11 @@ public class ModelClassEnhancer implements Closeable {
 
         DynamicType.Builder<?> builder = new ByteBuddy()
             .redefine(typeDescription, classFileLocator)
+            .defineField(ENHANCED_MARKER_FIELD, boolean.class,
+                net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE
+                    | net.bytebuddy.jar.asm.Opcodes.ACC_STATIC
+                    | net.bytebuddy.jar.asm.Opcodes.ACC_FINAL
+                    | net.bytebuddy.jar.asm.Opcodes.ACC_SYNTHETIC)
             .visit(visitorWrapper);
 
         DynamicType.Unloaded<?> unloaded = builder.make();
