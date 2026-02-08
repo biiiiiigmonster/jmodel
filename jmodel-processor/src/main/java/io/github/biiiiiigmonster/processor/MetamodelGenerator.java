@@ -159,8 +159,7 @@ public class MetamodelGenerator {
             DeclaredType declaredType = (DeclaredType) typeMirror;
             TypeElement typeElement = (TypeElement) declaredType.asElement();
             String qualifiedName = typeElement.getQualifiedName().toString();
-            String simpleName = typeElement.getSimpleName().toString();
-            
+
             // Skip java.lang types
             if (qualifiedName.startsWith("java.lang.")) {
                 return;

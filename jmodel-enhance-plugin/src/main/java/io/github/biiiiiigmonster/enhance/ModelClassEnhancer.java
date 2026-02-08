@@ -237,7 +237,6 @@ public class ModelClassEnhancer implements Closeable {
             String fieldName = field.getName();
             String setterName = toSetterName(fieldName);
             String fieldDescriptor = field.getDescriptor();
-            String fieldOwnerInternalName = typeDescription.getInternalName();
 
             // 检查类中是否声明了对应的 setter 方法
             boolean setterExists = false;
@@ -260,7 +259,7 @@ public class ModelClassEnhancer implements Closeable {
             visitorWrapper = visitorWrapper.method(
                 ElementMatchers.<MethodDescription>named(setterName)
                     .and(ElementMatchers.<MethodDescription>takesArguments(1)),
-                new SetterInterceptor(fieldName, fieldDescriptor, fieldOwnerInternalName)
+                new SetterInterceptor(fieldName, fieldDescriptor)
             );
             hasEnhancedSetter = true;
         }

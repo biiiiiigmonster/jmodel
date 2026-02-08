@@ -52,17 +52,14 @@ public class SetterInterceptor implements AsmVisitorWrapper.ForDeclaredMethods.M
 
     private final String fieldName;
     private final String fieldDescriptor;
-    private final String fieldOwnerInternalName;
 
     /**
      * @param fieldName              字段名（如 "name"）
      * @param fieldDescriptor        字段的 JVM 类型描述符（如 "Ljava/lang/String;"、"I"）
-     * @param fieldOwnerInternalName 字段所在类的内部名称（如 "com/example/User"）
      */
-    public SetterInterceptor(String fieldName, String fieldDescriptor, String fieldOwnerInternalName) {
+    public SetterInterceptor(String fieldName, String fieldDescriptor) {
         this.fieldName = fieldName;
         this.fieldDescriptor = fieldDescriptor;
-        this.fieldOwnerInternalName = fieldOwnerInternalName;
     }
 
     @Override
