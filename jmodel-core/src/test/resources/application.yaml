@@ -1,0 +1,4 @@
+jmodel:
+  core:
+    driver:
+      default-driver: io.github.biiiiiigmonster.driver.InMemoryDataDriver
