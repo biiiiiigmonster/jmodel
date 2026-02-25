@@ -1,12 +1,11 @@
 package io.github.biiiiiigmonster.driver;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ReflectUtil;
 import io.github.biiiiiigmonster.Model;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -56,14 +55,13 @@ public class InMemoryDataDriver implements DataDriver {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T extends Model<?>> List<T> findByCondition(QueryCondition<T> condition) {
         Class<T> entityClass = condition.getEntityClass();
         Map<Long, Model<?>> map = storage.getOrDefault(entityClass, new ConcurrentHashMap<>());
 
         return map.values().stream()
                 .filter(entity -> matchesCriteria(entity, condition.getCriteria()))
-                .map(entity -> (T) entity)
+                .map(entity -> BeanUtil.copyProperties(entity, entityClass))
                 .collect(Collectors.toList());
     }
 
@@ -130,7 +128,6 @@ public class InMemoryDataDriver implements DataDriver {
     /**
      * 判断实体是否匹配单个条件
      */
-    @SuppressWarnings("unchecked")
     private boolean matchesCriterion(Model<?> entity, QueryCondition.Criterion criterion) {
         String fieldName = criterion.getField();
         Object conditionValue = criterion.getValue();

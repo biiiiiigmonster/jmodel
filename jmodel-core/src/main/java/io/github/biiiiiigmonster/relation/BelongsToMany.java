@@ -179,7 +179,8 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
     }
 
     public <R extends Model<?>> void sync(List<R> syncModels, boolean detaching) {
-        List<R> current = getEager(ListUtil.toList(model));
+        List<P> pivots = getPivotResult(ListUtil.toList(model));
+        List<R> current = getForeignResult(pivots);
         Set<Object> currentSet = current.stream().map(Model::primaryKeyValue).collect(Collectors.toSet());
         Set<Object> syncSet = syncModels.stream().map(Model::primaryKeyValue).collect(Collectors.toSet());
 
@@ -190,7 +191,8 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
     }
 
     public <R extends Model<?>> void toggle(List<R> toggleModels) {
-        List<R> current = getEager(ListUtil.toList(model));
+        List<P> pivots = getPivotResult(ListUtil.toList(model));
+        List<R> current = getForeignResult(pivots);
         Set<Object> currentSet = current.stream().map(Model::primaryKeyValue).collect(Collectors.toSet());
         List<R> detach = new ArrayList<>();
         List<R> attach = new ArrayList<>();
