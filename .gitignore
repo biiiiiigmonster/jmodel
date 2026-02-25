@@ -20,4 +20,5 @@ buildNumber.properties
 /.vscode/
 /octopus.iml
 /.kiro/
+/docs/
 *.iml
