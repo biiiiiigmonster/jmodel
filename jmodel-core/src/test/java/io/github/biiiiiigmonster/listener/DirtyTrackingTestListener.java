@@ -4,6 +4,7 @@ import io.github.biiiiiigmonster.entity.User;
 import io.github.biiiiiigmonster.event.ModelSavedEvent;
 import io.github.biiiiiigmonster.event.ModelUpdatedEvent;
 import io.github.biiiiiigmonster.event.ModelUpdatingEvent;
+import lombok.Getter;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -12,17 +13,27 @@ import java.util.Map;
 @Component
 public class DirtyTrackingTestListener {
 
+    @Getter
     private static volatile boolean updatingCaptured = false;
+    @Getter
     private static volatile boolean updatingIsDirty = false;
+    @Getter
     private static volatile Map<String, Object> updatingDirtyFields = null;
+    @Getter
     private static volatile Map<String, Object> updatingOriginal = null;
 
+    @Getter
     private static volatile boolean updatedCaptured = false;
+    @Getter
     private static volatile boolean updatedIsDirty = false;
+    @Getter
     private static volatile Map<String, Object> updatedDirtyFields = null;
 
+    @Getter
     private static volatile boolean savedCaptured = false;
+    @Getter
     private static volatile boolean savedIsDirty = false;
+    @Getter
     private static volatile Map<String, Object> savedDirtyFields = null;
 
     public static void reset() {
@@ -68,15 +79,4 @@ public class DirtyTrackingTestListener {
         savedIsDirty = user.isDirty();
         savedDirtyFields = user.getDirty();
     }
-
-    public static boolean isUpdatingCaptured() { return updatingCaptured; }
-    public static boolean isUpdatingIsDirty() { return updatingIsDirty; }
-    public static Map<String, Object> getUpdatingDirtyFields() { return updatingDirtyFields; }
-    public static Map<String, Object> getUpdatingOriginal() { return updatingOriginal; }
-    public static boolean isUpdatedCaptured() { return updatedCaptured; }
-    public static boolean isUpdatedIsDirty() { return updatedIsDirty; }
-    public static Map<String, Object> getUpdatedDirtyFields() { return updatedDirtyFields; }
-    public static boolean isSavedCaptured() { return savedCaptured; }
-    public static boolean isSavedIsDirty() { return savedIsDirty; }
-    public static Map<String, Object> getSavedDirtyFields() { return savedDirtyFields; }
 }
