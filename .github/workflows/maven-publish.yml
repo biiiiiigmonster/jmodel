@@ -55,10 +55,7 @@ jobs:
 
       - name: Build and run tests
         run: |
-          # Build all modules and run tests in a single Maven execution
           mvn -B package --file pom.xml
-        env:
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Publish to Maven Central
         run: |
