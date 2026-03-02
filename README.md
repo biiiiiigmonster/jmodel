@@ -123,28 +123,6 @@ public class Post extends Model<Post> {
 }
 ```
 
-### 基本查询
-
-```java
-// 根据 ID 查询
-User user = userMapper.selectById(1L);
-
-// 查询所有用户
-List<User> users = userMapper.selectList(null);
-
-// 条件查询
-List<User> activeUsers = userMapper.selectList(
-    Wrappers.<User>lambdaQuery().eq(User::getStatus, "active")
-);
-
-// 保存模型（新增或更新）
-user.setName("New Name");
-user.save();  // 自动检测变更，只更新修改过的字段
-
-// 删除模型
-user.delete();
-```
-
 ### 模型关联
 
 ```java
