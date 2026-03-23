@@ -26,4 +26,4 @@ mybatis-plus:
 jmodel:
   core:
     driver:
-      default-driver: io.github.biiiiiigmonster.driver.mybatisplus.MyBatisPlusDriver
+      default-driver: io.github.biiiiiigmonster.drivermybatisplus.MyBatisPlusDriver

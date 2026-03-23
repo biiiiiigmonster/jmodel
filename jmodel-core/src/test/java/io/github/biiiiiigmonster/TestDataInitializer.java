@@ -1,7 +1,7 @@
 package io.github.biiiiiigmonster;
 
 import io.github.biiiiiigmonster.driver.InMemoryDataDriver;
-import io.github.biiiiiigmonster.entity.*;
+import io.github.biiiiiigmonster.drivermybatisplus.entity.*;
 
 /**
  * 测试数据初始化器
