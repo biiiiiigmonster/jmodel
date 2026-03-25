@@ -7,5 +7,5 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ComponentScan(basePackages = "io.github.biiiiiigmonster")
 @EnableConfigurationProperties(CoreProperties.class)
-public class JModelAutoConfiguration {
+public class JmodelAutoConfiguration {
 }
