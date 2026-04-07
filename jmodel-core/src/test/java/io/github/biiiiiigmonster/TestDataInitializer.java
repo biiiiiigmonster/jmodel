@@ -1,6 +1,19 @@
 package io.github.biiiiiigmonster;
 
 import io.github.biiiiiigmonster.driver.InMemoryDataDriver;
+import io.github.biiiiiigmonster.driver.entity.Address;
+import io.github.biiiiiigmonster.driver.entity.Comment;
+import io.github.biiiiiigmonster.driver.entity.Image;
+import io.github.biiiiiigmonster.driver.entity.Likes;
+import io.github.biiiiiigmonster.driver.entity.Phone;
+import io.github.biiiiiigmonster.driver.entity.Post;
+import io.github.biiiiiigmonster.driver.entity.Profile;
+import io.github.biiiiiigmonster.driver.entity.Role;
+import io.github.biiiiiigmonster.driver.entity.Tag;
+import io.github.biiiiiigmonster.driver.entity.Taggable;
+import io.github.biiiiiigmonster.driver.entity.User;
+import io.github.biiiiiigmonster.driver.entity.UserRole;
+import io.github.biiiiiigmonster.driver.entity.Video;
 import io.github.biiiiiigmonster.drivermybatisplus.entity.*;
 
 /**

@@ -27,10 +27,10 @@ public class HasOne<T extends Model<?>> extends HasOneOrMany<T> {
         Field chaperoneField = chaperoneField();
         models.forEach(o -> {
             R value = dictionary.get(ReflectUtil.getFieldValue(o, localField));
+            ReflectUtil.setFieldValue(o, relatedField, value);
             if (chaperone && value != null) {
                 ReflectUtil.setFieldValue(value, chaperoneField, o);
             }
-            ReflectUtil.setFieldValue(o, relatedField, value);
         });
     }
 }

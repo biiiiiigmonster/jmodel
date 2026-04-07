@@ -1,6 +1,6 @@
 package io.github.biiiiiigmonster.listener;
 
-import io.github.biiiiiigmonster.drivermybatisplus.entity.User;
+import io.github.biiiiiigmonster.driver.entity.User;
 import io.github.biiiiiigmonster.event.ModelSavedEvent;
 import io.github.biiiiiigmonster.event.ModelUpdatedEvent;
 import io.github.biiiiiigmonster.event.ModelUpdatingEvent;
