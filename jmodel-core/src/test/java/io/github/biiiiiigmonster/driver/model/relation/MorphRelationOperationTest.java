@@ -7,7 +7,6 @@ import io.github.biiiiiigmonster.driver.entity.Post;
 import io.github.biiiiiigmonster.driver.entity.Tag;
 import io.github.biiiiiigmonster.driver.entity.User;
 import io.github.biiiiiigmonster.driver.entity.Video;
-import io.github.biiiiiigmonster.drivermybatisplus.entity.*;
 import org.junit.Test;
 
 import java.util.Arrays;

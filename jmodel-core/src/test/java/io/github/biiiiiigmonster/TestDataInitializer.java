@@ -14,7 +14,6 @@ import io.github.biiiiiigmonster.driver.entity.Taggable;
 import io.github.biiiiiigmonster.driver.entity.User;
 import io.github.biiiiiigmonster.driver.entity.UserRole;
 import io.github.biiiiiigmonster.driver.entity.Video;
-import io.github.biiiiiigmonster.drivermybatisplus.entity.*;
 
 /**
  * 测试数据初始化器
