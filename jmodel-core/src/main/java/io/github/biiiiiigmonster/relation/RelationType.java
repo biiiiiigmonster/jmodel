@@ -13,6 +13,7 @@ import io.github.biiiiiigmonster.relation.annotation.MorphOne;
 import io.github.biiiiiigmonster.relation.annotation.MorphTo;
 import io.github.biiiiiigmonster.relation.annotation.MorphToMany;
 import io.github.biiiiiigmonster.relation.annotation.MorphedByMany;
+import io.github.biiiiiigmonster.relation.annotation.Siblings;
 import io.github.biiiiiigmonster.relation.exception.RelationNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,6 +24,7 @@ import java.lang.reflect.Field;
 
 @Getter
 @AllArgsConstructor
+@SuppressWarnings("unchecked")
 public enum RelationType {
     HAS_ONE(HasOne.class, false) {
         @Override
@@ -256,6 +258,19 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), ownerKey),
                     true,
                     relation.withPivot()
+            );
+        }
+    },
+    SIBLINGS(Siblings.class, true) {
+        @Override
+        public <T extends Model<?>> io.github.biiiiiigmonster.relation.Siblings<T> getRelation(RelationOption<T> relationOption) {
+            Class<T> clazz = relationOption.getClazz();
+            Field field = ReflectUtil.getField(clazz, relationOption.getFieldName());
+            Siblings relation = field.getAnnotation(Siblings.class);
+            // todo：待完成
+            return new io.github.biiiiiigmonster.relation.Siblings<>(
+                    field,
+                    null,null
             );
         }
     },
