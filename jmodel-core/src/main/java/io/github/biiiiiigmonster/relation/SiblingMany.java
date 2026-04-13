@@ -11,14 +11,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class Siblings<T extends Model<?>> extends Relation<T> {
+public class SiblingMany<T extends Model<?>> extends Relation<T> {
     protected Field parentField;
 
     /**
      * @param relatedField Post.siblingsUserPosts
      * @param parentField  Post.user_id
      */
-    public Siblings(Field relatedField, @NonNull Field parentField) {
+    public SiblingMany(Field relatedField, @NonNull Field parentField) {
         super(relatedField);
 
         this.parentField = parentField;

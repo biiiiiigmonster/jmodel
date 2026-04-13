@@ -13,7 +13,7 @@ import io.github.biiiiiigmonster.relation.annotation.MorphOne;
 import io.github.biiiiiigmonster.relation.annotation.MorphTo;
 import io.github.biiiiiigmonster.relation.annotation.MorphToMany;
 import io.github.biiiiiigmonster.relation.annotation.MorphedByMany;
-import io.github.biiiiiigmonster.relation.annotation.Siblings;
+import io.github.biiiiiigmonster.relation.annotation.SiblingMany;
 import io.github.biiiiiigmonster.relation.exception.RelationNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -261,13 +261,13 @@ public enum RelationType {
             );
         }
     },
-    SIBLINGS(Siblings.class, true) {
+    SIBLINGS(SiblingMany.class, true) {
         @Override
-        public <T extends Model<?>> io.github.biiiiiigmonster.relation.Siblings<T> getRelation(RelationOption<T> relationOption) {
+        public <T extends Model<?>> io.github.biiiiiigmonster.relation.SiblingMany<T> getRelation(RelationOption<T> relationOption) {
             Class<T> clazz = relationOption.getClazz();
             Field field = ReflectUtil.getField(clazz, relationOption.getFieldName());
 
-            Siblings relation = field.getAnnotation(Siblings.class);
+            SiblingMany relation = field.getAnnotation(SiblingMany.class);
             String parentKey = relation.parent().foreignKey();
             if (StringUtils.isNotBlank(relation.from())) {
                 Field belongsField = ReflectUtil.getField(clazz, relation.from());
@@ -276,7 +276,7 @@ public enum RelationType {
                         ? belongs.foreignKey() : RelationUtils.getForeignKey((Class<? extends Model<?>>) belongsField.getType());
             }
 
-            return new io.github.biiiiiigmonster.relation.Siblings<>(
+            return new io.github.biiiiiigmonster.relation.SiblingMany<>(
                     field,
                     ReflectUtil.getField(field.getDeclaringClass(), parentKey)
             );
