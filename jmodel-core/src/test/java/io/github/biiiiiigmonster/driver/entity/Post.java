@@ -6,6 +6,7 @@ import io.github.biiiiiigmonster.relation.annotation.HasMany;
 import io.github.biiiiiigmonster.relation.annotation.MorphMany;
 import io.github.biiiiiigmonster.relation.annotation.MorphOne;
 import io.github.biiiiiigmonster.relation.annotation.MorphToMany;
+import io.github.biiiiiigmonster.relation.annotation.Siblings;
 import io.github.biiiiiigmonster.relation.annotation.config.MorphAlias;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -34,4 +35,7 @@ public class Post extends Model<Post> {
 
     @MorphToMany(using = Taggable.class)
     private List<Tag> tags;
+
+    @Siblings(from = "user")
+    private List<Post> siblingsUserPosts;
 }

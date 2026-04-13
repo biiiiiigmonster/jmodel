@@ -268,9 +268,9 @@ public enum RelationType {
             Field field = ReflectUtil.getField(clazz, relationOption.getFieldName());
 
             Siblings relation = field.getAnnotation(Siblings.class);
-            String parentKey = relation.from().foreignKey();
-            if (StringUtils.isNotBlank(relation.parent())) {
-                Field belongsField = ReflectUtil.getField(clazz, relation.parent());
+            String parentKey = relation.parent().foreignKey();
+            if (StringUtils.isNotBlank(relation.from())) {
+                Field belongsField = ReflectUtil.getField(clazz, relation.from());
                 BelongsTo belongs = belongsField.getAnnotation(BelongsTo.class);
                 parentKey = StringUtils.isNotBlank(belongs.foreignKey())
                         ? belongs.foreignKey() : RelationUtils.getForeignKey((Class<? extends Model<?>>) belongsField.getType());

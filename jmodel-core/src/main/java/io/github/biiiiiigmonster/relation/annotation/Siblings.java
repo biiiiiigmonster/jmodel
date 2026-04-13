@@ -11,6 +11,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Relation
 public @interface Siblings {
-    String parent() default "";
-    BelongsTo from() default @BelongsTo;
+    String from() default "";
+    BelongsTo parent() default @BelongsTo;
 }
