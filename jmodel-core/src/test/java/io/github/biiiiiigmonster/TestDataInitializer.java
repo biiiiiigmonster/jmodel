@@ -116,6 +116,8 @@ public class TestDataInitializer {
                 {"8", "6", "API Design Principles"},
                 {"9", "7", "Testing Strategies"},
                 {"10", "8", "DevOps Pipeline Setup"},
+                {"11", "3", "Kubernetes in Practice"},
+                {"12", "3", "CI/CD Pipeline Design"},
         };
         for (String[] row : data) {
             Post p = new Post();
