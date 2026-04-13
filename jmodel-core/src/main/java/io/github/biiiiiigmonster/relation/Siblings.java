@@ -15,8 +15,8 @@ public class Siblings<T extends Model<?>> extends Relation<T> {
     protected Field parentField;
 
     /**
-     * @param relatedField Comment.siblingsComments
-     * @param parentField  Comment.post_id
+     * @param relatedField Post.siblingsUserPosts
+     * @param parentField  Post.user_id
      */
     public Siblings(Field relatedField, @NonNull Field parentField) {
         super(relatedField);
