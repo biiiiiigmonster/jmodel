@@ -266,11 +266,19 @@ public enum RelationType {
         public <T extends Model<?>> io.github.biiiiiigmonster.relation.Siblings<T> getRelation(RelationOption<T> relationOption) {
             Class<T> clazz = relationOption.getClazz();
             Field field = ReflectUtil.getField(clazz, relationOption.getFieldName());
+
             Siblings relation = field.getAnnotation(Siblings.class);
-            // todo：待完成
+            String parentKey = relation.from().foreignKey();
+            if (StringUtils.isNotBlank(relation.parent())) {
+                Field belongsField = ReflectUtil.getField(clazz, relation.parent());
+                BelongsTo belongs = belongsField.getAnnotation(BelongsTo.class);
+                parentKey = StringUtils.isNotBlank(belongs.foreignKey())
+                        ? belongs.foreignKey() : RelationUtils.getForeignKey((Class<? extends Model<?>>) belongsField.getType());
+            }
+
             return new io.github.biiiiiigmonster.relation.Siblings<>(
                     field,
-                    null,null
+                    ReflectUtil.getField(field.getDeclaringClass(), parentKey)
             );
         }
     },

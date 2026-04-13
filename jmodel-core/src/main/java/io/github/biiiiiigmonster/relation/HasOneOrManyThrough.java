@@ -53,6 +53,7 @@ public abstract class HasOneOrManyThrough<T extends Model<?>, TH extends Model<?
     public abstract <R extends Model<?>> void throughMatch(List<T> models, List<TH> throughs, List<R> results);
 
     @Override
-    public <R extends Model<?>> void match(List<T> models, List<R> results) {
+    public <R extends Model<?>> List<R> match(List<T> models, List<R> results) {
+        return results;
     }
 }

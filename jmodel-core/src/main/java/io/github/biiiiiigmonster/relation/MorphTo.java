@@ -35,8 +35,8 @@ public class MorphTo<T extends Model<?>> extends BelongsTo<T> {
     }
 
     @Override
-    public <R extends Model<?>> void match(List<T> models, List<R> results) {
-        super.match(filterMorph(models), results);
+    public <R extends Model<?>> List<R> match(List<T> models, List<R> results) {
+        return super.match(filterMorph(models), results);
     }
 
     protected String getMorphAlias() {

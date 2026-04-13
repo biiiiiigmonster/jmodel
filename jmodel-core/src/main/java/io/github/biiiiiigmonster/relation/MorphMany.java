@@ -22,18 +22,23 @@ public class MorphMany<T extends Model<?>> extends MorphOneOrMany<T> {
     }
 
     @Override
-    public <R extends Model<?>> void match(List<T> models, List<R> results) {
+    public <R extends Model<?>> List<R> match(List<T> models, List<R> results) {
         Map<?, List<R>> dictionary = results.stream()
                 .filter(r -> ReflectUtil.getFieldValue(r, morphType).equals(getMorphAlias()))
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignField)));
 
+        List<R> matchResults = new ArrayList<>();
+
         Field chaperoneField = chaperoneField();
         models.forEach(o -> {
             List<R> valList = dictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>());
+            matchResults.addAll(valList);
             ReflectUtil.setFieldValue(o, relatedField, valList);
             if (chaperone) {
                 valList.forEach(value -> ReflectUtil.setFieldValue(value, chaperoneField, o));
             }
         });
+
+        return matchResults;
     }
 }

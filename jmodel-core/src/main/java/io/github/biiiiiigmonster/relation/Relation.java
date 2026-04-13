@@ -43,7 +43,7 @@ public abstract class Relation<T extends Model<?>> {
 
     public abstract <R extends Model<?>> List<R> getEager(List<T> models);
 
-    public abstract <R extends Model<?>> void match(List<T> models, List<R> results);
+    public abstract <R extends Model<?>> List<R> match(List<T> models, List<R> results);
 
     /**
      * 统一的结果获取方法，支持条件扩展

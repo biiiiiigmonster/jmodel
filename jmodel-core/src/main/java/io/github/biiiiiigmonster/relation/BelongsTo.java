@@ -4,6 +4,7 @@ import cn.hutool.core.util.ReflectUtil;
 import io.github.biiiiiigmonster.Model;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,14 +32,21 @@ public class BelongsTo<T extends Model<?>> extends Relation<T> {
     }
 
     @Override
-    public <R extends Model<?>> void match(List<T> models, List<R> results) {
+    public <R extends Model<?>> List<R> match(List<T> models, List<R> results) {
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, ownerField), r -> r));
 
+        List<R> matchResults = new ArrayList<>();
+
         models.forEach(o -> {
             R value = dictionary.get(ReflectUtil.getFieldValue(o, foreignField));
+            if (value != null) {
+                matchResults.add(value);
+            }
             ReflectUtil.setFieldValue(o, relatedField, value);
         });
+
+        return matchResults;
     }
 
     public <R extends Model<?>> void associate(R relatedModel) {

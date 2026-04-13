@@ -109,7 +109,8 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
     }
 
     @Override
-    public <R extends Model<?>> void match(List<T> models, List<R> results) {
+    public <R extends Model<?>> List<R> match(List<T> models, List<R> results) {
+        return results;
     }
 
     public <R extends Model<?>> void attach(List<R> attachModels) {

@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Auto-configuration that registers {@link JmodelJacksonModule} when Jackson is on the classpath.
+ * Autoconfiguration that registers {@link JmodelJacksonModule} when Jackson is on the classpath.
  * <p>
  * Spring Boot automatically picks up any {@link com.fasterxml.jackson.databind.Module} beans
  * and registers them with the application's {@link ObjectMapper}.

@@ -233,6 +233,11 @@ public class RelationUtils {
         Relation<T> relation = relationOption.getRelation();
         // 合并关联结果
         List<R> mergeResults = merge(existResults, relation.getEager(eager));
+        // 合并父模型数据
+        eager.addAll(exists);
+        // 组装匹配
+        List<R> matchResults = relation.match(eager, mergeResults);
+
         // 嵌套处理
         if (relationOption.isNested()) {
             List<RelationOption<? extends Model<?>>> nestedRelations = relationOption.getNestedRelations();
@@ -240,13 +245,8 @@ public class RelationUtils {
             for (RelationOption<? extends Model<?>> nestedRelation : nestedRelations) {
                 nestedRelationOptions.add((RelationOption<R>) nestedRelation);
             }
-            load(mergeResults, nestedRelationOptions, loadForce);
+            load(matchResults, nestedRelationOptions, loadForce);
         }
-
-        // 合并父模型数据
-        eager.addAll(exists);
-        // 组装匹配
-        relation.match(eager, mergeResults);
     }
 
     // 新旧结果集合并，如果重复以新结果集为准
