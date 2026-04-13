@@ -240,9 +240,8 @@ public class RelationUtils {
 
         // 嵌套处理
         if (relationOption.isNested()) {
-            List<RelationOption<? extends Model<?>>> nestedRelations = relationOption.getNestedRelations();
             List<RelationOption<R>> nestedRelationOptions = new ArrayList<>();
-            for (RelationOption<? extends Model<?>> nestedRelation : nestedRelations) {
+            for (RelationOption<? extends Model<?>> nestedRelation : relationOption.getNestedRelations()) {
                 nestedRelationOptions.add((RelationOption<R>) nestedRelation);
             }
             load(matchResults, nestedRelationOptions, loadForce);
