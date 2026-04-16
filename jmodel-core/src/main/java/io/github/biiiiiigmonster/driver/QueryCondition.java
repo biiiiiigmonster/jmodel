@@ -111,22 +111,4 @@ public class QueryCondition<T extends Model<?>> implements Serializable {
         criteria.add(new Criterion(field, CriterionType.IS_NOT_NULL, null));
         return this;
     }
-
-    /**
-     * 查询条件项
-     */
-    @Getter
-    @AllArgsConstructor
-    public static class Criterion {
-        private final String field;
-        private final CriterionType type;
-        private final Object value;
-    }
-
-    /**
-     * 条件类型枚举
-     */
-    public enum CriterionType {
-        EQ, IN, GT, LT, LIKE, IS_NULL, IS_NOT_NULL
-    }
 }

@@ -116,8 +116,8 @@ public class InMemoryDataDriver implements DataDriver {
     /**
      * 判断实体是否匹配所有条件
      */
-    private boolean matchesCriteria(Model<?> entity, List<QueryCondition.Criterion> criteria) {
-        for (QueryCondition.Criterion criterion : criteria) {
+    private boolean matchesCriteria(Model<?> entity, List<Criterion> criteria) {
+        for (Criterion criterion : criteria) {
             if (!matchesCriterion(entity, criterion)) {
                 return false;
             }
@@ -128,7 +128,7 @@ public class InMemoryDataDriver implements DataDriver {
     /**
      * 判断实体是否匹配单个条件
      */
-    private boolean matchesCriterion(Model<?> entity, QueryCondition.Criterion criterion) {
+    private boolean matchesCriterion(Model<?> entity, Criterion criterion) {
         String fieldName = criterion.getField();
         Object conditionValue = criterion.getValue();
         Object fieldValue = ReflectUtil.getFieldValue(entity, fieldName);
