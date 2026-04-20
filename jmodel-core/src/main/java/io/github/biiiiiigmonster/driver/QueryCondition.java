@@ -111,4 +111,15 @@ public class QueryCondition<T extends Model<?>> implements Serializable {
         criteria.add(new Criterion(field, CriterionType.IS_NOT_NULL, null));
         return this;
     }
+
+    /**
+     * 添加 apply
+     *
+     * @param criterion 条件
+     * @return 当前查询条件实例
+     */
+    public QueryCondition<T> apply(Criterion criterion) {
+        criteria.add(criterion);
+        return this;
+    }
 }

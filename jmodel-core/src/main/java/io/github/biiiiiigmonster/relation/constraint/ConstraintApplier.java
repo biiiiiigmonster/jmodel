@@ -2,7 +2,7 @@ package io.github.biiiiiigmonster.relation.constraint;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ReflectUtil;
-import io.github.biiiiiigmonster.Model;
+import io.github.biiiiiigmonster.driver.Criterion;
 import io.github.biiiiiigmonster.driver.QueryCondition;
 
 import java.lang.reflect.Field;
@@ -10,18 +10,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Consumer;
 
 /**
- * 查询约束应用工具。
+ * 查询约束转化工具。
  * <p>
- * 负责将 {@link Constraint} 注解、{@link RelationConstraint} 实例、运行时
- * {@code Consumer} 形式的约束，统一应用到 {@link QueryCondition} 上。
+ * 负责把 {@link Constraint} 注解转化为 {@link Consumer} 形式，便于与运行时
+ * {@code Consumer<QueryCondition>} 统一存储、统一应用。
  * <p>
- * 对 {@link Constraint} 的 {@code String[]} 值，按照关联实体对应字段的 Java 类型
- * 进行自动转换（{@code Long}/{@code Integer}/{@code Boolean}/{@code String} 等）。
+ * 对 {@link Constraint#value()} 的 {@code String[]} 值，按照关联实体对应字段的
+ * * Java 类型做自动转换（Long / Integer / Boolean / String 等）。
  *
  * @author luyunfeng
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public final class ConstraintApplier {
 
     private ConstraintApplier() {
@@ -33,86 +35,45 @@ public final class ConstraintApplier {
     private static final ConcurrentMap<String, Class<?>> FIELD_TYPE_CACHE = new ConcurrentHashMap<>();
 
     /**
-     * 应用注解声明的静态约束数组
+     * 把注解数组转化为 {@code Consumer<QueryCondition>} 列表
      *
-     * @param condition    查询条件
-     * @param entityClass  关联实体 Class
-     * @param constraints  注解数组
+     * @param entityClass 关联实体 Class
+     * @param constraints 注解数组
+     * @return 对应的 Consumer 列表（可为空列表）
      */
-    public static <R extends Model<?>> void applyAnnotations(QueryCondition<R> condition,
-                                                             Class<R> entityClass,
-                                                             Constraint[] constraints) {
-        if (constraints == null || constraints.length == 0) {
-            return;
+    public static List<Consumer<QueryCondition>> toConsumers(Class<?> entityClass, Constraint[] constraints) {
+        List<Consumer<QueryCondition>> list = new ArrayList<>();
+        if (constraints == null) {
+            return list;
         }
         for (Constraint c : constraints) {
-            applyAnnotation(condition, entityClass, c);
+            list.add(toConsumer(entityClass, c));
         }
+
+        return list;
     }
 
     /**
-     * 应用单个 {@link Constraint} 注解
+     * 把单个 {@link Constraint} 注解转化为 {@code Consumer<QueryCondition>}
      */
-    public static <R extends Model<?>> void applyAnnotation(QueryCondition<R> condition,
-                                                            Class<R> entityClass,
-                                                            Constraint c) {
-        String field = c.field();
-        String[] raw = c.value();
+    public static Consumer<QueryCondition> toConsumer(Class<?> entityClass, Constraint c) {
+        final String field = c.field();
+        final String[] raw = c.value();
         switch (c.type()) {
             case EQ:
-                condition.eq(field, convertSingle(entityClass, field, raw));
-                break;
             case GT:
-                condition.gt(field, convertSingle(entityClass, field, raw));
-                break;
             case LT:
-                condition.lt(field, convertSingle(entityClass, field, raw));
-                break;
             case LIKE:
-                condition.like(field, raw != null && raw.length > 0 ? raw[0] : "");
-                break;
+                return cond -> cond.apply(new Criterion(field, c.type(), convertSingle(entityClass, field, raw)));
             case IN:
-                condition.in(field, convertList(entityClass, field, raw));
-                break;
+                return cond -> cond.apply(new Criterion(field, c.type(), convertList(entityClass, field, raw)));
             case IS_NULL:
-                condition.isNull(field);
-                break;
             case IS_NOT_NULL:
-                condition.isNotNull(field);
-                break;
+                return cond -> cond.apply(new Criterion(field, c.type(), null));
             default:
-                break;
+                return cond -> {
+                };
         }
-    }
-
-    /**
-     * 应用 {@link RelationConstraint} 类型约束，支持 {@link RelationConstraint.Noop}
-     * 作为占位符跳过
-     */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public static <R extends Model<?>> void applyConstraintClass(QueryCondition<R> condition,
-                                                                 Class<? extends RelationConstraint> constraintClass) {
-        if (constraintClass == null || constraintClass == RelationConstraint.Noop.class) {
-            return;
-        }
-        try {
-            RelationConstraint instance = constraintClass.getDeclaredConstructor().newInstance();
-            instance.apply(condition);
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException("Failed to instantiate RelationConstraint: " + constraintClass.getName(), e);
-        }
-    }
-
-    /**
-     * 应用运行时 {@link RelationConstraint} 实例
-     */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public static <R extends Model<?>> void applyRuntime(QueryCondition<R> condition,
-                                                         RelationConstraint runtimeConstraint) {
-        if (runtimeConstraint == null) {
-            return;
-        }
-        runtimeConstraint.apply(condition);
     }
 
     private static Object convertSingle(Class<?> entityClass, String field, String[] raw) {

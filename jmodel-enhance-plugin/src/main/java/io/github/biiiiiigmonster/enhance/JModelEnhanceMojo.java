@@ -17,7 +17,7 @@ import java.io.File;
  * 在 {@code process-classes} 阶段执行，扫描所有 {@code Model} 子类，
  * 对其 setter 方法注入 {@code $jmodel$trackChange} 调用，实现 dirty-tracking。
  *
- * @author luyunfeng
+ * @author biiiiiigmonster
  */
 @Mojo(
     name = "enhance",

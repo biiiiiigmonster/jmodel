@@ -10,7 +10,6 @@ import io.github.biiiiiigmonster.relation.annotation.HasOneThrough;
 import io.github.biiiiiigmonster.relation.annotation.MorphOne;
 import io.github.biiiiiigmonster.relation.annotation.config.MorphAlias;
 import io.github.biiiiiigmonster.relation.constraint.Constraint;
-import io.github.biiiiiigmonster.relation.scope.SpringInTitleScope;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -77,12 +76,6 @@ public class User extends Model<User> {
             })
     })
     private List<Post> dockerOrK8sPosts;
-
-    /**
-     * 静态 {@code constraint} 类形式
-     */
-    @HasMany(foreignKey = "userId", constraint = SpringInTitleScope.class)
-    private List<Post> scopedSpringPosts;
 
     /**
      * 静态 + 运行时叠加场景

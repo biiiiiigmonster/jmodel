@@ -31,7 +31,7 @@ import net.bytebuddy.pool.TypePool;
  * <p>
  * 支持所有 Java 基本类型和引用类型，基本类型自动装箱为 Object。
  *
- * @author luyunfeng
+ * @author biiiiiigmonster
  */
 public class SetterInterceptor implements AsmVisitorWrapper.ForDeclaredMethods.MethodVisitorWrapper {
 

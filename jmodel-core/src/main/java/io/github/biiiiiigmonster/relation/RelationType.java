@@ -14,6 +14,7 @@ import io.github.biiiiiigmonster.relation.annotation.MorphTo;
 import io.github.biiiiiigmonster.relation.annotation.MorphToMany;
 import io.github.biiiiiigmonster.relation.annotation.MorphedByMany;
 import io.github.biiiiiigmonster.relation.annotation.SiblingMany;
+import io.github.biiiiiigmonster.relation.constraint.ConstraintApplier;
 import io.github.biiiiiigmonster.relation.exception.RelationNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -40,7 +41,7 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     relation.chaperone()
             );
-            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
             return r;
         }
     },
@@ -58,7 +59,7 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     relation.chaperone()
             );
-            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
             return r;
         }
     },
@@ -77,7 +78,7 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), foreignKey),
                     ReflectUtil.getField(field.getType(), ownerKey)
             );
-            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
             return r;
         }
     },
@@ -104,7 +105,7 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     relation.withPivot()
             );
-            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
             return r;
         }
     },
@@ -130,7 +131,7 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     ReflectUtil.getField(relation.through(), throughLocalKey)
             );
-            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
             return r;
         }
     },
@@ -156,7 +157,7 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     ReflectUtil.getField(relation.through(), throughLocalKey)
             );
-            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
             return r;
         }
     },
@@ -177,7 +178,7 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     relation.chaperone()
             );
-            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
             return r;
         }
     },
@@ -198,7 +199,7 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     relation.chaperone()
             );
-            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
             return r;
         }
     },
@@ -219,7 +220,7 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), id),
                     ReflectUtil.getField(field.getType(), ownerKey)
             );
-            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
             return r;
         }
     },
@@ -249,7 +250,7 @@ public enum RelationType {
                     false,
                     relation.withPivot()
             );
-            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
             return r;
         }
     },
@@ -279,7 +280,7 @@ public enum RelationType {
                     true,
                     relation.withPivot()
             );
-            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
             return r;
         }
     },
@@ -302,7 +303,7 @@ public enum RelationType {
                     field,
                     ReflectUtil.getField(field.getDeclaringClass(), parentKey)
             );
-            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
             return r;
         }
     },

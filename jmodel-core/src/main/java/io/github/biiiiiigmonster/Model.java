@@ -4,12 +4,12 @@ import cn.hutool.core.util.ReflectUtil;
 import io.github.biiiiiigmonster.attribute.AttributeUtils;
 import io.github.biiiiiigmonster.driver.DataDriver;
 import io.github.biiiiiigmonster.driver.DriverRegistry;
+import io.github.biiiiiigmonster.driver.QueryCondition;
 import io.github.biiiiiigmonster.event.ModelEventPublisher;
 import io.github.biiiiiigmonster.relation.Pivot;
 import io.github.biiiiiigmonster.relation.RelationOption;
 import io.github.biiiiiigmonster.relation.RelationType;
 import io.github.biiiiiigmonster.relation.RelationUtils;
-import io.github.biiiiiigmonster.relation.constraint.RelationConstraint;
 import io.github.biiiiiigmonster.tracking.TrackingUtils;
 import lombok.Getter;
 
@@ -21,12 +21,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
- * @author luyunfeng
+ * @author biiiiiigmonster
  */
 @Getter
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes"})
 public abstract class Model<T extends Model<?>> {
     private transient Pivot<?> pivot;
 
@@ -50,71 +51,53 @@ public abstract class Model<T extends Model<?>> {
     private transient Map<String, Object> $jmodel$savedChanges = new HashMap<>();
 
     public <R> R get(SerializableFunction<T, R> column) {
+        return get(column, null);
+    }
+
+    public Object get(String column) {
+        return get(column, Object.class, null);
+    }
+
+    public <R> R get(String column, Class<R> type) {
+        return get(column, type, null);
+    }
+
+    // ==================== Constraint-aware get ====================
+
+    public <R> R get(SerializableFunction<T, R> column, Consumer<QueryCondition> constraint) {
         R value = column.apply((T) this);
         if (value != null) {
             return value;
         }
 
         Field field = SerializedLambda.getField(column);
-        get(field);
-
+        get(field, constraint);
+        
         return column.apply((T) this);
     }
 
-    public Object get(String column) {
-        return get(column, Object.class);
+    public Object get(String column, Consumer<QueryCondition> constraint) {
+        return get(column, Object.class, constraint);
     }
 
-    public <R> R get(String column, Class<R> type) {
+    public <R> R get(String column, Class<R> type, Consumer<QueryCondition> constraint) {
         Object value = ReflectUtil.getFieldValue(this, column);
         if (value != null) {
             return type.cast(value);
         }
 
         Field field = ReflectUtil.getField(getClass(), column);
-        get(field);
-
+        get(field, constraint);
+        
         return type.cast(ReflectUtil.getFieldValue(this, column));
     }
 
-    private void get(Field field) {
+    private void get(Field field, Consumer<QueryCondition> constraint) {
         if (RelationType.hasRelationAnnotation(field)) {
-            load(field.getName());
+            load(field.getName(), constraint);
         } else if (AttributeUtils.hasAttributeAnnotation(field)) {
             append(field.getName());
         }
-    }
-
-    // ==================== Constraint-aware get ====================
-
-    /**
-     * 即时加载并应用运行时查询约束。
-     * <p>
-     * 约束以 {@link RelationConstraint} 函数接口形式传入，支持 lambda。无论字段当前
-     * 是否已加载，都会按照约束重新拉取关联数据。
-     */
-    public <R> R get(SerializableFunction<T, R> column, RelationConstraint<?> constraint) {
-        Field field = SerializedLambda.getField(column);
-        loadWithConstraint(field.getName(), constraint);
-        return column.apply((T) this);
-    }
-
-    public Object get(String column, RelationConstraint<?> constraint) {
-        return get(column, Object.class, constraint);
-    }
-
-    public <R> R get(String column, Class<R> type, RelationConstraint<?> constraint) {
-        loadWithConstraint(column, constraint);
-        return type.cast(ReflectUtil.getFieldValue(this, column));
-    }
-
-    @SuppressWarnings("unchecked")
-    private void loadWithConstraint(String fieldName, RelationConstraint<?> relationConstraint) {
-        RelationOption<T> opt = RelationOption.of((Class<T>) getClass(), fieldName);
-        if (relationConstraint != null) {
-            opt.constraint(relationConstraint);
-        }
-        RelationUtils.loadForce((T) this, opt);
     }
 
     // ==================== Dirty Tracking: Track Change ====================
@@ -442,11 +425,11 @@ public abstract class Model<T extends Model<?>> {
         RelationUtils.load((T) this, relations);
     }
 
-    public final <R> void load(SerializableFunction<T, R> relation, RelationConstraint<?> constraint) {
+    public final <R> void load(SerializableFunction<T, R> relation, Consumer<QueryCondition> constraint) {
         RelationUtils.load((T) this, relation, constraint);
     }
 
-    public final void load(String relation, RelationConstraint<?> constraint) {
+    public final void load(String relation, Consumer<QueryCondition> constraint) {
         RelationUtils.load((T) this, relation, constraint);
     }
 
@@ -464,11 +447,11 @@ public abstract class Model<T extends Model<?>> {
         RelationUtils.loadForce((T) this, relations);
     }
 
-    public final <R> void loadForce(SerializableFunction<T, R> relation, RelationConstraint<?> constraint) {
+    public final <R> void loadForce(SerializableFunction<T, R> relation, Consumer<QueryCondition> constraint) {
         RelationUtils.loadForce((T) this, relation, constraint);
     }
 
-    public final void loadForce(String relation, RelationConstraint<?> constraint) {
+    public final void loadForce(String relation, Consumer<QueryCondition> constraint) {
         RelationUtils.loadForce((T) this, relation, constraint);
     }
 

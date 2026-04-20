@@ -3,7 +3,6 @@ package io.github.biiiiiigmonster.relation.annotation;
 import io.github.biiiiiigmonster.relation.MorphPivot;
 import io.github.biiiiiigmonster.relation.annotation.config.Relation;
 import io.github.biiiiiigmonster.relation.constraint.Constraint;
-import io.github.biiiiiigmonster.relation.constraint.RelationConstraint;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,5 +21,4 @@ public @interface MorphToMany {
     String localKey() default "";
     boolean withPivot() default false;
     Constraint[] constraints() default {};
-    Class<? extends RelationConstraint> constraint() default RelationConstraint.Noop.class;
 }

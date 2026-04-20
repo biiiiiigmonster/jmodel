@@ -6,8 +6,6 @@ import io.github.biiiiiigmonster.driver.entity.Role;
 import io.github.biiiiiigmonster.driver.entity.User;
 import io.github.biiiiiigmonster.relation.RelationOption;
 import io.github.biiiiiigmonster.relation.RelationUtils;
-import io.github.biiiiiigmonster.relation.constraint.RelationConstraint;
-import io.github.biiiiiigmonster.relation.scope.SpringInTitleScope;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -22,15 +20,16 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * 关联查询约束特性测试。
+ * <p>
  * 覆盖以下场景：
  * <ol>
- *     <li>运行时约束（Consumer 和 RelationConstraint 两种风格）</li>
+ *     <li>运行时约束（{@code Consumer<QueryCondition>} 形式）</li>
  *     <li>静态注解约束（{@code @Constraint}）</li>
- *     <li>静态类形式约束（{@code constraint = XxxScope.class}）</li>
  *     <li>静态 + 运行时约束叠加（AND）</li>
  *     <li>约束仅作用于终表，不影响中间表（BelongsToMany）</li>
  *     <li>批量加载 + 约束</li>
  *     <li>{@code loadForce} 覆盖约束</li>
+ *     <li>写操作不受查询约束影响</li>
  * </ol>
  */
 public class RelationConstraintTest extends BaseTest {
@@ -41,28 +40,20 @@ public class RelationConstraintTest extends BaseTest {
     public void shouldApplyRuntimeLambdaConstraint() {
         User user = findById(User.class, 1L);
         // User 1: posts ["Getting Started with Spring Boot", "Mastering JPA Relationships"]
-        List<Post> posts = user.get(User::getPosts, (RelationConstraint<Post>) cond -> cond.like("title", "Spring"));
+        List<Post> posts = user.get(User::getPosts, c -> c.like("title", "Spring"));
         assertNotNull(posts);
         assertEquals(1, posts.size());
         assertEquals("Getting Started with Spring Boot", posts.get(0).getTitle());
     }
 
     @Test
-    public void shouldApplyRuntimeRelationConstraint() {
+    public void shouldApplyRuntimeConstraintViaRelationOption() {
         User user = findById(User.class, 1L);
-        RelationConstraint<Post> scope = cond -> cond.like("title", "Spring");
-        List<Post> posts = user.get(User::getPosts, scope);
-        assertNotNull(posts);
-        assertEquals(1, posts.size());
-        assertEquals("Getting Started with Spring Boot", posts.get(0).getTitle());
-    }
-
-    @Test
-    public void shouldApplyRuntimeConstraintViaReusableScope() {
-        User user = findById(User.class, 1L);
-        List<Post> posts = user.get(User::getPosts, new SpringInTitleScope());
-        assertEquals(1, posts.size());
-        assertEquals("Getting Started with Spring Boot", posts.get(0).getTitle());
+        RelationOption<User> option = RelationOption.of(User.class, "posts")
+                .constraint(c -> c.like("title", "Spring"));
+        user.load(option);
+        assertEquals(1, user.getPosts().size());
+        assertEquals("Getting Started with Spring Boot", user.getPosts().get(0).getTitle());
     }
 
     // ---------------- 2. 静态 @Constraint 注解 ----------------
@@ -102,31 +93,19 @@ public class RelationConstraintTest extends BaseTest {
         assertFalse(titles.contains("CI/CD Pipeline Design"));
     }
 
-    // ---------------- 3. 静态 constraint 类 ----------------
-
-    @Test
-    public void shouldApplyStaticConstraintClass() {
-        User user = findById(User.class, 1L);
-        List<Post> posts = user.get(User::getScopedSpringPosts);
-        assertNotNull(posts);
-        assertEquals(1, posts.size());
-        assertEquals("Getting Started with Spring Boot", posts.get(0).getTitle());
-    }
-
-    // ---------------- 4. 静态 + 运行时约束叠加 ----------------
+    // ---------------- 3. 静态 + 运行时约束叠加 ----------------
 
     @Test
     public void shouldStackStaticAndRuntimeConstraints() {
         // constrainedPosts 自带 id > 0；再叠加运行时 title LIKE "Spring"
         User user = findById(User.class, 1L);
-        List<Post> posts = user.get(User::getConstrainedPosts,
-                (RelationConstraint<Post>) c -> c.like("title", "Spring"));
+        List<Post> posts = user.get(User::getConstrainedPosts, c -> c.like("title", "Spring"));
         assertNotNull(posts);
         assertEquals(1, posts.size());
         assertEquals("Getting Started with Spring Boot", posts.get(0).getTitle());
     }
 
-    // ---------------- 5. 只作用于终表 ----------------
+    // ---------------- 4. 只作用于终表 ----------------
 
     @Test
     public void shouldOnlyConstrainTargetTableNotPivot() {
@@ -143,18 +122,18 @@ public class RelationConstraintTest extends BaseTest {
     @Test
     public void shouldRuntimeConstraintOnBelongsToManyOnlyAffectTarget() {
         User user = findById(User.class, 1L);
-        List<Role> roles = user.get(User::getRoles, (RelationConstraint<Role>) c -> c.eq("name", "Administrator"));
+        List<Role> roles = user.get(User::getRoles, c -> c.eq("name", "Administrator"));
         assertNotNull(roles);
         assertEquals(1, roles.size());
         assertEquals("Administrator", roles.get(0).getName());
     }
 
-    // ---------------- 6. 批量加载 + 约束 ----------------
+    // ---------------- 5. 批量加载 + 约束 ----------------
 
     @Test
     public void shouldApplyConstraintOnEagerLoadForList() {
         List<User> userList = findByIds(User.class, Arrays.asList(1L, 2L, 3L));
-        RelationUtils.load(userList, User::getPosts, (RelationConstraint<Post>) c -> c.like("title", "Spring"));
+        RelationUtils.load(userList, User::getPosts, c -> c.like("title", "Spring"));
 
         User u1 = userList.stream().filter(u -> u.getId() == 1L).findFirst().orElse(null);
         User u2 = userList.stream().filter(u -> u.getId() == 2L).findFirst().orElse(null);
@@ -171,17 +150,7 @@ public class RelationConstraintTest extends BaseTest {
         assertEquals(0, u3.getPosts().size());
     }
 
-    @Test
-    public void shouldApplyConstraintViaRelationOption() {
-        User user = findById(User.class, 1L);
-        RelationOption<User> option = RelationOption.of(User.class, "posts")
-                .constraint((RelationConstraint<Post>) c -> c.like("title", "Spring"));
-        user.load(option);
-        assertEquals(1, user.getPosts().size());
-        assertEquals("Getting Started with Spring Boot", user.getPosts().get(0).getTitle());
-    }
-
-    // ---------------- 7. loadForce + 约束 ----------------
+    // ---------------- 6. loadForce + 约束 ----------------
 
     @Test
     public void shouldLoadForceWithConstraintOverrideCachedRelation() {
@@ -189,12 +158,12 @@ public class RelationConstraintTest extends BaseTest {
         user.load(User::getPosts);
         assertEquals(2, user.getPosts().size());
 
-        user.loadForce(User::getPosts, (RelationConstraint<Post>) c -> c.like("title", "Spring"));
+        user.loadForce(User::getPosts, c -> c.like("title", "Spring"));
         assertEquals(1, user.getPosts().size());
         assertEquals("Getting Started with Spring Boot", user.getPosts().get(0).getTitle());
     }
 
-    // ---------------- 8. 写操作不受查询约束影响 ----------------
+    // ---------------- 7. 写操作不受查询约束影响 ----------------
 
     @Test
     public void shouldNotAffectWriteOperations() {

@@ -4,7 +4,7 @@ import cn.hutool.core.util.ReflectUtil;
 import io.github.biiiiiigmonster.Model;
 import io.github.biiiiiigmonster.SerializableFunction;
 import io.github.biiiiiigmonster.SerializedLambda;
-import io.github.biiiiiigmonster.relation.constraint.RelationConstraint;
+import io.github.biiiiiigmonster.driver.QueryCondition;
 import lombok.Getter;
 import org.springframework.util.CollectionUtils;
 
@@ -12,21 +12,19 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Getter
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class RelationOption<T extends Model<?>> {
     private List<RelationOption<? extends Model<?>>> nestedRelations = new ArrayList<>();
     private final Class<T> clazz;
     private final String fieldName;
     private Field relatedField;
     private RelationType relationType;
-    /**
-     * 运行时约束，在 {@link #getRelation()} 时注入到 {@link Relation}
-     */
-    private RelationConstraint<?> runtimeConstraint;
+    private final List<Consumer<QueryCondition>> runtimeConstraints = new ArrayList<>();
 
-    @SuppressWarnings("unchecked")
     public <F> RelationOption(SerializableFunction<T, F> relation) {
         SerializedLambda lambda = SerializedLambda.resolve(relation);
         clazz = (Class<T>) lambda.getImplClass();
@@ -53,7 +51,6 @@ public class RelationOption<T extends Model<?>> {
         return new RelationOption<>(clazz, fieldName);
     }
 
-    @SuppressWarnings("unchecked")
     public static <T extends Model<?>> RelationOption<T> of(T model, String fieldName) {
         return new RelationOption<>((Class<T>) model.getClass(), fieldName);
     }
@@ -80,9 +77,7 @@ public class RelationOption<T extends Model<?>> {
 
     public Relation<T> getRelation() {
         Relation<T> relation = relationType.getRelation(this);
-        if (runtimeConstraint != null) {
-            relation.withRuntimeConstraint(runtimeConstraint);
-        }
+        relation.addConstraints(runtimeConstraints);
         return relation;
     }
 
@@ -90,15 +85,10 @@ public class RelationOption<T extends Model<?>> {
         return !CollectionUtils.isEmpty(nestedRelations);
     }
 
-    /**
-     * 设置运行时 {@link RelationConstraint} 形式的约束；
-     * 由于 {@link RelationConstraint} 是函数式接口，可直接传入 lambda：
-     * <pre>
-     * option.constraint(c -&gt; c.like("title", "Spring"));
-     * </pre>
-     */
-    public RelationOption<T> constraint(RelationConstraint<?> constraint) {
-        this.runtimeConstraint = constraint;
+    public RelationOption<T> constraint(Consumer<QueryCondition> constraint) {
+        if (constraint != null) {
+            this.runtimeConstraints.add(constraint);
+        }
         return this;
     }
 }

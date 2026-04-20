@@ -1,12 +1,12 @@
 package io.github.biiiiiigmonster.driver;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 
 /**
  * 查询条件项
  */
-@Getter
+@Data
 @AllArgsConstructor
 public class Criterion {
     private final String field;

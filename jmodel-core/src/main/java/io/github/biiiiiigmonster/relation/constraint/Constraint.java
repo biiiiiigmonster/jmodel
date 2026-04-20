@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
  * private List&lt;Post&gt; publishedPosts;
  * </pre>
  *
- * @author luyunfeng
+ * @author biiiiiigmonster
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({})

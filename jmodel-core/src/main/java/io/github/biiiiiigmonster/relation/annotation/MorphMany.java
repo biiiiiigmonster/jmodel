@@ -2,7 +2,6 @@ package io.github.biiiiiigmonster.relation.annotation;
 
 import io.github.biiiiiigmonster.relation.annotation.config.Relation;
 import io.github.biiiiiigmonster.relation.constraint.Constraint;
-import io.github.biiiiiigmonster.relation.constraint.RelationConstraint;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -18,5 +17,4 @@ public @interface MorphMany {
     String localKey() default "";
     boolean chaperone() default false;
     Constraint[] constraints() default {};
-    Class<? extends RelationConstraint> constraint() default RelationConstraint.Noop.class;
 }

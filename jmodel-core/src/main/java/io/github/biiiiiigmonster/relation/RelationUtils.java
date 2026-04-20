@@ -9,7 +9,7 @@ import io.github.biiiiiigmonster.SerializableFunction;
 import io.github.biiiiiigmonster.SerializedLambda;
 import io.github.biiiiiigmonster.driver.DataDriver;
 import io.github.biiiiiigmonster.driver.DriverRegistry;
-import io.github.biiiiiigmonster.relation.constraint.RelationConstraint;
+import io.github.biiiiiigmonster.driver.QueryCondition;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -24,17 +24,18 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
  * 关联关系工具类
  * 提供模型关联加载、关联操作等功能
  *
- * @author luyunfeng
+ * @author biiiiiigmonster
  */
 @Slf4j
 @Component
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class RelationUtils {
 
     public static <T extends Model<?>> void load(T obj, String... relations) {
@@ -196,89 +197,85 @@ public class RelationUtils {
     // ==================== load / loadForce with constraint ====================
 
     public static <T extends Model<?>, R> void load(T obj, SerializableFunction<T, R> relation,
-                                                    RelationConstraint<?> constraint) {
+                                                    Consumer<QueryCondition> constraint) {
         loadWithConstraint(obj, relation, constraint, false);
     }
 
     public static <T extends Model<?>> void load(T obj, String relation,
-                                                 RelationConstraint<?> constraint) {
+                                                 Consumer<QueryCondition> constraint) {
         loadWithConstraint(obj, relation, constraint, false);
     }
 
     public static <T extends Model<?>, R> void load(List<T> list, SerializableFunction<T, R> relation,
-                                                    RelationConstraint<?> constraint) {
+                                                    Consumer<QueryCondition> constraint) {
         loadWithConstraint(list, relation, constraint, false);
     }
 
     public static <T extends Model<?>> void load(List<T> list, String relation,
-                                                 RelationConstraint<?> constraint) {
+                                                 Consumer<QueryCondition> constraint) {
         loadWithConstraint(list, relation, constraint, false);
     }
 
     public static <T extends Model<?>, R> void loadForce(T obj, SerializableFunction<T, R> relation,
-                                                         RelationConstraint<?> constraint) {
+                                                         Consumer<QueryCondition> constraint) {
         loadWithConstraint(obj, relation, constraint, true);
     }
 
     public static <T extends Model<?>> void loadForce(T obj, String relation,
-                                                      RelationConstraint<?> constraint) {
+                                                      Consumer<QueryCondition> constraint) {
         loadWithConstraint(obj, relation, constraint, true);
     }
 
     public static <T extends Model<?>, R> void loadForce(List<T> list, SerializableFunction<T, R> relation,
-                                                         RelationConstraint<?> constraint) {
+                                                         Consumer<QueryCondition> constraint) {
         loadWithConstraint(list, relation, constraint, true);
     }
 
     public static <T extends Model<?>> void loadForce(List<T> list, String relation,
-                                                      RelationConstraint<?> constraint) {
+                                                      Consumer<QueryCondition> constraint) {
         loadWithConstraint(list, relation, constraint, true);
     }
 
     private static <T extends Model<?>, R> void loadWithConstraint(T obj,
                                                                    SerializableFunction<T, R> relation,
-                                                                   RelationConstraint<?> relationConstraint,
+                                                                   Consumer<QueryCondition> constraint,
                                                                    boolean loadForce) {
         if (obj == null) {
             return;
         }
         String fieldName = SerializedLambda.resolveFieldNames(relation).get(0);
-        loadWithConstraint(ListUtil.toList(obj), fieldName, relationConstraint, loadForce);
+        loadWithConstraint(ListUtil.toList(obj), fieldName, constraint, loadForce);
     }
 
     private static <T extends Model<?>> void loadWithConstraint(T obj,
                                                                 String fieldName,
-                                                                RelationConstraint<?> relationConstraint,
+                                                                Consumer<QueryCondition> constraint,
                                                                 boolean loadForce) {
         if (obj == null) {
             return;
         }
-        loadWithConstraint(ListUtil.toList(obj), fieldName, relationConstraint, loadForce);
+        loadWithConstraint(ListUtil.toList(obj), fieldName, constraint, loadForce);
     }
 
     private static <T extends Model<?>, R> void loadWithConstraint(List<T> list,
                                                                    SerializableFunction<T, R> relation,
-                                                                   RelationConstraint<?> relationConstraint,
+                                                                   Consumer<QueryCondition> constraint,
                                                                    boolean loadForce) {
         if (CollectionUtils.isEmpty(list)) {
             return;
         }
         String fieldName = SerializedLambda.resolveFieldNames(relation).get(0);
-        loadWithConstraint(list, fieldName, relationConstraint, loadForce);
+        loadWithConstraint(list, fieldName, constraint, loadForce);
     }
 
-    @SuppressWarnings("unchecked")
     private static <T extends Model<?>> void loadWithConstraint(List<T> list,
                                                                 String fieldName,
-                                                                RelationConstraint<?> relationConstraint,
+                                                                Consumer<QueryCondition> constraint,
                                                                 boolean loadForce) {
         if (CollectionUtils.isEmpty(list)) {
             return;
         }
-        RelationOption<T> opt = RelationOption.of((Class<T>) list.get(0).getClass(), fieldName);
-        if (relationConstraint != null) {
-            opt.constraint(relationConstraint);
-        }
+        RelationOption<T> opt = RelationOption.of((Class<T>) list.get(0).getClass(), fieldName).constraint(constraint);
         load(list, Collections.singletonList(opt), loadForce);
     }
 

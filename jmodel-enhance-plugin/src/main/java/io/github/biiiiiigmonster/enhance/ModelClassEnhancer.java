@@ -29,7 +29,7 @@ import java.util.List;
  * 负责扫描编译输出目录中的 {@code Model} 子类，识别可追踪字段，
  * 并使用 ByteBuddy 对 setter 方法注入追踪代码。
  *
- * @author luyunfeng
+ * @author biiiiiigmonster
  */
 public class ModelClassEnhancer implements Closeable {
 
