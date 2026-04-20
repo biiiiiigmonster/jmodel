@@ -34,12 +34,14 @@ public enum RelationType {
             HasOne relation = field.getAnnotation(HasOne.class);
             String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getForeignKey(clazz);
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(clazz);
-            return new io.github.biiiiiigmonster.relation.HasOne<>(
+            io.github.biiiiiigmonster.relation.HasOne<T> r = new io.github.biiiiiigmonster.relation.HasOne<>(
                     field,
                     ReflectUtil.getField(field.getType(), foreignKey),
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     relation.chaperone()
             );
+            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            return r;
         }
     },
     HAS_MANY(HasMany.class, true) {
@@ -50,12 +52,14 @@ public enum RelationType {
             HasMany relation = field.getAnnotation(HasMany.class);
             String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getForeignKey(clazz);
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(clazz);
-            return new io.github.biiiiiigmonster.relation.HasMany<>(
+            io.github.biiiiiigmonster.relation.HasMany<T> r = new io.github.biiiiiigmonster.relation.HasMany<>(
                     field,
                     ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey),
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     relation.chaperone()
             );
+            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            return r;
         }
     },
     BELONGS_TO(BelongsTo.class, false) {
@@ -68,11 +72,13 @@ public enum RelationType {
                     ? relation.foreignKey() : RelationUtils.getForeignKey((Class<? extends Model<?>>) field.getType());
             String ownerKey = StringUtils.isNotBlank(relation.ownerKey())
                     ? relation.ownerKey() : RelationUtils.getPrimaryKey((Class<? extends Model<?>>) field.getType());
-            return new io.github.biiiiiigmonster.relation.BelongsTo<>(
+            io.github.biiiiiigmonster.relation.BelongsTo<T> r = new io.github.biiiiiigmonster.relation.BelongsTo<>(
                     field,
                     ReflectUtil.getField(field.getDeclaringClass(), foreignKey),
                     ReflectUtil.getField(field.getType(), ownerKey)
             );
+            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            return r;
         }
     },
     BELONGS_TO_MANY(BelongsToMany.class, true) {
@@ -89,7 +95,7 @@ public enum RelationType {
                     ? relation.localKey() : RelationUtils.getPrimaryKey(clazz);
             String foreignKey = StringUtils.isNotBlank(relation.foreignKey())
                     ? relation.foreignKey() : RelationUtils.getPrimaryKey(RelationUtils.getGenericType(field));
-            return new io.github.biiiiiigmonster.relation.BelongsToMany<>(
+            io.github.biiiiiigmonster.relation.BelongsToMany<T, ?> r = new io.github.biiiiiigmonster.relation.BelongsToMany<>(
                     field,
                     relation.using(),
                     ReflectUtil.getField(relation.using(), foreignPivotKey),
@@ -98,6 +104,8 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     relation.withPivot()
             );
+            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            return r;
         }
     },
     HAS_ONE_THROUGH(HasOneThrough.class, false) {
@@ -114,7 +122,7 @@ public enum RelationType {
                     ? relation.localKey() : RelationUtils.getPrimaryKey(clazz);
             String throughLocalKey = StringUtils.isNotBlank(relation.throughLocalKey())
                     ? relation.throughLocalKey() : RelationUtils.getPrimaryKey(relation.through());
-            return new io.github.biiiiiigmonster.relation.HasOneThrough<>(
+            io.github.biiiiiigmonster.relation.HasOneThrough<T, ?> r = new io.github.biiiiiigmonster.relation.HasOneThrough<>(
                     field,
                     relation.through(),
                     ReflectUtil.getField(relation.through(), foreignKey),
@@ -122,6 +130,8 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     ReflectUtil.getField(relation.through(), throughLocalKey)
             );
+            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            return r;
         }
     },
     HAS_MANY_THROUGH(HasManyThrough.class, true) {
@@ -138,7 +148,7 @@ public enum RelationType {
                     ? relation.localKey() : RelationUtils.getPrimaryKey(clazz);
             String throughLocalKey = StringUtils.isNotBlank(relation.throughLocalKey())
                     ? relation.throughLocalKey() : RelationUtils.getPrimaryKey(relation.through());
-            return new io.github.biiiiiigmonster.relation.HasManyThrough<>(
+            io.github.biiiiiigmonster.relation.HasManyThrough<T, ?> r = new io.github.biiiiiigmonster.relation.HasManyThrough<>(
                     field,
                     relation.through(),
                     ReflectUtil.getField(relation.through(), foreignKey),
@@ -146,6 +156,8 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     ReflectUtil.getField(relation.through(), throughLocalKey)
             );
+            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            return r;
         }
     },
     MORPH_ONE(MorphOne.class, false) {
@@ -158,13 +170,15 @@ public enum RelationType {
             String type = StringUtils.isNotBlank(relation.type()) ? relation.type() : morph.getType();
             String id = StringUtils.isNotBlank(relation.id()) ? relation.id() : morph.getId();
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(clazz);
-            return new io.github.biiiiiigmonster.relation.MorphOne<>(
+            io.github.biiiiiigmonster.relation.MorphOne<T> r = new io.github.biiiiiigmonster.relation.MorphOne<>(
                     field,
                     ReflectUtil.getField(field.getType(), type),
                     ReflectUtil.getField(field.getType(), id),
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     relation.chaperone()
             );
+            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            return r;
         }
     },
     MORPH_MANY(MorphMany.class, true) {
@@ -177,13 +191,15 @@ public enum RelationType {
             String type = StringUtils.isNotBlank(relation.type()) ? relation.type() : morph.getType();
             String id = StringUtils.isNotBlank(relation.id()) ? relation.id() : morph.getId();
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(clazz);
-            return new io.github.biiiiiigmonster.relation.MorphMany<>(
+            io.github.biiiiiigmonster.relation.MorphMany<T> r = new io.github.biiiiiigmonster.relation.MorphMany<>(
                     field,
                     ReflectUtil.getField(RelationUtils.getGenericType(field), type),
                     ReflectUtil.getField(RelationUtils.getGenericType(field), id),
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     relation.chaperone()
             );
+            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            return r;
         }
     },
     MORPH_TO(MorphTo.class, false) {
@@ -197,12 +213,14 @@ public enum RelationType {
             String id = StringUtils.isNotBlank(relation.id()) ? relation.id() : morph.getId();
             String ownerKey = StringUtils.isNotBlank(relation.ownerKey())
                     ? relation.ownerKey() : RelationUtils.getPrimaryKey((Class<? extends Model<?>>) field.getType());
-            return new io.github.biiiiiigmonster.relation.MorphTo<>(
+            io.github.biiiiiigmonster.relation.MorphTo<T> r = new io.github.biiiiiigmonster.relation.MorphTo<>(
                     field,
                     ReflectUtil.getField(field.getDeclaringClass(), type),
                     ReflectUtil.getField(field.getDeclaringClass(), id),
                     ReflectUtil.getField(field.getType(), ownerKey)
             );
+            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            return r;
         }
     },
     MORPH_TO_MANY(MorphToMany.class, true) {
@@ -220,7 +238,7 @@ public enum RelationType {
                     ? relation.foreignKey() : RelationUtils.getPrimaryKey(RelationUtils.getGenericType(field));
             String localKey = StringUtils.isNotBlank(relation.localKey())
                     ? relation.localKey() : RelationUtils.getPrimaryKey(clazz);
-            return new io.github.biiiiiigmonster.relation.MorphToMany<>(
+            io.github.biiiiiigmonster.relation.MorphToMany<T, ?> r = new io.github.biiiiiigmonster.relation.MorphToMany<>(
                     field,
                     relation.using(),
                     ReflectUtil.getField(relation.using(), pivotType),
@@ -231,6 +249,8 @@ public enum RelationType {
                     false,
                     relation.withPivot()
             );
+            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            return r;
         }
     },
     MORPHED_BY_MANY(MorphedByMany.class, true) {
@@ -248,7 +268,7 @@ public enum RelationType {
                     ? relation.foreignKey() : RelationUtils.getPrimaryKey(RelationUtils.getGenericType(field));
             String ownerKey = StringUtils.isNotBlank(relation.ownerKey())
                     ? relation.ownerKey() : RelationUtils.getPrimaryKey(clazz);
-            return new io.github.biiiiiigmonster.relation.MorphToMany<>(
+            io.github.biiiiiigmonster.relation.MorphToMany<T, ?> r = new io.github.biiiiiigmonster.relation.MorphToMany<>(
                     field,
                     relation.using(),
                     ReflectUtil.getField(relation.using(), pivotType),
@@ -259,6 +279,8 @@ public enum RelationType {
                     true,
                     relation.withPivot()
             );
+            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            return r;
         }
     },
     SIBLINGS(SiblingMany.class, true) {
@@ -276,10 +298,12 @@ public enum RelationType {
                         ? belongs.foreignKey() : RelationUtils.getForeignKey((Class<? extends Model<?>>) belongsField.getType());
             }
 
-            return new io.github.biiiiiigmonster.relation.SiblingMany<>(
+            io.github.biiiiiigmonster.relation.SiblingMany<T> r = new io.github.biiiiiigmonster.relation.SiblingMany<>(
                     field,
                     ReflectUtil.getField(field.getDeclaringClass(), parentKey)
             );
+            r.withAnnotationConstraints(relation.constraints(), relation.constraint());
+            return r;
         }
     },
     ;

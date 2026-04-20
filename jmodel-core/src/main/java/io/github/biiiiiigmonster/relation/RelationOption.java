@@ -4,6 +4,7 @@ import cn.hutool.core.util.ReflectUtil;
 import io.github.biiiiiigmonster.Model;
 import io.github.biiiiiigmonster.SerializableFunction;
 import io.github.biiiiiigmonster.SerializedLambda;
+import io.github.biiiiiigmonster.relation.constraint.RelationConstraint;
 import lombok.Getter;
 import org.springframework.util.CollectionUtils;
 
@@ -20,6 +21,10 @@ public class RelationOption<T extends Model<?>> {
     private final String fieldName;
     private Field relatedField;
     private RelationType relationType;
+    /**
+     * 运行时约束，在 {@link #getRelation()} 时注入到 {@link Relation}
+     */
+    private RelationConstraint<?> runtimeConstraint;
 
     @SuppressWarnings("unchecked")
     public <F> RelationOption(SerializableFunction<T, F> relation) {
@@ -74,10 +79,26 @@ public class RelationOption<T extends Model<?>> {
     }
 
     public Relation<T> getRelation() {
-        return relationType.getRelation(this);
+        Relation<T> relation = relationType.getRelation(this);
+        if (runtimeConstraint != null) {
+            relation.withRuntimeConstraint(runtimeConstraint);
+        }
+        return relation;
     }
 
     public boolean isNested() {
         return !CollectionUtils.isEmpty(nestedRelations);
+    }
+
+    /**
+     * 设置运行时 {@link RelationConstraint} 形式的约束；
+     * 由于 {@link RelationConstraint} 是函数式接口，可直接传入 lambda：
+     * <pre>
+     * option.constraint(c -&gt; c.like("title", "Spring"));
+     * </pre>
+     */
+    public RelationOption<T> constraint(RelationConstraint<?> constraint) {
+        this.runtimeConstraint = constraint;
+        return this;
     }
 }

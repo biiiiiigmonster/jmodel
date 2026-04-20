@@ -9,6 +9,7 @@ import io.github.biiiiiigmonster.relation.Pivot;
 import io.github.biiiiiigmonster.relation.RelationOption;
 import io.github.biiiiiigmonster.relation.RelationType;
 import io.github.biiiiiigmonster.relation.RelationUtils;
+import io.github.biiiiiigmonster.relation.constraint.RelationConstraint;
 import io.github.biiiiiigmonster.tracking.TrackingUtils;
 import lombok.Getter;
 
@@ -82,6 +83,38 @@ public abstract class Model<T extends Model<?>> {
         } else if (AttributeUtils.hasAttributeAnnotation(field)) {
             append(field.getName());
         }
+    }
+
+    // ==================== Constraint-aware get ====================
+
+    /**
+     * 即时加载并应用运行时查询约束。
+     * <p>
+     * 约束以 {@link RelationConstraint} 函数接口形式传入，支持 lambda。无论字段当前
+     * 是否已加载，都会按照约束重新拉取关联数据。
+     */
+    public <R> R get(SerializableFunction<T, R> column, RelationConstraint<?> constraint) {
+        Field field = SerializedLambda.getField(column);
+        loadWithConstraint(field.getName(), constraint);
+        return column.apply((T) this);
+    }
+
+    public Object get(String column, RelationConstraint<?> constraint) {
+        return get(column, Object.class, constraint);
+    }
+
+    public <R> R get(String column, Class<R> type, RelationConstraint<?> constraint) {
+        loadWithConstraint(column, constraint);
+        return type.cast(ReflectUtil.getFieldValue(this, column));
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadWithConstraint(String fieldName, RelationConstraint<?> relationConstraint) {
+        RelationOption<T> opt = RelationOption.of((Class<T>) getClass(), fieldName);
+        if (relationConstraint != null) {
+            opt.constraint(relationConstraint);
+        }
+        RelationUtils.loadForce((T) this, opt);
     }
 
     // ==================== Dirty Tracking: Track Change ====================
@@ -409,6 +442,14 @@ public abstract class Model<T extends Model<?>> {
         RelationUtils.load((T) this, relations);
     }
 
+    public final <R> void load(SerializableFunction<T, R> relation, RelationConstraint<?> constraint) {
+        RelationUtils.load((T) this, relation, constraint);
+    }
+
+    public final void load(String relation, RelationConstraint<?> constraint) {
+        RelationUtils.load((T) this, relation, constraint);
+    }
+
     @SafeVarargs
     public final <R> void loadForce(SerializableFunction<T, R>... relations) {
         RelationUtils.loadForce((T) this, relations);
@@ -421,6 +462,14 @@ public abstract class Model<T extends Model<?>> {
 
     public final void loadForce(String... relations) {
         RelationUtils.loadForce((T) this, relations);
+    }
+
+    public final <R> void loadForce(SerializableFunction<T, R> relation, RelationConstraint<?> constraint) {
+        RelationUtils.loadForce((T) this, relation, constraint);
+    }
+
+    public final void loadForce(String relation, RelationConstraint<?> constraint) {
+        RelationUtils.loadForce((T) this, relation, constraint);
     }
 
     public Object primaryKeyValue() {

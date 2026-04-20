@@ -9,6 +9,7 @@ import io.github.biiiiiigmonster.SerializableFunction;
 import io.github.biiiiiigmonster.SerializedLambda;
 import io.github.biiiiiigmonster.driver.DataDriver;
 import io.github.biiiiiigmonster.driver.DriverRegistry;
+import io.github.biiiiiigmonster.relation.constraint.RelationConstraint;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -190,6 +191,95 @@ public class RelationUtils {
         }
 
         load(ListUtil.toList(obj), Arrays.asList(relations), true);
+    }
+
+    // ==================== load / loadForce with constraint ====================
+
+    public static <T extends Model<?>, R> void load(T obj, SerializableFunction<T, R> relation,
+                                                    RelationConstraint<?> constraint) {
+        loadWithConstraint(obj, relation, constraint, false);
+    }
+
+    public static <T extends Model<?>> void load(T obj, String relation,
+                                                 RelationConstraint<?> constraint) {
+        loadWithConstraint(obj, relation, constraint, false);
+    }
+
+    public static <T extends Model<?>, R> void load(List<T> list, SerializableFunction<T, R> relation,
+                                                    RelationConstraint<?> constraint) {
+        loadWithConstraint(list, relation, constraint, false);
+    }
+
+    public static <T extends Model<?>> void load(List<T> list, String relation,
+                                                 RelationConstraint<?> constraint) {
+        loadWithConstraint(list, relation, constraint, false);
+    }
+
+    public static <T extends Model<?>, R> void loadForce(T obj, SerializableFunction<T, R> relation,
+                                                         RelationConstraint<?> constraint) {
+        loadWithConstraint(obj, relation, constraint, true);
+    }
+
+    public static <T extends Model<?>> void loadForce(T obj, String relation,
+                                                      RelationConstraint<?> constraint) {
+        loadWithConstraint(obj, relation, constraint, true);
+    }
+
+    public static <T extends Model<?>, R> void loadForce(List<T> list, SerializableFunction<T, R> relation,
+                                                         RelationConstraint<?> constraint) {
+        loadWithConstraint(list, relation, constraint, true);
+    }
+
+    public static <T extends Model<?>> void loadForce(List<T> list, String relation,
+                                                      RelationConstraint<?> constraint) {
+        loadWithConstraint(list, relation, constraint, true);
+    }
+
+    private static <T extends Model<?>, R> void loadWithConstraint(T obj,
+                                                                   SerializableFunction<T, R> relation,
+                                                                   RelationConstraint<?> relationConstraint,
+                                                                   boolean loadForce) {
+        if (obj == null) {
+            return;
+        }
+        String fieldName = SerializedLambda.resolveFieldNames(relation).get(0);
+        loadWithConstraint(ListUtil.toList(obj), fieldName, relationConstraint, loadForce);
+    }
+
+    private static <T extends Model<?>> void loadWithConstraint(T obj,
+                                                                String fieldName,
+                                                                RelationConstraint<?> relationConstraint,
+                                                                boolean loadForce) {
+        if (obj == null) {
+            return;
+        }
+        loadWithConstraint(ListUtil.toList(obj), fieldName, relationConstraint, loadForce);
+    }
+
+    private static <T extends Model<?>, R> void loadWithConstraint(List<T> list,
+                                                                   SerializableFunction<T, R> relation,
+                                                                   RelationConstraint<?> relationConstraint,
+                                                                   boolean loadForce) {
+        if (CollectionUtils.isEmpty(list)) {
+            return;
+        }
+        String fieldName = SerializedLambda.resolveFieldNames(relation).get(0);
+        loadWithConstraint(list, fieldName, relationConstraint, loadForce);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Model<?>> void loadWithConstraint(List<T> list,
+                                                                String fieldName,
+                                                                RelationConstraint<?> relationConstraint,
+                                                                boolean loadForce) {
+        if (CollectionUtils.isEmpty(list)) {
+            return;
+        }
+        RelationOption<T> opt = RelationOption.of((Class<T>) list.get(0).getClass(), fieldName);
+        if (relationConstraint != null) {
+            opt.constraint(relationConstraint);
+        }
+        load(list, Collections.singletonList(opt), loadForce);
     }
 
     /**
