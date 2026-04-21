@@ -40,7 +40,8 @@ public class RelationConstraintTest extends BaseTest {
     public void shouldApplyRuntimeLambdaConstraint() {
         User user = findById(User.class, 1L);
         // User 1: posts ["Getting Started with Spring Boot", "Mastering JPA Relationships"]
-        List<Post> posts = user.get(User::getPosts, c -> c.like("title", "Spring"));
+        user.load(User::getPosts, c -> c.like("title", "Spring"));
+        List<Post> posts = user.getPosts();
         assertNotNull(posts);
         assertEquals(1, posts.size());
         assertEquals("Getting Started with Spring Boot", posts.get(0).getTitle());
@@ -99,7 +100,8 @@ public class RelationConstraintTest extends BaseTest {
     public void shouldStackStaticAndRuntimeConstraints() {
         // constrainedPosts 自带 id > 0；再叠加运行时 title LIKE "Spring"
         User user = findById(User.class, 1L);
-        List<Post> posts = user.get(User::getConstrainedPosts, c -> c.like("title", "Spring"));
+        user.load(User::getConstrainedPosts, c -> c.like("title", "Spring"));
+        List<Post> posts = user.getConstrainedPosts();
         assertNotNull(posts);
         assertEquals(1, posts.size());
         assertEquals("Getting Started with Spring Boot", posts.get(0).getTitle());
@@ -122,7 +124,8 @@ public class RelationConstraintTest extends BaseTest {
     @Test
     public void shouldRuntimeConstraintOnBelongsToManyOnlyAffectTarget() {
         User user = findById(User.class, 1L);
-        List<Role> roles = user.get(User::getRoles, c -> c.eq("name", "Administrator"));
+        user.load(User::getRoles, c -> c.eq("name", "Administrator"));
+        List<Role> roles = user.getRoles();
         assertNotNull(roles);
         assertEquals(1, roles.size());
         assertEquals("Administrator", roles.get(0).getName());

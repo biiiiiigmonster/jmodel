@@ -51,50 +51,36 @@ public abstract class Model<T extends Model<?>> {
     private transient Map<String, Object> $jmodel$savedChanges = new HashMap<>();
 
     public <R> R get(SerializableFunction<T, R> column) {
-        return get(column, null);
-    }
-
-    public Object get(String column) {
-        return get(column, Object.class, null);
-    }
-
-    public <R> R get(String column, Class<R> type) {
-        return get(column, type, null);
-    }
-
-    // ==================== Constraint-aware get ====================
-
-    public <R> R get(SerializableFunction<T, R> column, Consumer<QueryCondition> constraint) {
         R value = column.apply((T) this);
         if (value != null) {
             return value;
         }
 
         Field field = SerializedLambda.getField(column);
-        get(field, constraint);
-        
+        get(field);
+
         return column.apply((T) this);
     }
 
-    public Object get(String column, Consumer<QueryCondition> constraint) {
-        return get(column, Object.class, constraint);
+    public Object get(String column) {
+        return get(column, Object.class);
     }
 
-    public <R> R get(String column, Class<R> type, Consumer<QueryCondition> constraint) {
+    public <R> R get(String column, Class<R> type) {
         Object value = ReflectUtil.getFieldValue(this, column);
         if (value != null) {
             return type.cast(value);
         }
 
         Field field = ReflectUtil.getField(getClass(), column);
-        get(field, constraint);
-        
+        get(field);
+
         return type.cast(ReflectUtil.getFieldValue(this, column));
     }
 
-    private void get(Field field, Consumer<QueryCondition> constraint) {
+    private void get(Field field) {
         if (RelationType.hasRelationAnnotation(field)) {
-            load(field.getName(), constraint);
+            load(field.getName());
         } else if (AttributeUtils.hasAttributeAnnotation(field)) {
             append(field.getName());
         }
