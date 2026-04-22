@@ -1,6 +1,8 @@
 package io.github.biiiiiigmonster.driver;
 
 import io.github.biiiiiigmonster.Model;
+import io.github.biiiiiigmonster.SerializableFunction;
+import io.github.biiiiiigmonster.SerializedLambda;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -121,5 +123,90 @@ public class QueryCondition<T extends Model<?>> implements Serializable {
     public QueryCondition<T> apply(Criterion criterion) {
         criteria.add(criterion);
         return this;
+    }
+
+    /**
+     * 添加等于条件（Lambda 版本）
+     *
+     * @param field 字段 Lambda 表达式
+     * @param value 值
+     * @return 当前查询条件实例
+     */
+    public QueryCondition<T> eq(SerializableFunction<T, ?> field, Object value) {
+        return eq(resolveFieldName(field), value);
+    }
+
+    /**
+     * 添加 IN 条件（Lambda 版本）
+     *
+     * @param field  字段 Lambda 表达式
+     * @param values 值列表
+     * @return 当前查询条件实例
+     */
+    public QueryCondition<T> in(SerializableFunction<T, ?> field, List<?> values) {
+        return in(resolveFieldName(field), values);
+    }
+
+    /**
+     * 添加大于条件（Lambda 版本）
+     *
+     * @param field 字段 Lambda 表达式
+     * @param value 值
+     * @return 当前查询条件实例
+     */
+    public QueryCondition<T> gt(SerializableFunction<T, ?> field, Object value) {
+        return gt(resolveFieldName(field), value);
+    }
+
+    /**
+     * 添加小于条件（Lambda 版本）
+     *
+     * @param field 字段 Lambda 表达式
+     * @param value 值
+     * @return 当前查询条件实例
+     */
+    public QueryCondition<T> lt(SerializableFunction<T, ?> field, Object value) {
+        return lt(resolveFieldName(field), value);
+    }
+
+    /**
+     * 添加 LIKE 条件（Lambda 版本）
+     *
+     * @param field   字段 Lambda 表达式
+     * @param pattern 模式
+     * @return 当前查询条件实例
+     */
+    public QueryCondition<T> like(SerializableFunction<T, ?> field, String pattern) {
+        return like(resolveFieldName(field), pattern);
+    }
+
+    /**
+     * 添加 IS NULL 条件（Lambda 版本）
+     *
+     * @param field 字段 Lambda 表达式
+     * @return 当前查询条件实例
+     */
+    public QueryCondition<T> isNull(SerializableFunction<T, ?> field) {
+        return isNull(resolveFieldName(field));
+    }
+
+    /**
+     * 添加 IS NOT NULL 条件（Lambda 版本）
+     *
+     * @param field 字段 Lambda 表达式
+     * @return 当前查询条件实例
+     */
+    public QueryCondition<T> isNotNull(SerializableFunction<T, ?> field) {
+        return isNotNull(resolveFieldName(field));
+    }
+
+    /**
+     * 将 Lambda 表达式解析为字段名
+     *
+     * @param field 字段 Lambda 表达式
+     * @return 字段名
+     */
+    private String resolveFieldName(SerializableFunction<T, ?> field) {
+        return SerializedLambda.getField(field).getName();
     }
 }
