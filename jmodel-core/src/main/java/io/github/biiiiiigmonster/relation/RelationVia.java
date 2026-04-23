@@ -17,9 +17,9 @@ import static io.github.biiiiiigmonster.relation.Relation.relatedKeyValueList;
 @Getter
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class RelationVia<R extends Model<?>> {
-    private Field localField;
-    private Field foreignField;
-    private List<Consumer<QueryCondition>> constraints;
+    private final Field localField;
+    private final Field foreignField;
+    private final List<Consumer<QueryCondition>> constraints;
     private List<R> results;
 
     public RelationVia(Field localField, Field foreignField, List<Consumer<QueryCondition>> constraints) {
@@ -36,6 +36,7 @@ public class RelationVia<R extends Model<?>> {
         Class<R> entityClass = (Class<R>) foreignField.getDeclaringClass();
         DataDriver driver = DriverRegistry.getDriver(entityClass);
         QueryCondition<R> condition = QueryCondition.create(entityClass);
+        condition.in(RelationUtils.getColumn(foreignField), localKeyValueList);
         if (!CollectionUtils.isEmpty(constraints)) {
             for (Consumer<QueryCondition> c : constraints) {
                 c.accept(condition);

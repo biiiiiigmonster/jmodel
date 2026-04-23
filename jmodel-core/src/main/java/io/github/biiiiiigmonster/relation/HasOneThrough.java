@@ -4,6 +4,7 @@ import cn.hutool.core.util.ReflectUtil;
 import io.github.biiiiiigmonster.Model;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -24,7 +25,8 @@ public class HasOneThrough<T extends Model<?>, TH extends Model<?>> extends HasO
     }
 
     @Override
-    public <R extends Model<?>> void throughMatch(List<T> models, List<TH> throughs, List<R> results) {
+    public <R extends Model<?>> List<R> match(List<T> models, List<R> results) {
+        List<TH> throughs = viaList.get(0).getResults();
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, throughForeignField), r -> r));
         Map<?, TH> throughDictionary = throughs.stream()
@@ -37,5 +39,6 @@ public class HasOneThrough<T extends Model<?>, TH extends Model<?>> extends HasO
             }
             ReflectUtil.setFieldValue(o, relatedField, value);
         });
+        return results;
     }
 }

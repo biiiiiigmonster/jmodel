@@ -91,9 +91,14 @@ public abstract class Relation<T extends Model<?>> {
 
     public static String getMorphAlias(Class<?> clazz, Class<?> within) {
         String key = clazz.getName() + within.getName();
-        return MORPH_ALIAS_MAP.computeIfAbsent(key, k -> Arrays.stream(clazz.getAnnotationsByType(MorphAlias.class)).filter(m -> m.in().length == 0 || Arrays.stream(m.in()).collect(Collectors.toSet()).contains(within))
-                // MorphAlias allowed annotation more times, get the max in() length when multi matched.
-                .max(Comparator.comparingInt(m -> m.in().length)).map(m -> StringUtils.isBlank(m.value()) ? clazz.getSimpleName() : m.value()).orElse(clazz.getName()));
+        return MORPH_ALIAS_MAP.computeIfAbsent(key, k ->
+                Arrays.stream(clazz.getAnnotationsByType(MorphAlias.class))
+                        .filter(m -> m.in().length == 0 || Arrays.stream(m.in()).collect(Collectors.toSet()).contains(within))
+                        // MorphAlias allowed annotation more times, get the max in() length when multi matched.
+                        .max(Comparator.comparingInt(m -> m.in().length))
+                        .map(m -> StringUtils.isBlank(m.value()) ? clazz.getSimpleName() : m.value())
+                        .orElse(clazz.getName())
+        );
     }
 
     public static Morph getMorph(Class<?> clazz) {

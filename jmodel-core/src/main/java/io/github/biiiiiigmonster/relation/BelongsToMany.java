@@ -54,7 +54,13 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
         this.withPivot = withPivot;
     }
 
-    protected <R extends Model<?>> void pivotMatch(List<T> models, List<P> pivots, List<R> results) {
+    protected Field withPivotField() {
+        return ReflectUtil.getField(foreignField.getDeclaringClass(), "pivot");
+    }
+
+    @Override
+    public <R extends Model<?>> List<R> match(List<T> models, List<R> results) {
+        List<P> pivots = viaList.get(0).getResults();
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
         Map<?, List<P>> pivotDictionary = pivots.stream()
@@ -75,15 +81,6 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
                     .collect(Collectors.toList());
             ReflectUtil.setFieldValue(o, relatedField, valList);
         });
-    }
-
-    protected Field withPivotField() {
-        return ReflectUtil.getField(foreignField.getDeclaringClass(), "pivot");
-    }
-
-    @Override
-    public <R extends Model<?>> List<R> match(List<T> models, List<R> results) {
-        pivotMatch(models, viaList.get(0).getResults(), results);
         return results;
     }
 

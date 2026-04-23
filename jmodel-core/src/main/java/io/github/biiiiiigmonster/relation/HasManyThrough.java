@@ -5,6 +5,7 @@ import io.github.biiiiiigmonster.Model;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -26,7 +27,8 @@ public class HasManyThrough<T extends Model<?>, TH extends Model<?>> extends Has
     }
 
     @Override
-    public <R extends Model<?>> void throughMatch(List<T> models, List<TH> throughs, List<R> results) {
+    public <R extends Model<?>> List<R> match(List<T> models, List<R> results) {
+        List<TH> throughs = viaList.get(0).getResults();
         Map<?, List<R>> dictionary = results.stream()
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, throughForeignField)));
         Map<?, List<TH>> throughDictionary = throughs.stream()
@@ -39,5 +41,6 @@ public class HasManyThrough<T extends Model<?>, TH extends Model<?>> extends Has
                     .collect(Collectors.toList());
             ReflectUtil.setFieldValue(o, relatedField, valList);
         });
+        return results;
     }
 }

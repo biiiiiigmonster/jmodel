@@ -18,12 +18,6 @@ public abstract class MorphOneOrMany<T extends Model<?>> extends HasOneOrMany<T>
         this.morphType = morphType;
     }
 
-    protected <R extends Model<?>> Consumer<QueryCondition<R>> foreignConditionEnhancer(List<?> keys) {
-        Consumer<QueryCondition<R>> superCond = super.foreignConditionEnhancer(keys);
-        String morphTypeColumn = RelationUtils.getColumn(morphType);
-        return superCond.andThen(cond -> cond.eq(morphTypeColumn, getMorphAlias()));
-    }
-
     protected String getMorphAlias() {
         return Relation.getMorphAlias(localField.getDeclaringClass(), foreignField.getDeclaringClass());
     }

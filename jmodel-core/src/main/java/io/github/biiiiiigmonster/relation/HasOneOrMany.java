@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-@SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressWarnings({"rawtypes"})
 public abstract class HasOneOrMany<T extends Model<?>> extends Relation<T> {
     @Getter
     protected Field foreignField;
@@ -27,15 +27,6 @@ public abstract class HasOneOrMany<T extends Model<?>> extends Relation<T> {
         this.foreignField = foreignField;
         this.localField = localField;
         this.chaperone = chaperone;
-    }
-
-    protected <R extends Model<?>> Class<R> getForeignClass() {
-        return (Class<R>) foreignField.getDeclaringClass();
-    }
-
-    protected <R extends Model<?>> Consumer<QueryCondition<R>> foreignConditionEnhancer(List<?> keys) {
-        String columnName = RelationUtils.getColumn(foreignField);
-        return condition -> condition.in(columnName, keys);
     }
 
     protected Field chaperoneField() {
