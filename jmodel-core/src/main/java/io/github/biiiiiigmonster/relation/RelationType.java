@@ -284,7 +284,7 @@ public enum RelationType {
             return r;
         }
     },
-    SIBLINGS(SiblingMany.class, true) {
+    SIBLING_MANY(SiblingMany.class, true) {
         @Override
         public <T extends Model<?>> io.github.biiiiiigmonster.relation.SiblingMany<T> getRelation(RelationOption<T> relationOption) {
             Class<T> clazz = relationOption.getClazz();
