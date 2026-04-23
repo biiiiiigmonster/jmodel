@@ -23,7 +23,7 @@ import java.util.function.Consumer;
  *
  * @author luyunfeng
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({"rawtypes"})
 public final class ConstraintApplier {
 
     private ConstraintApplier() {
