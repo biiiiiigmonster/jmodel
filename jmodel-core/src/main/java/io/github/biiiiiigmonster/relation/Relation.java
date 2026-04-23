@@ -12,7 +12,6 @@ import io.github.biiiiiigmonster.relation.annotation.config.MorphId;
 import io.github.biiiiiigmonster.relation.annotation.config.MorphName;
 import io.github.biiiiiigmonster.relation.annotation.config.MorphType;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
@@ -20,6 +19,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,13 +27,12 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Getter
-@Slf4j
 @SuppressWarnings({"unchecked", "rawtypes"})
 public abstract class Relation<T extends Model<?>> {
     protected Field relatedField;
     protected T model;
 
-    protected List<Consumer<QueryCondition>> constraints = new ArrayList<>();
+    protected Map<Class<?>, List<Consumer<QueryCondition>>> constraintMap = new HashMap<>();
 
     private static final Map<String, String> MORPH_ALIAS_MAP = new ConcurrentHashMap<>();
 
@@ -51,7 +50,7 @@ public abstract class Relation<T extends Model<?>> {
      * 统一的结果获取方法，支持条件扩展
      * <p>
      * 如果本次查询的 {@code entityClass} 为终表（即关联模型本身），则会在驱动执行前
-     * 依次应用 {@link #constraints} 中的每一项。中间表（如 BelongsToMany 的 pivot、
+     * 依次应用 {@link #constraintMap} 中的每一项。中间表（如 BelongsToMany 的 pivot、
      * Through 的中介模型）不会被约束。
      *
      * @param entityClass       实体类型
@@ -62,25 +61,18 @@ public abstract class Relation<T extends Model<?>> {
         QueryCondition<R> condition = QueryCondition.create(entityClass);
         conditionEnhancer.accept(condition);
 
-        if (isTargetClass(entityClass)) {
-            applyConstraints(condition);
+        List<Consumer<QueryCondition>> constraints;
+        if (!CollectionUtils.isEmpty(constraints = constraintMap.get(entityClass))) {
+            applyConstraints(constraints, condition);
         }
 
         return driver.findByCondition(condition);
     }
 
     /**
-     * 判断给定实体类是否为当前关系的终表（即关联模型）
+     * 将已收集的全部constraints 应用到 QueryCondition
      */
-    protected boolean isTargetClass(Class<?> entityClass) {
-        Class<?> target = RelationUtils.getGenericType(relatedField);
-        return target != null && target.equals(entityClass);
-    }
-
-    /**
-     * 将已收集的全部 {@link #constraints} 应用到 QueryCondition
-     */
-    protected <R extends Model<?>> void applyConstraints(QueryCondition<R> condition) {
+    protected <R extends Model<?>> void applyConstraints(List<Consumer<QueryCondition>> constraints, QueryCondition<R> condition) {
         if (constraints == null) {
             return;
         }
@@ -92,9 +84,9 @@ public abstract class Relation<T extends Model<?>> {
     /**
      * 追加约束（可为来自注解的也可为运行时的）
      */
-    public Relation<T> addConstraint(Consumer<QueryCondition> constraint) {
+    public Relation<T> addConstraint(Class<?> entityClass, Consumer<QueryCondition> constraint) {
         if (constraint != null) {
-            this.constraints.add(constraint);
+            this.constraintMap.computeIfAbsent(entityClass, k -> new ArrayList<>()).add(constraint);
         }
         return this;
     }
@@ -102,9 +94,9 @@ public abstract class Relation<T extends Model<?>> {
     /**
      * 批量追加约束
      */
-    public Relation<T> addConstraints(List<Consumer<QueryCondition>> list) {
+    public Relation<T> addConstraints(Class<?> entityClass, List<Consumer<QueryCondition>> list) {
         if (list != null && !list.isEmpty()) {
-            this.constraints.addAll(list);
+            this.constraintMap.computeIfAbsent(entityClass, k -> new ArrayList<>()).addAll(list);
         }
         return this;
     }

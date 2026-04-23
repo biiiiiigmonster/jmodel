@@ -10,7 +10,6 @@ import io.github.biiiiiigmonster.SerializedLambda;
 import io.github.biiiiiigmonster.driver.DataDriver;
 import io.github.biiiiiigmonster.driver.DriverRegistry;
 import io.github.biiiiiigmonster.driver.QueryCondition;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -33,7 +32,6 @@ import java.util.stream.Collectors;
  *
  * @author biiiiiigmonster
  */
-@Slf4j
 @Component
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class RelationUtils {

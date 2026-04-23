@@ -18,5 +18,6 @@ public @interface HasOneThrough {
     String throughForeignKey() default "";
     String localKey() default "";
     String throughLocalKey() default "";
+    Constraint[] throughConstraints() default {};
     Constraint[] constraints() default {};
 }

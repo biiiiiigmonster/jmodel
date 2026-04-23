@@ -20,5 +20,6 @@ public @interface MorphToMany {
     String foreignKey() default "";
     String localKey() default "";
     boolean withPivot() default false;
+    Constraint[] pivotConstraints() default {};
     Constraint[] constraints() default {};
 }

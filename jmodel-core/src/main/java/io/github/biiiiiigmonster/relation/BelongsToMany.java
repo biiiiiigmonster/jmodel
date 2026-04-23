@@ -35,7 +35,7 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
 
     /**
      * @param relatedField      User.roles
-     * @param pivotClass        Pivot class
+     * @param pivotClass        UserRole class
      * @param foreignPivotField UserRole.user_id
      * @param relatedPivotField UserRole.role_id
      * @param localField        User.id

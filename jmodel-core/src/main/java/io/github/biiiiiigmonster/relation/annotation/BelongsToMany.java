@@ -19,5 +19,6 @@ public @interface BelongsToMany {
     String localKey() default "";
     String foreignKey() default "";
     boolean withPivot() default false;
+    Constraint[] pivotConstraints() default {};
     Constraint[] constraints() default {};
 }

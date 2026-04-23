@@ -41,7 +41,8 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     relation.chaperone()
             );
-            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
             return r;
         }
     },
@@ -59,7 +60,8 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     relation.chaperone()
             );
-            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
             return r;
         }
     },
@@ -78,7 +80,8 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), foreignKey),
                     ReflectUtil.getField(field.getType(), ownerKey)
             );
-            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
             return r;
         }
     },
@@ -105,7 +108,9 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     relation.withPivot()
             );
-            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
+            r.addConstraints(relation.using(), ConstraintApplier.toConsumers(relation.using(), relation.pivotConstraints()));
             return r;
         }
     },
@@ -131,7 +136,9 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     ReflectUtil.getField(relation.through(), throughLocalKey)
             );
-            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
+            r.addConstraints(relation.through(), ConstraintApplier.toConsumers(relation.through(), relation.throughConstraints()));
             return r;
         }
     },
@@ -157,7 +164,9 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     ReflectUtil.getField(relation.through(), throughLocalKey)
             );
-            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
+            r.addConstraints(relation.through(), ConstraintApplier.toConsumers(relation.through(), relation.throughConstraints()));
             return r;
         }
     },
@@ -178,7 +187,8 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     relation.chaperone()
             );
-            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
             return r;
         }
     },
@@ -199,7 +209,8 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), localKey),
                     relation.chaperone()
             );
-            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
             return r;
         }
     },
@@ -220,7 +231,8 @@ public enum RelationType {
                     ReflectUtil.getField(field.getDeclaringClass(), id),
                     ReflectUtil.getField(field.getType(), ownerKey)
             );
-            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
             return r;
         }
     },
@@ -250,7 +262,9 @@ public enum RelationType {
                     false,
                     relation.withPivot()
             );
-            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
+            r.addConstraints(relation.using(), ConstraintApplier.toConsumers(relation.using(), relation.pivotConstraints()));
             return r;
         }
     },
@@ -280,7 +294,9 @@ public enum RelationType {
                     true,
                     relation.withPivot()
             );
-            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
+            r.addConstraints(relation.using(), ConstraintApplier.toConsumers(relation.using(), relation.pivotConstraints()));
             return r;
         }
     },
@@ -303,7 +319,8 @@ public enum RelationType {
                     field,
                     ReflectUtil.getField(field.getDeclaringClass(), parentKey)
             );
-            r.addConstraints(ConstraintApplier.toConsumers(RelationUtils.getGenericType(field), relation.constraints()));
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
             return r;
         }
     },
