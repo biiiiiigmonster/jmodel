@@ -93,4 +93,31 @@ public class User extends Model<User> {
             @Constraint(field = "name", value = "Administrator")
     })
     private List<Role> adminRoles;
+
+    /**
+     * 中间表（pivot）静态约束测试：通过 UserRole.id IN (1,3) 过滤中间表。
+     * User 1 的 UserRole 为 {1,2,3}，约束后只剩 {1,3}，对应 Role {Administrator, Editor}。
+     */
+    @BelongsToMany(using = UserRole.class, pivotConstraints = {
+            @Constraint(field = "id", type = CriterionType.IN, value = {"1", "3"})
+    })
+    private List<Role> rolesByPivotIdIn;
+
+    /**
+     * 中间模型（through）静态约束测试：通过 Post.title LIKE "Spring" 过滤中间表。
+     * User 1 → Post 1 (含 Spring) → Likes {1,2}；User 3 无含 Spring 的 Post → 空。
+     */
+    @HasManyThrough(through = Post.class, throughConstraints = {
+            @Constraint(field = "title", type = CriterionType.LIKE, value = "Spring")
+    })
+    private List<Likes> springPostLikes;
+
+    /**
+     * 中间模型（through）静态约束测试（HasOneThrough）：通过 Profile.description LIKE "Scientist" 过滤中间表。
+     * User 5 的 Profile 为 "Data Scientist" → Address 5；其他 User 的 Profile 不匹配 → null。
+     */
+    @HasOneThrough(through = Profile.class, throughConstraints = {
+            @Constraint(field = "description", type = CriterionType.LIKE, value = "Scientist")
+    })
+    private Address scientistProfileAddress;
 }

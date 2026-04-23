@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@SuppressWarnings({"rawtypes"})
 public class HasMany<T extends Model<?>> extends HasOneOrMany<T> {
     /**
      * @param relatedField Post.comments
@@ -16,8 +17,8 @@ public class HasMany<T extends Model<?>> extends HasOneOrMany<T> {
      * @param localField   Post.id
      * @param chaperone    chaperone
      */
-    public HasMany(Field relatedField, Field foreignField, Field localField, boolean chaperone) {
-        super(relatedField, foreignField, localField, chaperone);
+    public HasMany(Field relatedField, List<RelationVia> viaList, Field foreignField, Field localField, boolean chaperone) {
+        super(relatedField, viaList, foreignField, localField, chaperone);
     }
 
     @Override

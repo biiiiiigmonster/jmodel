@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Slf4j
+@SuppressWarnings({"rawtypes"})
 public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relation<T> {
     @Getter
     protected Class<P> pivotClass;
@@ -42,8 +43,8 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
      * @param foreignField      Role.id
      * @param withPivot         with pivot
      */
-    public BelongsToMany(Field relatedField, Class<P> pivotClass, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField, boolean withPivot) {
-        super(relatedField);
+    public BelongsToMany(Field relatedField, List<RelationVia> viaList, Class<P> pivotClass, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField, boolean withPivot) {
+        super(relatedField, viaList);
 
         this.pivotClass = pivotClass;
         this.foreignPivotField = foreignPivotField;
@@ -51,34 +52,6 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
         this.foreignField = foreignField;
         this.localField = localField;
         this.withPivot = withPivot;
-    }
-
-    @Override
-    public <R extends Model<?>> List<R> getEager(List<T> models) {
-        List<P> pivots = getPivotResult(models);
-        List<R> results = getForeignResult(pivots);
-        pivotMatch(models, pivots, results);
-
-        return results;
-    }
-
-    protected List<P> getPivotResult(List<T> models) {
-        List<?> localKeyValueList = relatedKeyValueList(models, localField);
-        if (CollectionUtils.isEmpty(localKeyValueList)) {
-            return new ArrayList<>();
-        }
-
-        return getResult(getPivotClass(), pivotConditionEnhancer(localKeyValueList));
-    }
-
-    protected Consumer<QueryCondition<P>> pivotConditionEnhancer(List<?> keys) {
-        String columnName = RelationUtils.getColumn(foreignPivotField);
-        return condition -> condition.in(columnName, keys);
-    }
-
-    protected <R extends Model<?>> List<R> getForeignResult(List<P> pivots) {
-        List<?> relatedPivotKeyValueList = relatedKeyValueList(pivots, relatedPivotField);
-        return getResult(relatedPivotKeyValueList, foreignField);
     }
 
     protected <R extends Model<?>> void pivotMatch(List<T> models, List<P> pivots, List<R> results) {
@@ -110,6 +83,7 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
 
     @Override
     public <R extends Model<?>> List<R> match(List<T> models, List<R> results) {
+        pivotMatch(models, viaList.get(0).getResults(), results);
         return results;
     }
 
@@ -180,8 +154,7 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
     }
 
     public <R extends Model<?>> void sync(List<R> syncModels, boolean detaching) {
-        List<P> pivots = getPivotResult(ListUtil.toList(model));
-        List<R> current = getForeignResult(pivots);
+        List<R> current = getEager(ListUtil.toList(model));
         Set<Object> currentSet = current.stream().map(Model::primaryKeyValue).collect(Collectors.toSet());
         Set<Object> syncSet = syncModels.stream().map(Model::primaryKeyValue).collect(Collectors.toSet());
 
@@ -192,8 +165,7 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
     }
 
     public <R extends Model<?>> void toggle(List<R> toggleModels) {
-        List<P> pivots = getPivotResult(ListUtil.toList(model));
-        List<R> current = getForeignResult(pivots);
+        List<R> current = getEager(ListUtil.toList(model));
         Set<Object> currentSet = current.stream().map(Model::primaryKeyValue).collect(Collectors.toSet());
         List<R> detach = new ArrayList<>();
         List<R> attach = new ArrayList<>();

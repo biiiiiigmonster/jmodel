@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@SuppressWarnings({"rawtypes"})
 public class HasOne<T extends Model<?>> extends HasOneOrMany<T> {
     /**
      * @param relatedField User.phone
@@ -16,8 +17,8 @@ public class HasOne<T extends Model<?>> extends HasOneOrMany<T> {
      * @param localField   User.id
      * @param chaperone    chaperone
      */
-    public HasOne(Field relatedField, Field foreignField, Field localField, boolean chaperone) {
-        super(relatedField, foreignField, localField, chaperone);
+    public HasOne(Field relatedField, List<RelationVia> viaList, Field foreignField, Field localField, boolean chaperone) {
+        super(relatedField, viaList, foreignField, localField, chaperone);
     }
 
     @Override

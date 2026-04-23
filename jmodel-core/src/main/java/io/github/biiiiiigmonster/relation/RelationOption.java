@@ -77,7 +77,7 @@ public class RelationOption<T extends Model<?>> {
 
     public Relation<T> getRelation() {
         Relation<T> relation = relationType.getRelation(this);
-        relation.addConstraints(RelationUtils.getGenericType(relation.getRelatedField()), runtimeConstraints);
+        relation.addConstraints(runtimeConstraints);
         return relation;
     }
 

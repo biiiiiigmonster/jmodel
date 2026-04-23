@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@SuppressWarnings({"rawtypes"})
 public class SiblingMany<T extends Model<?>> extends Relation<T> {
     protected Field parentField;
 
@@ -18,16 +19,10 @@ public class SiblingMany<T extends Model<?>> extends Relation<T> {
      * @param relatedField Post.siblingsUserPosts
      * @param parentField  Post.user_id
      */
-    public SiblingMany(Field relatedField, @NonNull Field parentField) {
-        super(relatedField);
+    public SiblingMany(Field relatedField, List<RelationVia> viaList, @NonNull Field parentField) {
+        super(relatedField, viaList);
 
         this.parentField = parentField;
-    }
-
-    @Override
-    public <R extends Model<?>> List<R> getEager(List<T> models) {
-        List<?> parentKeyValueList = relatedKeyValueList(models, parentField);
-        return getResult(parentKeyValueList, parentField);
     }
 
     @Override

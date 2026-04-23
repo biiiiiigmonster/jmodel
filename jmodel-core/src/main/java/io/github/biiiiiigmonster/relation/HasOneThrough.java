@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@SuppressWarnings({"rawtypes"})
 public class HasOneThrough<T extends Model<?>, TH extends Model<?>> extends HasOneOrManyThrough<T, TH> {
 
     /**
@@ -18,8 +19,8 @@ public class HasOneThrough<T extends Model<?>, TH extends Model<?>> extends HasO
      * @param localField          Mechanic.id
      * @param throughLocalField   Car.id
      */
-    public HasOneThrough(Field relatedField, Class<TH> throughClass, Field foreignField, Field throughForeignField, Field localField, Field throughLocalField) {
-        super(relatedField, throughClass, foreignField, throughForeignField, localField, throughLocalField);
+    public HasOneThrough(Field relatedField, List<RelationVia> viaList, Class<TH> throughClass, Field foreignField, Field throughForeignField, Field localField, Field throughLocalField) {
+        super(relatedField, viaList, throughClass, foreignField, throughForeignField, localField, throughLocalField);
     }
 
     @Override

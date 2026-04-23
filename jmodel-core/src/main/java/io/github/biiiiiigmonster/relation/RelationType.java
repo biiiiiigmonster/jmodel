@@ -1,7 +1,9 @@
 package io.github.biiiiiigmonster.relation;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ReflectUtil;
 import io.github.biiiiiigmonster.Model;
+import io.github.biiiiiigmonster.driver.QueryCondition;
 import io.github.biiiiiigmonster.relation.annotation.BelongsTo;
 import io.github.biiiiiigmonster.relation.annotation.BelongsToMany;
 import io.github.biiiiiigmonster.relation.annotation.HasMany;
@@ -22,10 +24,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.util.List;
+import java.util.function.Consumer;
 
 @Getter
 @AllArgsConstructor
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes"})
 public enum RelationType {
     HAS_ONE(HasOne.class, false) {
         @Override
@@ -35,15 +39,18 @@ public enum RelationType {
             HasOne relation = field.getAnnotation(HasOne.class);
             String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getForeignKey(clazz);
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(clazz);
-            io.github.biiiiiigmonster.relation.HasOne<T> r = new io.github.biiiiiigmonster.relation.HasOne<>(
+
+            Field foreignField = ReflectUtil.getField(field.getType(), foreignKey);
+            Field localField = ReflectUtil.getField(field.getDeclaringClass(), localKey);
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            RelationVia<?> via = new RelationVia<>(localField, foreignField, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
+            return new io.github.biiiiiigmonster.relation.HasOne<>(
                     field,
-                    ReflectUtil.getField(field.getType(), foreignKey),
-                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
+                    ListUtil.toList(via),
+                    foreignField,
+                    localField,
                     relation.chaperone()
             );
-            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
-            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
-            return r;
         }
     },
     HAS_MANY(HasMany.class, true) {
@@ -54,15 +61,18 @@ public enum RelationType {
             HasMany relation = field.getAnnotation(HasMany.class);
             String foreignKey = StringUtils.isNotBlank(relation.foreignKey()) ? relation.foreignKey() : RelationUtils.getForeignKey(clazz);
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(clazz);
-            io.github.biiiiiigmonster.relation.HasMany<T> r = new io.github.biiiiiigmonster.relation.HasMany<>(
+
+            Field foreignField = ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey);
+            Field localField = ReflectUtil.getField(field.getDeclaringClass(), localKey);
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            RelationVia<?> via = new RelationVia<>(localField, foreignField, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
+            return new io.github.biiiiiigmonster.relation.HasMany<>(
                     field,
-                    ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey),
-                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
+                    ListUtil.toList(via),
+                    foreignField,
+                    localField,
                     relation.chaperone()
             );
-            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
-            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
-            return r;
         }
     },
     BELONGS_TO(BelongsTo.class, false) {
@@ -75,14 +85,17 @@ public enum RelationType {
                     ? relation.foreignKey() : RelationUtils.getForeignKey((Class<? extends Model<?>>) field.getType());
             String ownerKey = StringUtils.isNotBlank(relation.ownerKey())
                     ? relation.ownerKey() : RelationUtils.getPrimaryKey((Class<? extends Model<?>>) field.getType());
-            io.github.biiiiiigmonster.relation.BelongsTo<T> r = new io.github.biiiiiigmonster.relation.BelongsTo<>(
-                    field,
-                    ReflectUtil.getField(field.getDeclaringClass(), foreignKey),
-                    ReflectUtil.getField(field.getType(), ownerKey)
-            );
+
+            Field foreignField = ReflectUtil.getField(field.getDeclaringClass(), foreignKey);
+            Field ownerField = ReflectUtil.getField(field.getType(), ownerKey);
             Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
-            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
-            return r;
+            RelationVia<?> via = new RelationVia<>(foreignField, ownerField, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
+            return new io.github.biiiiiigmonster.relation.BelongsTo<>(
+                    field,
+                    ListUtil.toList(via),
+                    foreignField,
+                    ownerField
+            );
         }
     },
     BELONGS_TO_MANY(BelongsToMany.class, true) {
@@ -99,19 +112,24 @@ public enum RelationType {
                     ? relation.localKey() : RelationUtils.getPrimaryKey(clazz);
             String foreignKey = StringUtils.isNotBlank(relation.foreignKey())
                     ? relation.foreignKey() : RelationUtils.getPrimaryKey(RelationUtils.getGenericType(field));
-            io.github.biiiiiigmonster.relation.BelongsToMany<T, ?> r = new io.github.biiiiiigmonster.relation.BelongsToMany<>(
+
+            Field foreignPivotField = ReflectUtil.getField(relation.using(), foreignPivotKey);
+            Field relatedPivotField = ReflectUtil.getField(relation.using(), relatedPivotKey);
+            Field foreignField = ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey);
+            Field localField = ReflectUtil.getField(field.getDeclaringClass(), localKey);
+            RelationVia<?> pivotVia = new RelationVia<>(localField, foreignPivotField, ConstraintApplier.toConsumers(relation.using(), relation.pivotConstraints()));
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            RelationVia<?> via = new RelationVia<>(relatedPivotField, foreignField, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
+            return new io.github.biiiiiigmonster.relation.BelongsToMany<>(
                     field,
+                    ListUtil.toList(pivotVia, via),
                     relation.using(),
-                    ReflectUtil.getField(relation.using(), foreignPivotKey),
-                    ReflectUtil.getField(relation.using(), relatedPivotKey),
-                    ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey),
-                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
+                    foreignPivotField,
+                    relatedPivotField,
+                    foreignField,
+                    localField,
                     relation.withPivot()
             );
-            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
-            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
-            r.addConstraints(relation.using(), ConstraintApplier.toConsumers(relation.using(), relation.pivotConstraints()));
-            return r;
         }
     },
     HAS_ONE_THROUGH(HasOneThrough.class, false) {
@@ -128,18 +146,23 @@ public enum RelationType {
                     ? relation.localKey() : RelationUtils.getPrimaryKey(clazz);
             String throughLocalKey = StringUtils.isNotBlank(relation.throughLocalKey())
                     ? relation.throughLocalKey() : RelationUtils.getPrimaryKey(relation.through());
-            io.github.biiiiiigmonster.relation.HasOneThrough<T, ?> r = new io.github.biiiiiigmonster.relation.HasOneThrough<>(
-                    field,
-                    relation.through(),
-                    ReflectUtil.getField(relation.through(), foreignKey),
-                    ReflectUtil.getField(field.getType(), throughForeignKey),
-                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
-                    ReflectUtil.getField(relation.through(), throughLocalKey)
-            );
+
+            Field foreignField = ReflectUtil.getField(relation.through(), foreignKey);
+            Field throughForeignField = ReflectUtil.getField(field.getType(), throughForeignKey);
+            Field localField = ReflectUtil.getField(field.getDeclaringClass(), localKey);
+            Field throughLocalField = ReflectUtil.getField(relation.through(), throughLocalKey);
+            RelationVia<?> throughVia = new RelationVia<>(localField, foreignField, ConstraintApplier.toConsumers(relation.through(), relation.throughConstraints()));
             Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
-            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
-            r.addConstraints(relation.through(), ConstraintApplier.toConsumers(relation.through(), relation.throughConstraints()));
-            return r;
+            RelationVia<?> via = new RelationVia<>(throughLocalField, throughForeignField, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
+            return new io.github.biiiiiigmonster.relation.HasOneThrough<>(
+                    field,
+                    ListUtil.toList(throughVia, via),
+                    relation.through(),
+                    foreignField,
+                    throughForeignField,
+                    localField,
+                    throughLocalField
+            );
         }
     },
     HAS_MANY_THROUGH(HasManyThrough.class, true) {
@@ -156,18 +179,23 @@ public enum RelationType {
                     ? relation.localKey() : RelationUtils.getPrimaryKey(clazz);
             String throughLocalKey = StringUtils.isNotBlank(relation.throughLocalKey())
                     ? relation.throughLocalKey() : RelationUtils.getPrimaryKey(relation.through());
-            io.github.biiiiiigmonster.relation.HasManyThrough<T, ?> r = new io.github.biiiiiigmonster.relation.HasManyThrough<>(
-                    field,
-                    relation.through(),
-                    ReflectUtil.getField(relation.through(), foreignKey),
-                    ReflectUtil.getField(RelationUtils.getGenericType(field), throughForeignKey),
-                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
-                    ReflectUtil.getField(relation.through(), throughLocalKey)
-            );
+
+            Field foreignField = ReflectUtil.getField(relation.through(), foreignKey);
+            Field throughForeignField = ReflectUtil.getField(RelationUtils.getGenericType(field), throughForeignKey);
+            Field localField = ReflectUtil.getField(field.getDeclaringClass(), localKey);
+            Field throughLocalField = ReflectUtil.getField(relation.through(), throughLocalKey);
+            RelationVia<?> throughVia = new RelationVia<>(localField, foreignField, ConstraintApplier.toConsumers(relation.through(), relation.throughConstraints()));
             Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
-            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
-            r.addConstraints(relation.through(), ConstraintApplier.toConsumers(relation.through(), relation.throughConstraints()));
-            return r;
+            RelationVia<?> via = new RelationVia<>(throughLocalField, throughForeignField, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
+            return new io.github.biiiiiigmonster.relation.HasManyThrough<>(
+                    field,
+                    ListUtil.toList(throughVia, via),
+                    relation.through(),
+                    foreignField,
+                    throughForeignField,
+                    localField,
+                    throughLocalField
+            );
         }
     },
     MORPH_ONE(MorphOne.class, false) {
@@ -180,16 +208,22 @@ public enum RelationType {
             String type = StringUtils.isNotBlank(relation.type()) ? relation.type() : morph.getType();
             String id = StringUtils.isNotBlank(relation.id()) ? relation.id() : morph.getId();
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(clazz);
-            io.github.biiiiiigmonster.relation.MorphOne<T> r = new io.github.biiiiiigmonster.relation.MorphOne<>(
+
+            Field typeField = ReflectUtil.getField(field.getType(), type);
+            Field idField = ReflectUtil.getField(field.getType(), id);
+            Field localField = ReflectUtil.getField(field.getDeclaringClass(), localKey);
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            List<Consumer<QueryCondition>> consumerList = ConstraintApplier.toConsumers(entityClass, relation.constraints());
+            consumerList.add(cond -> cond.eq(type, Relation.getMorphAlias(clazz, entityClass)));
+            RelationVia<?> via = new RelationVia<>(localField, idField, consumerList);
+            return new io.github.biiiiiigmonster.relation.MorphOne<>(
                     field,
-                    ReflectUtil.getField(field.getType(), type),
-                    ReflectUtil.getField(field.getType(), id),
-                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
+                    ListUtil.toList(via),
+                    typeField,
+                    idField,
+                    localField,
                     relation.chaperone()
             );
-            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
-            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
-            return r;
         }
     },
     MORPH_MANY(MorphMany.class, true) {
@@ -202,16 +236,22 @@ public enum RelationType {
             String type = StringUtils.isNotBlank(relation.type()) ? relation.type() : morph.getType();
             String id = StringUtils.isNotBlank(relation.id()) ? relation.id() : morph.getId();
             String localKey = StringUtils.isNotBlank(relation.localKey()) ? relation.localKey() : RelationUtils.getPrimaryKey(clazz);
-            io.github.biiiiiigmonster.relation.MorphMany<T> r = new io.github.biiiiiigmonster.relation.MorphMany<>(
+
+            Field typeField = ReflectUtil.getField(RelationUtils.getGenericType(field), type);
+            Field idField = ReflectUtil.getField(RelationUtils.getGenericType(field), id);
+            Field localField = ReflectUtil.getField(field.getDeclaringClass(), localKey);
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            List<Consumer<QueryCondition>> consumerList = ConstraintApplier.toConsumers(entityClass, relation.constraints());
+            consumerList.add(cond -> cond.eq(type, Relation.getMorphAlias(clazz, entityClass)));
+            RelationVia<?> via = new RelationVia<>(localField, idField, consumerList);
+            return new io.github.biiiiiigmonster.relation.MorphMany<>(
                     field,
-                    ReflectUtil.getField(RelationUtils.getGenericType(field), type),
-                    ReflectUtil.getField(RelationUtils.getGenericType(field), id),
-                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
+                    ListUtil.toList(via),
+                    typeField,
+                    idField,
+                    localField,
                     relation.chaperone()
             );
-            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
-            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
-            return r;
         }
     },
     MORPH_TO(MorphTo.class, false) {
@@ -225,15 +265,19 @@ public enum RelationType {
             String id = StringUtils.isNotBlank(relation.id()) ? relation.id() : morph.getId();
             String ownerKey = StringUtils.isNotBlank(relation.ownerKey())
                     ? relation.ownerKey() : RelationUtils.getPrimaryKey((Class<? extends Model<?>>) field.getType());
-            io.github.biiiiiigmonster.relation.MorphTo<T> r = new io.github.biiiiiigmonster.relation.MorphTo<>(
-                    field,
-                    ReflectUtil.getField(field.getDeclaringClass(), type),
-                    ReflectUtil.getField(field.getDeclaringClass(), id),
-                    ReflectUtil.getField(field.getType(), ownerKey)
-            );
+
+            Field typeField = ReflectUtil.getField(field.getDeclaringClass(), type);
+            Field idField = ReflectUtil.getField(field.getDeclaringClass(), id);
+            Field ownerField = ReflectUtil.getField(field.getType(), ownerKey);
             Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
-            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
-            return r;
+            RelationVia<?> via = new RelationVia<>(idField, ownerField, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
+            return new io.github.biiiiiigmonster.relation.MorphTo<>(
+                    field,
+                    ListUtil.toList(via),
+                    typeField,
+                    idField,
+                    ownerField
+            );
         }
     },
     MORPH_TO_MANY(MorphToMany.class, true) {
@@ -251,21 +295,29 @@ public enum RelationType {
                     ? relation.foreignKey() : RelationUtils.getPrimaryKey(RelationUtils.getGenericType(field));
             String localKey = StringUtils.isNotBlank(relation.localKey())
                     ? relation.localKey() : RelationUtils.getPrimaryKey(clazz);
-            io.github.biiiiiigmonster.relation.MorphToMany<T, ?> r = new io.github.biiiiiigmonster.relation.MorphToMany<>(
+
+            Field pivotTypeField = ReflectUtil.getField(relation.using(), pivotType);
+            Field pivotIdField = ReflectUtil.getField(relation.using(), pivotId);
+            Field relatedPivotField = ReflectUtil.getField(relation.using(), relatedPivotKey);
+            Field foreignField = ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey);
+            Field localField = ReflectUtil.getField(field.getDeclaringClass(), localKey);
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            List<Consumer<QueryCondition>> consumerList = ConstraintApplier.toConsumers(relation.using(), relation.pivotConstraints());
+            consumerList.add(cond -> cond.eq(pivotType, Relation.getMorphAlias(clazz, entityClass)));
+            RelationVia<?> pivotVia = new RelationVia<>(localField, pivotIdField, consumerList);
+            RelationVia<?> via = new RelationVia<>(relatedPivotField, foreignField, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
+            return new io.github.biiiiiigmonster.relation.MorphToMany<>(
                     field,
+                    ListUtil.toList(pivotVia, via),
                     relation.using(),
-                    ReflectUtil.getField(relation.using(), pivotType),
-                    ReflectUtil.getField(relation.using(), pivotId),
-                    ReflectUtil.getField(relation.using(), relatedPivotKey),
-                    ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey),
-                    ReflectUtil.getField(field.getDeclaringClass(), localKey),
+                    pivotTypeField,
+                    pivotIdField,
+                    relatedPivotField,
+                    foreignField,
+                    localField,
                     false,
                     relation.withPivot()
             );
-            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
-            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
-            r.addConstraints(relation.using(), ConstraintApplier.toConsumers(relation.using(), relation.pivotConstraints()));
-            return r;
         }
     },
     MORPHED_BY_MANY(MorphedByMany.class, true) {
@@ -283,21 +335,29 @@ public enum RelationType {
                     ? relation.foreignKey() : RelationUtils.getPrimaryKey(RelationUtils.getGenericType(field));
             String ownerKey = StringUtils.isNotBlank(relation.ownerKey())
                     ? relation.ownerKey() : RelationUtils.getPrimaryKey(clazz);
-            io.github.biiiiiigmonster.relation.MorphToMany<T, ?> r = new io.github.biiiiiigmonster.relation.MorphToMany<>(
+
+            Field pivotTypeField = ReflectUtil.getField(relation.using(), pivotType);
+            Field foreignPivotField = ReflectUtil.getField(relation.using(), foreignPivotKey);
+            Field pivotIdField = ReflectUtil.getField(relation.using(), pivotId);
+            Field foreignField = ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey);
+            Field ownerField = ReflectUtil.getField(field.getDeclaringClass(), ownerKey);
+            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
+            List<Consumer<QueryCondition>> consumerList = ConstraintApplier.toConsumers(relation.using(), relation.pivotConstraints());
+            consumerList.add(cond -> cond.eq(pivotType, Relation.getMorphAlias(entityClass, clazz)));
+            RelationVia<?> pivotVia = new RelationVia<>(ownerField, foreignPivotField, consumerList);
+            RelationVia<?> via = new RelationVia<>(pivotIdField, foreignField, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
+            return new io.github.biiiiiigmonster.relation.MorphToMany<>(
                     field,
+                    ListUtil.toList(pivotVia, via),
                     relation.using(),
-                    ReflectUtil.getField(relation.using(), pivotType),
-                    ReflectUtil.getField(relation.using(), foreignPivotKey),
-                    ReflectUtil.getField(relation.using(), pivotId),
-                    ReflectUtil.getField(RelationUtils.getGenericType(field), foreignKey),
-                    ReflectUtil.getField(field.getDeclaringClass(), ownerKey),
+                    pivotTypeField,
+                    foreignPivotField,
+                    pivotIdField,
+                    foreignField,
+                    ownerField,
                     true,
                     relation.withPivot()
             );
-            Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
-            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
-            r.addConstraints(relation.using(), ConstraintApplier.toConsumers(relation.using(), relation.pivotConstraints()));
-            return r;
         }
     },
     SIBLING_MANY(SiblingMany.class, true) {
@@ -315,13 +375,14 @@ public enum RelationType {
                         ? belongs.foreignKey() : RelationUtils.getForeignKey((Class<? extends Model<?>>) belongsField.getType());
             }
 
-            io.github.biiiiiigmonster.relation.SiblingMany<T> r = new io.github.biiiiiigmonster.relation.SiblingMany<>(
-                    field,
-                    ReflectUtil.getField(field.getDeclaringClass(), parentKey)
-            );
+            Field parentField = ReflectUtil.getField(field.getDeclaringClass(), parentKey);
             Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
-            r.addConstraints(entityClass, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
-            return r;
+            RelationVia<?> via = new RelationVia<>(parentField, parentField, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
+            return new io.github.biiiiiigmonster.relation.SiblingMany<>(
+                    field,
+                    ListUtil.toList(via),
+                    parentField
+            );
         }
     },
     ;

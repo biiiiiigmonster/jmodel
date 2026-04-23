@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@SuppressWarnings({"rawtypes"})
 public class HasManyThrough<T extends Model<?>, TH extends Model<?>> extends HasOneOrManyThrough<T, TH> {
 
     /**
@@ -20,8 +21,8 @@ public class HasManyThrough<T extends Model<?>, TH extends Model<?>> extends Has
      * @param localField          Project.id
      * @param throughLocalField   Environment.id
      */
-    public HasManyThrough(Field relatedField, Class<TH> throughClass, Field foreignField, Field throughForeignField, Field localField, Field throughLocalField) {
-        super(relatedField, throughClass, foreignField, throughForeignField, localField, throughLocalField);
+    public HasManyThrough(Field relatedField, List<RelationVia> viaList, Class<TH> throughClass, Field foreignField, Field throughForeignField, Field localField, Field throughLocalField) {
+        super(relatedField, viaList, throughClass, foreignField, throughForeignField, localField, throughLocalField);
     }
 
     @Override

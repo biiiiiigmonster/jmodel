@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@SuppressWarnings({"rawtypes"})
 public class MorphOne<T extends Model<?>> extends MorphOneOrMany<T> {
     /**
      * @param relatedField (Post|User).image
@@ -17,8 +18,8 @@ public class MorphOne<T extends Model<?>> extends MorphOneOrMany<T> {
      * @param localField   (Post|User).id
      * @param chaperone    chaperone
      */
-    public MorphOne(Field relatedField, Field morphType, Field foreignField, Field localField, boolean chaperone) {
-        super(relatedField, morphType, foreignField, localField, chaperone);
+    public MorphOne(Field relatedField, List<RelationVia> viaList, Field morphType, Field foreignField, Field localField, boolean chaperone) {
+        super(relatedField, viaList, morphType, foreignField, localField, chaperone);
     }
 
     @Override

@@ -10,32 +10,27 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.function.Consumer;
 
+@SuppressWarnings({"rawtypes"})
 public class MorphToMany<T extends Model<?>, MP extends MorphPivot<?>> extends BelongsToMany<T, MP> {
     protected Field morphPivotType;
     protected boolean inverse;
 
     /**
-     * @param relatedField      Post.tags                   Tag.posts
+     * @param relatedField      (Post|Image).tags           Tag.posts
      * @param morphPivotClass   Morph pivot class
      * @param morphPivotType    Taggables.taggable_type     Taggables.taggable_type
      * @param foreignPivotField Taggables.taggable_id       Taggables.tag_id
      * @param relatedPivotField Taggables.tag_id            Taggables.taggable_id
      * @param foreignField      Tag.id                      Post.id
-     * @param localField        Post.id                     Tag.id
+     * @param localField        (Post|Image).id             Tag.id
      * @param inverse           inverse
      * @param withPivot         with pivot
      */
-    public MorphToMany(Field relatedField, Class<MP> morphPivotClass, Field morphPivotType, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField, boolean inverse, boolean withPivot) {
-        super(relatedField, morphPivotClass, foreignPivotField, relatedPivotField, foreignField, localField, withPivot);
+    public MorphToMany(Field relatedField, List<RelationVia> viaList, Class<MP> morphPivotClass, Field morphPivotType, Field foreignPivotField, Field relatedPivotField, Field foreignField, Field localField, boolean inverse, boolean withPivot) {
+        super(relatedField, viaList, morphPivotClass, foreignPivotField, relatedPivotField, foreignField, localField, withPivot);
 
         this.morphPivotType = morphPivotType;
         this.inverse = inverse;
-    }
-
-    protected Consumer<QueryCondition<MP>> pivotConditionEnhancer(List<?> keys) {
-        Consumer<QueryCondition<MP>> superCond = super.pivotConditionEnhancer(keys);
-        String morphTypeColumn = RelationUtils.getColumn(morphPivotType);
-        return superCond.andThen(cond -> cond.eq(morphTypeColumn, getMorphAlias()));
     }
 
     protected String getMorphAlias() {

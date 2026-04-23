@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes"})
 public abstract class HasOneOrMany<T extends Model<?>> extends Relation<T> {
     @Getter
     protected Field foreignField;
@@ -21,22 +21,12 @@ public abstract class HasOneOrMany<T extends Model<?>> extends Relation<T> {
     protected Field localField;
     protected boolean chaperone;
 
-    public HasOneOrMany(Field relatedField, Field foreignField, Field localField, boolean chaperone) {
-        super(relatedField);
+    public HasOneOrMany(Field relatedField, List<RelationVia> viaList, Field foreignField, Field localField, boolean chaperone) {
+        super(relatedField, viaList);
 
         this.foreignField = foreignField;
         this.localField = localField;
         this.chaperone = chaperone;
-    }
-
-    @Override
-    public <R extends Model<?>> List<R> getEager(List<T> models) {
-        List<?> localKeyValueList = relatedKeyValueList(models, localField);
-        if (CollectionUtils.isEmpty(localKeyValueList)) {
-            return new ArrayList<>();
-        }
-
-        return getResult(getForeignClass(), foreignConditionEnhancer(localKeyValueList));
     }
 
     protected <R extends Model<?>> Class<R> getForeignClass() {

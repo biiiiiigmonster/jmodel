@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@SuppressWarnings({"rawtypes"})
 public class BelongsTo<T extends Model<?>> extends Relation<T> {
     protected Field foreignField;
     protected Field ownerField;
@@ -18,17 +19,11 @@ public class BelongsTo<T extends Model<?>> extends Relation<T> {
      * @param foreignField Phone.user_id
      * @param ownerField   User.id
      */
-    public BelongsTo(Field relatedField, Field foreignField, Field ownerField) {
-        super(relatedField);
+    public BelongsTo(Field relatedField, List<RelationVia> viaList, Field foreignField, Field ownerField) {
+        super(relatedField, viaList);
 
         this.foreignField = foreignField;
         this.ownerField = ownerField;
-    }
-
-    @Override
-    public <R extends Model<?>> List<R> getEager(List<T> models) {
-        List<?> ownerKeyValueList = relatedKeyValueList(models, foreignField);
-        return getResult(ownerKeyValueList, ownerField);
     }
 
     @Override

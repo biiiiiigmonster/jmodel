@@ -8,11 +8,12 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.function.Consumer;
 
+@SuppressWarnings({"rawtypes"})
 public abstract class MorphOneOrMany<T extends Model<?>> extends HasOneOrMany<T> {
     protected Field morphType;
 
-    public MorphOneOrMany(Field relatedField, Field morphType, Field foreignField, Field localField, boolean chaperone) {
-        super(relatedField, foreignField, localField, chaperone);
+    public MorphOneOrMany(Field relatedField, List<RelationVia> viaList, Field morphType, Field foreignField, Field localField, boolean chaperone) {
+        super(relatedField, viaList, foreignField, localField, chaperone);
 
         this.morphType = morphType;
     }

@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@SuppressWarnings({"rawtypes"})
 public class MorphTo<T extends Model<?>> extends BelongsTo<T> {
     protected Field morphType;
 
@@ -16,8 +17,8 @@ public class MorphTo<T extends Model<?>> extends BelongsTo<T> {
      * @param foreignField Image.imageable_id
      * @param ownerField   Post.id
      */
-    public MorphTo(Field relatedField, Field morphType, Field foreignField, Field ownerField) {
-        super(relatedField, foreignField, ownerField);
+    public MorphTo(Field relatedField, List<RelationVia> viaList, Field morphType, Field foreignField, Field ownerField) {
+        super(relatedField, viaList, foreignField, ownerField);
 
         this.morphType = morphType;
     }
