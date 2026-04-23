@@ -49,12 +49,12 @@ public class ModelClassEnhancer implements Closeable {
     private final URLClassLoader classLoader;
     private final Log log;
 
-    public ModelClassEnhancer(File classesDirectory, List<String> compileClasspathElements, Log log) throws IOException {
+    public ModelClassEnhancer(File classesDirectory, List<String> compileClasspathElements, Log log) {
         this.classesDirectory = classesDirectory;
         this.log = log;
 
         // 构建 URLClassLoader，包含编译期所有类路径
-        List<URL> urls = new ArrayList<URL>();
+        List<URL> urls = new ArrayList<>();
         for (String element : compileClasspathElements) {
             try {
                 urls.add(new File(element).toURI().toURL());
@@ -66,8 +66,8 @@ public class ModelClassEnhancer implements Closeable {
 
         // 构建 ClassFileLocator：classes 目录 + 编译期类路径
         this.classFileLocator = new ClassFileLocator.Compound(
-            new ClassFileLocator.ForFolder(classesDirectory),
-            ClassFileLocator.ForClassLoader.of(classLoader)
+                new ClassFileLocator.ForFolder(classesDirectory),
+                ClassFileLocator.ForClassLoader.of(classLoader)
         );
         this.typePool = TypePool.Default.of(classFileLocator);
     }
@@ -76,7 +76,7 @@ public class ModelClassEnhancer implements Closeable {
      * 执行增强，返回增强的类数量
      */
     public int enhance() throws MojoExecutionException {
-        List<File> classFiles = new ArrayList<File>();
+        List<File> classFiles = new ArrayList<>();
         scanClassFiles(classesDirectory, classFiles);
         int count = 0;
 
@@ -168,7 +168,7 @@ public class ModelClassEnhancer implements Closeable {
      * 获取类中所有可追踪字段（排除 static、transient、关系字段、计算属性字段）
      */
     private List<FieldDescription.InDefinedShape> getTrackableFields(TypeDescription type) {
-        List<FieldDescription.InDefinedShape> trackable = new ArrayList<FieldDescription.InDefinedShape>();
+        List<FieldDescription.InDefinedShape> trackable = new ArrayList<>();
 
         for (FieldDescription.InDefinedShape field : type.getDeclaredFields()) {
             if (field.isStatic()) {
@@ -242,8 +242,8 @@ public class ModelClassEnhancer implements Closeable {
             boolean setterExists = false;
             for (MethodDescription.InDefinedShape method : typeDescription.getDeclaredMethods()) {
                 if (method.getName().equals(setterName)
-                    && method.getParameters().size() == 1
-                    && !method.isAbstract()) {
+                        && method.getParameters().size() == 1
+                        && !method.isAbstract()) {
                     setterExists = true;
                     break;
                 }
@@ -257,9 +257,9 @@ public class ModelClassEnhancer implements Closeable {
             log.info("[JModel Enhance]   Enhancing setter: " + setterName + "() -> tracking field '" + fieldName + "'");
 
             visitorWrapper = visitorWrapper.method(
-                ElementMatchers.<MethodDescription>named(setterName)
-                    .and(ElementMatchers.<MethodDescription>takesArguments(1)),
-                new SetterInterceptor(fieldName, fieldDescriptor)
+                    ElementMatchers.<MethodDescription>named(setterName)
+                            .and(ElementMatchers.<MethodDescription>takesArguments(1)),
+                    new SetterInterceptor(fieldName, fieldDescriptor)
             );
             hasEnhancedSetter = true;
         }
@@ -270,13 +270,13 @@ public class ModelClassEnhancer implements Closeable {
         }
 
         DynamicType.Builder<?> builder = new ByteBuddy()
-            .redefine(typeDescription, classFileLocator)
-            .defineField(ENHANCED_MARKER_FIELD, boolean.class,
-                net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE
-                    | net.bytebuddy.jar.asm.Opcodes.ACC_STATIC
-                    | net.bytebuddy.jar.asm.Opcodes.ACC_FINAL
-                    | net.bytebuddy.jar.asm.Opcodes.ACC_SYNTHETIC)
-            .visit(visitorWrapper);
+                .redefine(typeDescription, classFileLocator)
+                .defineField(ENHANCED_MARKER_FIELD, boolean.class,
+                        net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE
+                                | net.bytebuddy.jar.asm.Opcodes.ACC_STATIC
+                                | net.bytebuddy.jar.asm.Opcodes.ACC_FINAL
+                                | net.bytebuddy.jar.asm.Opcodes.ACC_SYNTHETIC)
+                .visit(visitorWrapper);
 
         DynamicType.Unloaded<?> unloaded = builder.make();
         unloaded.saveIn(classesDirectory);
@@ -322,7 +322,7 @@ public class ModelClassEnhancer implements Closeable {
             return null;
         }
         return relativePath.substring(0, relativePath.length() - ".class".length())
-            .replace('/', '.');
+                .replace('/', '.');
     }
 
     @Override
