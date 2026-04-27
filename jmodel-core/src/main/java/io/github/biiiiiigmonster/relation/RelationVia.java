@@ -36,7 +36,7 @@ public class RelationVia<R extends Model<?>> {
         Class<R> entityClass = (Class<R>) foreignField.getDeclaringClass();
         DataDriver driver = DriverRegistry.getDriver(entityClass);
         QueryCondition<R> condition = QueryCondition.create(entityClass);
-        condition.in(RelationUtils.getColumn(foreignField), localKeyValueList);
+        condition.in(driver.getColumnName(foreignField), localKeyValueList);
         if (!CollectionUtils.isEmpty(constraints)) {
             for (Consumer<QueryCondition> c : constraints) {
                 c.accept(condition);

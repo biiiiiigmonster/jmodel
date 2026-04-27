@@ -1,5 +1,6 @@
 package io.github.biiiiiigmonster.router;
 
+import cn.hutool.core.util.ReflectUtil;
 import io.github.biiiiiigmonster.Model;
 import io.github.biiiiiigmonster.ModelNotFoundException;
 import io.github.biiiiiigmonster.driver.DataDriver;
@@ -9,6 +10,7 @@ import io.github.biiiiiigmonster.relation.RelationUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.method.annotation.AbstractNamedValueMethodArgumentResolver;
@@ -16,6 +18,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.View;
 
+import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +64,8 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
 
     protected Model<?> getModel(String value, String fieldName, Class<? extends Model<?>> parameterType) {
         DataDriver driver = DriverRegistry.getDriver(parameterType);
-        QueryCondition<? extends Model<?>> condition = QueryCondition.create(parameterType).eq(fieldName, value);
+        Field field = ReflectUtil.getField(parameterType, fieldName);
+        QueryCondition<? extends Model<?>> condition = QueryCondition.create(parameterType).eq(driver.getColumnName(field), value);
         List<? extends Model<?>> results = driver.findByCondition(condition);
         return CollectionUtils.isEmpty(results) ? null : results.get(0);
     }

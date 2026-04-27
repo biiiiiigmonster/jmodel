@@ -387,13 +387,13 @@ public class RelationUtils {
     /**
      * 获取字段对应的数据库列名（通过驱动）
      *
-     * @param foreignField 字段
+     * @param field 字段
      * @return 数据库列名
      */
-    public static String getColumn(Field foreignField) {
-        Class<?> entityClass = foreignField.getDeclaringClass();
+    public static String getColumn(Field field) {
+        Class<?> entityClass = field.getDeclaringClass();
         DataDriver driver = DriverRegistry.getDriver((Class<? extends Model<?>>) entityClass);
-        return driver.getColumnName(foreignField);
+        return driver.getColumnName(field);
     }
 
     public static Class<? extends Model<?>> getGenericType(Field field) {
