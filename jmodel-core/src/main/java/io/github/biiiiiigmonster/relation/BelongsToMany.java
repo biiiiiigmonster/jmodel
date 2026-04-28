@@ -132,14 +132,12 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
      */
     protected void pivotDeleteByCondition(Object localValue, List<Object> foreignValues) {
         DataDriver driver = DriverRegistry.getDriver(pivotClass);
-        String foreignPivotColumn = RelationUtils.getColumn(foreignPivotField);
 
         QueryCondition<P> condition = QueryCondition.create(pivotClass)
-                .eq(foreignPivotColumn, localValue);
+                .eq(foreignPivotField, localValue);
 
         if (foreignValues != null && !foreignValues.isEmpty()) {
-            String relatedPivotColumn = RelationUtils.getColumn(relatedPivotField);
-            condition.in(relatedPivotColumn, foreignValues);
+            condition.in(relatedPivotField, foreignValues);
         }
 
         // 查询要删除的记录

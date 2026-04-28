@@ -1,15 +1,14 @@
 package io.github.biiiiiigmonster.drivermybatisplus;
 
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import io.github.biiiiiigmonster.Model;
-import io.github.biiiiiigmonster.driver.DataDriver;
-import io.github.biiiiiigmonster.driver.QueryCondition;
+import io.github.biiiiiigmonster.driver.AbstractDataDriver;
 import io.github.biiiiiigmonster.driver.Criterion;
 import io.github.biiiiiigmonster.driver.CriterionType;
+import io.github.biiiiiigmonster.driver.QueryCondition;
 import io.github.biiiiiigmonster.driver.exception.DriverOperationException;
 import io.github.biiiiiigmonster.driver.exception.QueryConditionException;
 import org.springframework.beans.BeansException;
@@ -31,8 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author jmodel
  */
 @Component
-@SuppressWarnings("unchecked")
-public class MyBatisPlusDriver implements DataDriver {
+@SuppressWarnings({"unchecked", "rawtypes"})
+public class MyBatisPlusDriver extends AbstractDataDriver {
 
     /**
      * Spring 应用上下文
@@ -47,32 +46,26 @@ public class MyBatisPlusDriver implements DataDriver {
 
     // ===== 元数据方法实现 =====
 
-    @Override
-    public String getPrimaryKey(Class<? extends Model<?>> entityClass) {
-        return PRIMARY_KEY_CACHE.computeIfAbsent(entityClass, clazz -> {
-            for (Field field : DataDriver.getAllFields(clazz)) {
-                TableId tableId = field.getAnnotation(TableId.class);
-                if (tableId != null) {
-                    return field.getName();
-                }
+    protected Field primaryField(Class<? extends Model<?>> entityClass) {
+        for (Field field : AbstractDataDriver.getAllFields(entityClass)) {
+            TableId tableId = field.getAnnotation(TableId.class);
+            if (tableId != null) {
+                return field;
             }
-            return "id";
-        });
+        }
+        return super.primaryField(entityClass);
     }
 
-    @Override
-    public String getColumnName(Field field) {
-        return COLUMN_NAME_CACHE.computeIfAbsent(field, key -> {
-            TableField tableField = key.getAnnotation(TableField.class);
-            if (tableField != null && !tableField.value().isEmpty()) {
-                return tableField.value();
-            }
-            TableId tableId = key.getAnnotation(TableId.class);
-            if (tableId != null && !tableId.value().isEmpty()) {
-                return tableId.value();
-            }
-            return StrUtil.toUnderlineCase(key.getName());
-        });
+    protected String columnName(Field field) {
+        TableField tableField = field.getAnnotation(TableField.class);
+        if (tableField != null && !tableField.value().isEmpty()) {
+            return tableField.value();
+        }
+        TableId tableId = field.getAnnotation(TableId.class);
+        if (tableId != null && !tableId.value().isEmpty()) {
+            return tableId.value();
+        }
+        return super.columnName(field);
     }
     // ===== 数据操作方法实现 =====
 
@@ -182,7 +175,7 @@ public class MyBatisPlusDriver implements DataDriver {
         }
 
         for (Criterion criterion : condition.getCriteria()) {
-            String field = criterion.getField();
+            String field = getColumnName(criterion.getField());
             Object value = criterion.getValue();
             CriterionType type = criterion.getType();
 

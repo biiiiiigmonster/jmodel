@@ -8,7 +8,6 @@ import io.github.biiiiiigmonster.driver.QueryCondition;
 
 import java.lang.reflect.Field;
 import java.util.List;
-import java.util.function.Consumer;
 
 @SuppressWarnings({"rawtypes"})
 public class MorphToMany<T extends Model<?>, MP extends MorphPivot<?>> extends BelongsToMany<T, MP> {
@@ -17,7 +16,7 @@ public class MorphToMany<T extends Model<?>, MP extends MorphPivot<?>> extends B
 
     /**
      * @param relatedField      (Post|Image).tags           Tag.posts
-     * @param morphPivotClass   Morph pivot class
+     * @param morphPivotClass   Taggables class
      * @param morphPivotType    Taggables.taggable_type     Taggables.taggable_type
      * @param foreignPivotField Taggables.taggable_id       Taggables.tag_id
      * @param relatedPivotField Taggables.tag_id            Taggables.taggable_id
@@ -47,16 +46,13 @@ public class MorphToMany<T extends Model<?>, MP extends MorphPivot<?>> extends B
     @Override
     protected void pivotDeleteByCondition(Object localValue, List<Object> foreignValues) {
         DataDriver driver = DriverRegistry.getDriver(pivotClass);
-        String foreignPivotColumn = RelationUtils.getColumn(foreignPivotField);
-        String morphTypeColumn = RelationUtils.getColumn(morphPivotType);
 
         QueryCondition<MP> condition = QueryCondition.create(pivotClass)
-                .eq(foreignPivotColumn, localValue)
-                .eq(morphTypeColumn, getMorphAlias());
+                .eq(foreignPivotField, localValue)
+                .eq(morphPivotType, getMorphAlias());
 
         if (foreignValues != null && !foreignValues.isEmpty()) {
-            String relatedPivotColumn = RelationUtils.getColumn(relatedPivotField);
-            condition.in(relatedPivotColumn, foreignValues);
+            condition.in(relatedPivotField, foreignValues);
         }
 
         // 查询要删除的记录

@@ -6,6 +6,7 @@ import io.github.biiiiiigmonster.Model;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
  * 将实体存储在内存 Map 中，支持基本的 CRUD 和条件查询
  */
 @Component
-public class InMemoryDataDriver implements DataDriver {
+public class InMemoryDataDriver extends AbstractDataDriver {
 
     /**
      * 数据存储：entityClass -> (id -> entity)
@@ -129,9 +130,8 @@ public class InMemoryDataDriver implements DataDriver {
      * 判断实体是否匹配单个条件
      */
     private boolean matchesCriterion(Model<?> entity, Criterion criterion) {
-        String fieldName = criterion.getField();
         Object conditionValue = criterion.getValue();
-        Object fieldValue = ReflectUtil.getFieldValue(entity, fieldName);
+        Object fieldValue = ReflectUtil.getFieldValue(entity, criterion.getField());
 
         switch (criterion.getType()) {
             case EQ:

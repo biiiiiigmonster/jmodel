@@ -10,7 +10,6 @@ import io.github.biiiiiigmonster.relation.RelationUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.method.annotation.AbstractNamedValueMethodArgumentResolver;
@@ -65,7 +64,7 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
     protected Model<?> getModel(String value, String fieldName, Class<? extends Model<?>> parameterType) {
         DataDriver driver = DriverRegistry.getDriver(parameterType);
         Field field = ReflectUtil.getField(parameterType, fieldName);
-        QueryCondition<? extends Model<?>> condition = QueryCondition.create(parameterType).eq(driver.getColumnName(field), value);
+        QueryCondition<? extends Model<?>> condition = QueryCondition.create(parameterType).eq(field, value);
         List<? extends Model<?>> results = driver.findByCondition(condition);
         return CollectionUtils.isEmpty(results) ? null : results.get(0);
     }

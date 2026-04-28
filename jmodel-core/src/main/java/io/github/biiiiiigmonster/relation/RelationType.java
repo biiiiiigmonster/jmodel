@@ -214,7 +214,7 @@ public enum RelationType {
             Field localField = ReflectUtil.getField(field.getDeclaringClass(), localKey);
             Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
             List<Consumer<QueryCondition>> consumerList = ConstraintApplier.toConsumers(entityClass, relation.constraints());
-            consumerList.add(cond -> cond.eq(type, Relation.getMorphAlias(clazz, entityClass)));
+            consumerList.add(cond -> cond.eq(typeField, Relation.getMorphAlias(clazz, entityClass)));
             RelationVia<?> via = new RelationVia<>(localField, idField, consumerList);
             return new io.github.biiiiiigmonster.relation.MorphOne<>(
                     field,
@@ -242,7 +242,7 @@ public enum RelationType {
             Field localField = ReflectUtil.getField(field.getDeclaringClass(), localKey);
             Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
             List<Consumer<QueryCondition>> consumerList = ConstraintApplier.toConsumers(entityClass, relation.constraints());
-            consumerList.add(cond -> cond.eq(type, Relation.getMorphAlias(clazz, entityClass)));
+            consumerList.add(cond -> cond.eq(typeField, Relation.getMorphAlias(clazz, entityClass)));
             RelationVia<?> via = new RelationVia<>(localField, idField, consumerList);
             return new io.github.biiiiiigmonster.relation.MorphMany<>(
                     field,
@@ -303,7 +303,7 @@ public enum RelationType {
             Field localField = ReflectUtil.getField(field.getDeclaringClass(), localKey);
             Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
             List<Consumer<QueryCondition>> consumerList = ConstraintApplier.toConsumers(relation.using(), relation.pivotConstraints());
-            consumerList.add(cond -> cond.eq(pivotType, Relation.getMorphAlias(clazz, entityClass)));
+            consumerList.add(cond -> cond.eq(pivotTypeField, Relation.getMorphAlias(clazz, entityClass)));
             RelationVia<?> pivotVia = new RelationVia<>(localField, pivotIdField, consumerList);
             RelationVia<?> via = new RelationVia<>(relatedPivotField, foreignField, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
             return new io.github.biiiiiigmonster.relation.MorphToMany<>(
@@ -343,7 +343,7 @@ public enum RelationType {
             Field ownerField = ReflectUtil.getField(field.getDeclaringClass(), ownerKey);
             Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
             List<Consumer<QueryCondition>> consumerList = ConstraintApplier.toConsumers(relation.using(), relation.pivotConstraints());
-            consumerList.add(cond -> cond.eq(pivotType, Relation.getMorphAlias(entityClass, clazz)));
+            consumerList.add(cond -> cond.eq(pivotTypeField, Relation.getMorphAlias(entityClass, clazz)));
             RelationVia<?> pivotVia = new RelationVia<>(ownerField, foreignPivotField, consumerList);
             RelationVia<?> via = new RelationVia<>(pivotIdField, foreignField, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
             return new io.github.biiiiiigmonster.relation.MorphToMany<>(

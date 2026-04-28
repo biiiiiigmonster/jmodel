@@ -64,12 +64,12 @@ public final class ConstraintApplier {
             case GT:
             case LT:
             case LIKE:
-                return cond -> cond.apply(new Criterion(field, c.type(), convertSingle(entityClass, field, raw)));
+                return cond -> cond.apply(field, c.type(), convertSingle(entityClass, field, raw));
             case IN:
-                return cond -> cond.apply(new Criterion(field, c.type(), convertList(entityClass, field, raw)));
+                return cond -> cond.apply(field, c.type(), convertList(entityClass, field, raw));
             case IS_NULL:
             case IS_NOT_NULL:
-                return cond -> cond.apply(new Criterion(field, c.type(), null));
+                return cond -> cond.apply(field, c.type(), null);
             default:
                 return cond -> {
                 };

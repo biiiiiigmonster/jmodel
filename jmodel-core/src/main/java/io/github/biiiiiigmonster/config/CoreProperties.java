@@ -14,11 +14,27 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "jmodel.core")
 public class CoreProperties {
+    /**
+     * 模型配置
+     */
+    private Model model = new Model();
 
     /**
      * 驱动配置
      */
     private Driver driver;
+
+    /**
+     * 模型配置类
+     */
+    @Data
+    public static class Model {
+
+        /**
+         * 默认驱动类
+         */
+        private String defaultPrimaryKey = "id";
+    }
 
     /**
      * 驱动配置类

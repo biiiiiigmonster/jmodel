@@ -432,7 +432,7 @@ public class RelationUtils {
      */
     public static String getPrimaryKey(Class<? extends Model<?>> clazz) {
         DataDriver driver = DriverRegistry.getDriver(clazz);
-        return driver.getPrimaryKey(clazz);
+        return driver.getColumnName(driver.getPrimaryField(clazz));
     }
 
     /**
