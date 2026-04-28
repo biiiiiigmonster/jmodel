@@ -384,18 +384,6 @@ public class RelationUtils {
         return list;
     }
 
-    /**
-     * 获取字段对应的数据库列名（通过驱动）
-     *
-     * @param field 字段
-     * @return 数据库列名
-     */
-    public static String getColumn(Field field) {
-        Class<?> entityClass = field.getDeclaringClass();
-        DataDriver driver = DriverRegistry.getDriver((Class<? extends Model<?>>) entityClass);
-        return driver.getColumnName(field);
-    }
-
     public static Class<? extends Model<?>> getGenericType(Field field) {
         if (!List.class.isAssignableFrom(field.getType())) {
             return (Class<? extends Model<?>>) field.getType();
