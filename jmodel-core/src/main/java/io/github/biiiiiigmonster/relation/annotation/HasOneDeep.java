@@ -1,6 +1,7 @@
 package io.github.biiiiiigmonster.relation.annotation;
 
 import io.github.biiiiiigmonster.relation.annotation.config.Relation;
+import io.github.biiiiiigmonster.relation.annotation.config.Via;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -11,4 +12,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Relation(resultList = false)
 public @interface HasOneDeep {
+    Via[] value();
 }
