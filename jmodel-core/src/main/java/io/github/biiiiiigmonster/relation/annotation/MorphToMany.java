@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-@Relation
+@Relation(resultList = true)
 public @interface MorphToMany {
     Class<? extends MorphPivot<?>> using();
     String pivotType() default "";

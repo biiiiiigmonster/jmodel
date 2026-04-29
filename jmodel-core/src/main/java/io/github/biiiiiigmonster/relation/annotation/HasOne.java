@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-@Relation
+@Relation(resultList = false)
 public @interface HasOne {
     String foreignKey() default "";
     String localKey() default "";

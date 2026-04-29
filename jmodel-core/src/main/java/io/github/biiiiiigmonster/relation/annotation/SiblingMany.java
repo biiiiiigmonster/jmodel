@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-@Relation
+@Relation(resultList = true)
 public @interface SiblingMany {
     String from() default "";
     BelongsTo parent() default @BelongsTo;

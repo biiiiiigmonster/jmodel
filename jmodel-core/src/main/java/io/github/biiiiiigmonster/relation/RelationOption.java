@@ -72,7 +72,9 @@ public class RelationOption<T extends Model<?>> {
     }
 
     public boolean isRelatedFieldList() {
-        return relationType.isResultList();
+        io.github.biiiiiigmonster.relation.annotation.config.Relation relation = relationType.getRelationAnnotationClazz()
+                .getAnnotation(io.github.biiiiiigmonster.relation.annotation.config.Relation.class);
+        return relation.resultList();
     }
 
     public Relation<T> getRelation() {

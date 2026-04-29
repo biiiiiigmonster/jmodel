@@ -1,7 +1,6 @@
 package io.github.biiiiiigmonster.relation.annotation;
 
 import io.github.biiiiiigmonster.relation.annotation.config.Relation;
-import io.github.biiiiiigmonster.relation.constraint.Constraint;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -10,9 +9,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-@Relation(resultList = false)
-public @interface BelongsTo {
-    String foreignKey() default "";
-    String ownerKey() default "";
-    Constraint[] constraints() default {};
+@Relation(resultList = true)
+public @interface HasManyDeep {
 }

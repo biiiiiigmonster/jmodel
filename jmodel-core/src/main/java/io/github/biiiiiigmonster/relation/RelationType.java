@@ -31,7 +31,7 @@ import java.util.function.Consumer;
 @AllArgsConstructor
 @SuppressWarnings({"unchecked", "rawtypes"})
 public enum RelationType {
-    HAS_ONE(HasOne.class, false) {
+    HAS_ONE(HasOne.class) {
         @Override
         public <T extends Model<?>> io.github.biiiiiigmonster.relation.HasOne<T> getRelation(RelationOption<T> relationOption) {
             Class<T> clazz = relationOption.getClazz();
@@ -53,7 +53,7 @@ public enum RelationType {
             );
         }
     },
-    HAS_MANY(HasMany.class, true) {
+    HAS_MANY(HasMany.class) {
         @Override
         public <T extends Model<?>> io.github.biiiiiigmonster.relation.HasMany<T> getRelation(RelationOption<T> relationOption) {
             Class<T> clazz = relationOption.getClazz();
@@ -75,7 +75,7 @@ public enum RelationType {
             );
         }
     },
-    BELONGS_TO(BelongsTo.class, false) {
+    BELONGS_TO(BelongsTo.class) {
         @Override
         public <T extends Model<?>> io.github.biiiiiigmonster.relation.BelongsTo<T> getRelation(RelationOption<T> relationOption) {
             Class<T> clazz = relationOption.getClazz();
@@ -98,7 +98,7 @@ public enum RelationType {
             );
         }
     },
-    BELONGS_TO_MANY(BelongsToMany.class, true) {
+    BELONGS_TO_MANY(BelongsToMany.class) {
         @Override
         public <T extends Model<?>> io.github.biiiiiigmonster.relation.BelongsToMany<T, ?> getRelation(RelationOption<T> relationOption) {
             Class<T> clazz = relationOption.getClazz();
@@ -132,7 +132,7 @@ public enum RelationType {
             );
         }
     },
-    HAS_ONE_THROUGH(HasOneThrough.class, false) {
+    HAS_ONE_THROUGH(HasOneThrough.class) {
         @Override
         public <T extends Model<?>> io.github.biiiiiigmonster.relation.HasOneThrough<T, ?> getRelation(RelationOption<T> relationOption) {
             Class<T> clazz = relationOption.getClazz();
@@ -165,7 +165,7 @@ public enum RelationType {
             );
         }
     },
-    HAS_MANY_THROUGH(HasManyThrough.class, true) {
+    HAS_MANY_THROUGH(HasManyThrough.class) {
         @Override
         public <T extends Model<?>> io.github.biiiiiigmonster.relation.HasManyThrough<T, ?> getRelation(RelationOption<T> relationOption) {
             Class<T> clazz = relationOption.getClazz();
@@ -198,7 +198,7 @@ public enum RelationType {
             );
         }
     },
-    MORPH_ONE(MorphOne.class, false) {
+    MORPH_ONE(MorphOne.class) {
         @Override
         public <T extends Model<?>> io.github.biiiiiigmonster.relation.MorphOne<T> getRelation(RelationOption<T> relationOption) {
             Class<T> clazz = relationOption.getClazz();
@@ -226,7 +226,7 @@ public enum RelationType {
             );
         }
     },
-    MORPH_MANY(MorphMany.class, true) {
+    MORPH_MANY(MorphMany.class) {
         @Override
         public <T extends Model<?>> io.github.biiiiiigmonster.relation.MorphMany<T> getRelation(RelationOption<T> relationOption) {
             Class<T> clazz = relationOption.getClazz();
@@ -254,7 +254,7 @@ public enum RelationType {
             );
         }
     },
-    MORPH_TO(MorphTo.class, false) {
+    MORPH_TO(MorphTo.class) {
         @Override
         public <T extends Model<?>> io.github.biiiiiigmonster.relation.MorphTo<T> getRelation(RelationOption<T> relationOption) {
             Class<T> clazz = relationOption.getClazz();
@@ -280,7 +280,7 @@ public enum RelationType {
             );
         }
     },
-    MORPH_TO_MANY(MorphToMany.class, true) {
+    MORPH_TO_MANY(MorphToMany.class) {
         @Override
         public <T extends Model<?>> io.github.biiiiiigmonster.relation.MorphToMany<T, ?> getRelation(RelationOption<T> relationOption) {
             Class<T> clazz = relationOption.getClazz();
@@ -320,7 +320,7 @@ public enum RelationType {
             );
         }
     },
-    MORPHED_BY_MANY(MorphedByMany.class, true) {
+    MORPHED_BY_MANY(MorphedByMany.class) {
         @Override
         public <T extends Model<?>> io.github.biiiiiigmonster.relation.MorphToMany<T, ?> getRelation(RelationOption<T> relationOption) {
             Class<T> clazz = relationOption.getClazz();
@@ -360,7 +360,7 @@ public enum RelationType {
             );
         }
     },
-    SIBLING_MANY(SiblingMany.class, true) {
+    SIBLING_MANY(SiblingMany.class) {
         @Override
         public <T extends Model<?>> io.github.biiiiiigmonster.relation.SiblingMany<T> getRelation(RelationOption<T> relationOption) {
             Class<T> clazz = relationOption.getClazz();
@@ -387,8 +387,7 @@ public enum RelationType {
     },
     ;
 
-    private final Class<?> relationAnnotationClazz;
-    private final boolean resultList;
+    private final Class<? extends Annotation> relationAnnotationClazz;
 
     public static RelationType of(Field field) {
         Annotation relationAnnotation = getRelationAnnotation(field);

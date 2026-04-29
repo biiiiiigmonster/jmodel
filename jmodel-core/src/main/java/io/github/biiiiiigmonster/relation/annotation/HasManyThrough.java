@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-@Relation
+@Relation(resultList = true)
 public @interface HasManyThrough {
     Class<? extends Model<?>> through();
     String foreignKey() default "";
