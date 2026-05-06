@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Relation(resultList = true)
 public @interface SiblingMany {
-    String from() default "";
-    BelongsTo parent() default @BelongsTo;
+    String from() default ""; // parent field
     Constraint[] constraints() default {};
+    BelongsTo parent() default @BelongsTo; // custom relation
 }

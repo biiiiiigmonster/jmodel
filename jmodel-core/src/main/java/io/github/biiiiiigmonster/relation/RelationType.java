@@ -18,6 +18,8 @@ import io.github.biiiiiigmonster.relation.annotation.MorphTo;
 import io.github.biiiiiigmonster.relation.annotation.MorphToMany;
 import io.github.biiiiiigmonster.relation.annotation.MorphedByMany;
 import io.github.biiiiiigmonster.relation.annotation.SiblingMany;
+import io.github.biiiiiigmonster.relation.annotation.config.Via;
+import io.github.biiiiiigmonster.relation.constraint.Constraint;
 import io.github.biiiiiigmonster.relation.constraint.ConstraintApplier;
 import io.github.biiiiiigmonster.relation.exception.RelationNotFoundException;
 import lombok.AllArgsConstructor;
@@ -26,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -203,13 +206,51 @@ public enum RelationType {
     HAS_ONE_DEEP(HasOneDeep.class) {
         @Override
         public <T extends Model<?>> io.github.biiiiiigmonster.relation.HasOneDeep<T> getRelation(RelationOption<T> relationOption) {
-            return null;
+            Class<T> clazz = relationOption.getClazz();
+            Field field = relationOption.getRelatedField();
+            HasOneDeep relation = field.getAnnotation(HasOneDeep.class);
+            Via[] vias = relation.value();
+            List<RelationVia> viaList = new ArrayList<>();
+            Class<? extends Model<?>> localEntity = clazz;
+            for (Via via : vias) {
+                Class<? extends Model<?>> foreignEntity = via.via();
+                String viaForeignKey = StringUtils.isNotBlank(via.viaForeignKey())
+                        ? via.viaForeignKey() : RelationUtils.getForeignKey(localEntity);
+                String localKey = StringUtils.isNotBlank(via.localKey())
+                        ? via.localKey() : RelationUtils.getPrimaryKey(localEntity);
+                Field viaForeignField = ReflectUtil.getField(foreignEntity, viaForeignKey);
+                Field localField = ReflectUtil.getField(localEntity, localKey);
+                viaList.add(new RelationVia<>(localField, viaForeignField, ConstraintApplier.toConsumers(foreignEntity, via.constraints())));
+
+                localEntity = foreignEntity;
+            }
+
+            return new io.github.biiiiiigmonster.relation.HasOneDeep<>(field, ListUtil.toList(viaList));
         }
     },
     HAS_MANY_DEEP(HasManyDeep.class) {
         @Override
         public <T extends Model<?>> io.github.biiiiiigmonster.relation.HasManyDeep<T> getRelation(RelationOption<T> relationOption) {
-            return null;
+            Class<T> clazz = relationOption.getClazz();
+            Field field = relationOption.getRelatedField();
+            HasManyDeep relation = field.getAnnotation(HasManyDeep.class);
+            Via[] vias = relation.value();
+            List<RelationVia> viaList = new ArrayList<>();
+            Class<? extends Model<?>> localEntity = clazz;
+            for (Via via : vias) {
+                Class<? extends Model<?>> foreignEntity = via.via();
+                String viaForeignKey = StringUtils.isNotBlank(via.viaForeignKey())
+                        ? via.viaForeignKey() : RelationUtils.getForeignKey(localEntity);
+                String localKey = StringUtils.isNotBlank(via.localKey())
+                        ? via.localKey() : RelationUtils.getPrimaryKey(localEntity);
+                Field viaForeignField = ReflectUtil.getField(foreignEntity, viaForeignKey);
+                Field localField = ReflectUtil.getField(localEntity, localKey);
+                viaList.add(new RelationVia<>(localField, viaForeignField, ConstraintApplier.toConsumers(foreignEntity, via.constraints())));
+
+                localEntity = foreignEntity;
+            }
+
+            return new io.github.biiiiiigmonster.relation.HasManyDeep<>(field, ListUtil.toList(viaList));
         }
     },
     MORPH_ONE(MorphOne.class) {
@@ -382,16 +423,18 @@ public enum RelationType {
 
             SiblingMany relation = field.getAnnotation(SiblingMany.class);
             String parentKey = relation.parent().foreignKey();
+            Constraint[] constraints = relation.parent().constraints();
             if (StringUtils.isNotBlank(relation.from())) {
                 Field belongsField = ReflectUtil.getField(clazz, relation.from());
                 BelongsTo belongs = belongsField.getAnnotation(BelongsTo.class);
                 parentKey = StringUtils.isNotBlank(belongs.foreignKey())
                         ? belongs.foreignKey() : RelationUtils.getForeignKey((Class<? extends Model<?>>) belongsField.getType());
+                constraints = belongs.constraints();
             }
 
             Field parentField = ReflectUtil.getField(field.getDeclaringClass(), parentKey);
             Class<? extends Model<?>> entityClass = RelationUtils.getGenericType(field);
-            RelationVia<?> via = new RelationVia<>(parentField, parentField, ConstraintApplier.toConsumers(entityClass, relation.constraints()));
+            RelationVia<?> via = new RelationVia<>(parentField, parentField, ConstraintApplier.toConsumers(entityClass, constraints));
             return new io.github.biiiiiigmonster.relation.SiblingMany<>(
                     field,
                     ListUtil.toList(via),

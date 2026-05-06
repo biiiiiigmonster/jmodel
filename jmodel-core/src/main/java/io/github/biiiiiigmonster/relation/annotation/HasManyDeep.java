@@ -12,5 +12,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Relation(resultList = true)
 public @interface HasManyDeep {
-    Via[] value();
+    Via[] value() default {};
 }
