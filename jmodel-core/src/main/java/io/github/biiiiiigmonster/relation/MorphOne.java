@@ -26,7 +26,7 @@ public class MorphOne<T extends Model<?>> extends MorphOneOrMany<T> {
     public <R extends Model<?>> List<R> match(List<T> models, List<R> results) {
         Map<?, R> dictionary = results.stream()
                 .filter(r -> ReflectUtil.getFieldValue(r, morphType).equals(getMorphAlias()))
-                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
+                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (v1, v2) -> v1));
 
         List<R> matchResults = new ArrayList<>();
 

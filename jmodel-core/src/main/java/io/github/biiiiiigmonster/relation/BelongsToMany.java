@@ -62,7 +62,7 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
     public <R extends Model<?>> List<R> match(List<T> models, List<R> results) {
         List<P> pivots = viaList.get(0).getResults();
         Map<?, R> dictionary = results.stream()
-                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
+                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (v1, v2) -> v1));
         Map<?, List<P>> pivotDictionary = pivots.stream()
                 .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, foreignPivotField)));
 

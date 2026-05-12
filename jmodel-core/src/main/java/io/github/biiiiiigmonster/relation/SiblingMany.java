@@ -30,7 +30,7 @@ public class SiblingMany<T extends Model<?>> extends Relation<T> {
         Map<?, Map<Object, R>> dictionary = results.stream()
                 .collect(Collectors.groupingBy(
                         r -> ReflectUtil.getFieldValue(r, parentField),
-                        Collectors.toMap(Model::primaryKeyValue, r -> r)
+                        Collectors.toMap(Model::primaryKeyValue, r -> r, (v1, v2) -> v1)
                 ));
 
         List<R> matchResults = new ArrayList<>();

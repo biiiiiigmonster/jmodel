@@ -24,7 +24,7 @@ public class HasOne<T extends Model<?>> extends HasOneOrMany<T> {
     @Override
     public <R extends Model<?>> List<R> match(List<T> models, List<R> results) {
         Map<?, R> dictionary = results.stream()
-                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
+                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (v1, v2) -> v1));
 
         List<R> matchResults = new ArrayList<>();
 
