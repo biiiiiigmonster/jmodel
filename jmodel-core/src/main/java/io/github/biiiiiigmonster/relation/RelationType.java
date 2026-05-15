@@ -225,7 +225,7 @@ public enum RelationType {
                 localEntity = foreignEntity;
             }
 
-            return new io.github.biiiiiigmonster.relation.HasOneDeep<>(field, ListUtil.toList(viaList));
+            return new io.github.biiiiiigmonster.relation.HasOneDeep<>(field, viaList);
         }
     },
     HAS_MANY_DEEP(HasManyDeep.class) {
@@ -250,7 +250,7 @@ public enum RelationType {
                 localEntity = foreignEntity;
             }
 
-            return new io.github.biiiiiigmonster.relation.HasManyDeep<>(field, ListUtil.toList(viaList));
+            return new io.github.biiiiiigmonster.relation.HasManyDeep<>(field, viaList);
         }
     },
     MORPH_ONE(MorphOne.class) {
