@@ -4,11 +4,13 @@ import io.github.biiiiiigmonster.Model;
 import io.github.biiiiiigmonster.driver.CriterionType;
 import io.github.biiiiiigmonster.relation.annotation.BelongsToMany;
 import io.github.biiiiiigmonster.relation.annotation.HasMany;
+import io.github.biiiiiigmonster.relation.annotation.HasManyDeep;
 import io.github.biiiiiigmonster.relation.annotation.HasManyThrough;
 import io.github.biiiiiigmonster.relation.annotation.HasOne;
 import io.github.biiiiiigmonster.relation.annotation.HasOneThrough;
 import io.github.biiiiiigmonster.relation.annotation.MorphOne;
 import io.github.biiiiiigmonster.relation.annotation.config.MorphAlias;
+import io.github.biiiiiigmonster.relation.annotation.config.Via;
 import io.github.biiiiiigmonster.relation.constraint.Constraint;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -46,6 +48,13 @@ public class User extends Model<User> {
 
     @BelongsToMany(using = UserRole.class, withPivot = true)
     private List<Role> roleWithPivots;
+
+    @HasManyDeep({
+            @Via(via = UserRole.class),
+            @Via(via = Role.class, viaForeignKey = "id", localKey = "roleId"),
+            @Via(via = Permission.class)
+    })
+    private List<Permission> permissions;
 
     @MorphOne
     private Image image;

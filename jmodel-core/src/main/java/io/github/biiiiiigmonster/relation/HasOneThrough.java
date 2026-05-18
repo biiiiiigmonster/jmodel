@@ -30,7 +30,7 @@ public class HasOneThrough<T extends Model<?>, TH extends Model<?>> extends HasO
         Map<?, R> dictionary = results.stream()
                 .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, throughForeignField), r -> r, (v1, v2) -> v1));
         Map<?, TH> throughDictionary = throughs.stream()
-                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r));
+                .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, foreignField), r -> r, (v1, v2) -> v1));
         models.forEach(o -> {
             R value = null;
             TH through = throughDictionary.get(ReflectUtil.getFieldValue(o, localField));
