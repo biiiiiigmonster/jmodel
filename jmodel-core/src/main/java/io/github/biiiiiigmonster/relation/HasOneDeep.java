@@ -5,6 +5,7 @@ import io.github.biiiiiigmonster.Model;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -20,8 +21,14 @@ public class HasOneDeep<T extends Model<?>> extends HasOneOrManyDeep<T> {
     @Override
     public <R extends Model<?>> List<R> match(List<T> models, List<R> results) {
         List<Map<?, ?>> dictionaries = viaList.stream()
-                .map(via -> (Map<?, ?>) via.getResults().stream()
-                        .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, via.getForeignField()), r -> r, (v1, v2) -> v1)))
+                .map(via -> {
+                    if (via.getResults() == null) {
+                        return new HashMap<>();
+                    }
+
+                    return (Map<?, ?>) via.getResults().stream()
+                            .collect(Collectors.toMap(r -> ReflectUtil.getFieldValue(r, via.getForeignField()), r -> r, (v1, v2) -> v1));
+                })
                 .collect(Collectors.toList());
 
         List<R> matchResults = new ArrayList<>();

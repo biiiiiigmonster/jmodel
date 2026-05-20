@@ -21,11 +21,6 @@ public class HasManyDeep<T extends Model<?>> extends HasOneOrManyDeep<T> {
 
     @Override
     public <R extends Model<?>> List<R> match(List<T> models, List<R> results) {
-//        if (CollectionUtils.isEmpty(results)) {
-//            models.forEach(o -> ReflectUtil.setFieldValue(o, relatedField, new ArrayList<>()));
-//            return new ArrayList<>();
-//        }
-
         List<Map<?, List<?>>> dictionaries = viaList.stream()
                 .map(via -> {
                     if (via.getResults() == null) {
