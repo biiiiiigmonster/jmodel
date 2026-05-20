@@ -1,10 +1,11 @@
-package io.github.biiiiiigmonster.event.listener;
+package io.github.biiiiiigmonster.listener;
 
 import io.github.biiiiiigmonster.Model;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
+@SuppressWarnings({"unchecked"})
 public class ModelEventListenerConditionBuilderTest {
 
     public static class SampleUser extends Model<SampleUser> {
@@ -27,22 +28,22 @@ public class ModelEventListenerConditionBuilderTest {
 
     @Test
     public void buildReturnsModelsConditionForSingleModel() {
-        assertEquals("event.model instanceof T(io.github.biiiiiigmonster.event.listener.ModelEventListenerConditionBuilderTest$SampleUser)",
+        assertEquals("event.model instanceof T(io.github.biiiiiigmonster.listener.ModelEventListenerConditionBuilderTest$SampleUser)",
                 ModelEventListenerConditionBuilder.build(new Class[]{SampleUser.class}, ""));
     }
 
     @Test
     public void buildJoinsMultipleModelsWithOr() {
         assertEquals(
-                "event.model instanceof T(io.github.biiiiiigmonster.event.listener.ModelEventListenerConditionBuilderTest$SampleUser)"
-                        + " || event.model instanceof T(io.github.biiiiiigmonster.event.listener.ModelEventListenerConditionBuilderTest$SamplePost)",
+                "event.model instanceof T(io.github.biiiiiigmonster.listener.ModelEventListenerConditionBuilderTest$SampleUser)"
+                        + " || event.model instanceof T(io.github.biiiiiigmonster.listener.ModelEventListenerConditionBuilderTest$SamplePost)",
                 ModelEventListenerConditionBuilder.build(new Class[]{SampleUser.class, SamplePost.class}, ""));
     }
 
     @Test
     public void buildMergesModelsAndConditionWithAnd() {
         assertEquals(
-                "(event.model instanceof T(io.github.biiiiiigmonster.event.listener.ModelEventListenerConditionBuilderTest$SampleUser))"
+                "(event.model instanceof T(io.github.biiiiiigmonster.listener.ModelEventListenerConditionBuilderTest$SampleUser))"
                         + " && (#event.model.status == 1)",
                 ModelEventListenerConditionBuilder.build(new Class[]{SampleUser.class}, "#event.model.status == 1"));
     }

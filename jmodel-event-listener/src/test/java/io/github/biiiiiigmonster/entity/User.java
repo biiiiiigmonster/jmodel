@@ -1,4 +1,4 @@
-package io.github.biiiiiigmonster.event.listener;
+package io.github.biiiiiigmonster.entity;
 
 import io.github.biiiiiigmonster.Model;
 import lombok.Data;
@@ -6,8 +6,8 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class TestPost extends Model<TestPost> {
+public class User extends Model<User> {
 
     private Long id;
-    private String title;
+    private String name;
 }

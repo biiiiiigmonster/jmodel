@@ -1,5 +1,7 @@
-package io.github.biiiiiigmonster.event.listener;
+package io.github.biiiiiigmonster.listener;
 
+import io.github.biiiiiigmonster.entity.Post;
+import io.github.biiiiiigmonster.entity.User;
 import io.github.biiiiiigmonster.event.ModelCreatedEvent;
 import io.github.biiiiiigmonster.event.ModelSavedEvent;
 import org.junit.Before;
@@ -30,8 +32,8 @@ public class ModelEventListenerIntegrationTest {
 
     @Test
     public void filtersEventsByModelType() {
-        TestUser user = new TestUser();
-        TestPost post = new TestPost();
+        User user = new User();
+        Post post = new Post();
 
         applicationContext.publishEvent(new ModelSavedEvent<>(user, user));
         applicationContext.publishEvent(new ModelSavedEvent<>(post, post));
@@ -43,9 +45,9 @@ public class ModelEventListenerIntegrationTest {
 
     @Test
     public void mergesModelsConditionWithCustomCondition() {
-        TestUser activeUser = new TestUser();
+        User activeUser = new User();
         activeUser.setName("active");
-        TestUser inactiveUser = new TestUser();
+        User inactiveUser = new User();
         inactiveUser.setName("inactive");
 
         applicationContext.publishEvent(new ModelSavedEvent<>(activeUser, activeUser));
@@ -57,18 +59,18 @@ public class ModelEventListenerIntegrationTest {
 
     @Test
     public void supportsNoArgListenerWithClassesAttribute() {
-        TestUser user = new TestUser();
+        User user = new User();
 
         applicationContext.publishEvent(new ModelSavedEvent<>(user, user));
         applicationContext.publishEvent(new ModelCreatedEvent<>(user, user));
-        applicationContext.publishEvent(new ModelSavedEvent<>(new TestPost(), new TestPost()));
+        applicationContext.publishEvent(new ModelSavedEvent<>(new Post(), new Post()));
 
         assertEquals(2, listener.getMultiEventNoArgCount().get());
     }
 
     @Test
     public void skipsListenerWithoutFallbackWhenNoTransactionIsActive() {
-        TestUser user = new TestUser();
+        User user = new User();
 
         applicationContext.publishEvent(new ModelSavedEvent<>(user, user));
 

@@ -1,6 +1,6 @@
 package io.github.biiiiiigmonster.config;
 
-import io.github.biiiiiigmonster.event.listener.ModelEventListenerFactory;
+import io.github.biiiiiigmonster.listener.ModelEventListenerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;

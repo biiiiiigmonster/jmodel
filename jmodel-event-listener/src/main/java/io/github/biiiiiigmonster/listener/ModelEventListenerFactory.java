@@ -1,6 +1,7 @@
-package io.github.biiiiiigmonster.event.listener;
+package io.github.biiiiiigmonster.listener;
 
 import io.github.biiiiiigmonster.ModelEventListener;
+import io.github.biiiiiigmonster.event.ModelEvent;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ApplicationListenerMethodAdapter;
@@ -53,9 +54,26 @@ public class ModelEventListenerFactory implements EventListenerFactory, Ordered 
             if (this.transactionalEventListener == null) {
                 throw new IllegalStateException("No @TransactionalEventListener annotation found on method: " + method);
             }
+            validateEventParameter(method);
             this.mergedCondition = ModelEventListenerConditionBuilder.build(
                     modelEventListener.models(),
                     modelEventListener.condition());
+        }
+
+        private static void validateEventParameter(Method method) {
+            int parameterCount = method.getParameterCount();
+            if (parameterCount > 1) {
+                throw new IllegalStateException("@ModelEventListener method must have no more than one parameter: " + method);
+            }
+
+            if (parameterCount == 1) {
+                Class<?> parameterType = method.getParameterTypes()[0];
+                if (!ModelEvent.class.isAssignableFrom(parameterType)) {
+                    throw new IllegalStateException(
+                            "@ModelEventListener method parameter must be a ModelEvent subtype, but got: "
+                                    + parameterType.getName() + " on method: " + method);
+                }
+            }
         }
 
         @Override

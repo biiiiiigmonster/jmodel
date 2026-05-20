@@ -1,5 +1,6 @@
-package io.github.biiiiiigmonster.event.listener;
+package io.github.biiiiiigmonster.listener;
 
+import io.github.biiiiiigmonster.entity.User;
 import io.github.biiiiiigmonster.event.ModelSavedEvent;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,7 +42,7 @@ public class ModelEventListenerTransactionalTest {
 
     @Test
     public void executesAfterTransactionCommit() {
-        TestUser user = new TestUser();
+        User user = new User();
 
         transactionTemplate.execute(status -> {
             applicationContext.publishEvent(new ModelSavedEvent<>(user, user));

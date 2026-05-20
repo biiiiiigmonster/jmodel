@@ -1,6 +1,8 @@
-package io.github.biiiiiigmonster.event.listener;
+package io.github.biiiiiigmonster.listener;
 
 import io.github.biiiiiigmonster.ModelEventListener;
+import io.github.biiiiiigmonster.entity.Post;
+import io.github.biiiiiigmonster.entity.User;
 import io.github.biiiiiigmonster.event.ModelCreatedEvent;
 import io.github.biiiiiigmonster.event.ModelSavedEvent;
 import lombok.Getter;
@@ -28,13 +30,13 @@ public class TestModelEventListener {
         activeUserSaved = false;
     }
 
-    @ModelEventListener(models = TestUser.class, fallbackExecution = true)
-    public void onUserSaved(ModelSavedEvent<TestUser> event) {
+    @ModelEventListener(models = User.class, fallbackExecution = true)
+    public void onUserSaved(ModelSavedEvent<User> event) {
         userSavedCount.incrementAndGet();
     }
 
-    @ModelEventListener(models = TestPost.class, fallbackExecution = true)
-    public void onPostSaved(ModelSavedEvent<TestPost> event) {
+    @ModelEventListener(models = Post.class, fallbackExecution = true)
+    public void onPostSaved(ModelSavedEvent<Post> event) {
         postSavedCount.incrementAndGet();
     }
 
@@ -44,21 +46,21 @@ public class TestModelEventListener {
     }
 
     @ModelEventListener(
-            models = TestUser.class,
+            models = User.class,
             condition = "#event.model.name == 'active'",
             fallbackExecution = true
     )
-    public void onActiveUserSaved(ModelSavedEvent<TestUser> event) {
+    public void onActiveUserSaved(ModelSavedEvent<User> event) {
         activeUserSaved = true;
     }
 
-    @ModelEventListener(models = TestUser.class)
-    public void onUserSavedAfterCommit(ModelSavedEvent<TestUser> event) {
+    @ModelEventListener(models = User.class)
+    public void onUserSavedAfterCommit(ModelSavedEvent<User> event) {
         afterCommitCount.incrementAndGet();
     }
 
     @ModelEventListener(
-            models = TestUser.class,
+            models = User.class,
             classes = {ModelSavedEvent.class, ModelCreatedEvent.class},
             fallbackExecution = true
     )

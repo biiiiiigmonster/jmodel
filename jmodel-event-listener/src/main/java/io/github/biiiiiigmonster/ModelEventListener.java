@@ -1,5 +1,6 @@
 package io.github.biiiiiigmonster;
 
+import io.github.biiiiiigmonster.event.ModelEvent;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -36,10 +37,10 @@ public @interface ModelEventListener {
     boolean fallbackExecution() default false;
 
     @AliasFor(annotation = TransactionalEventListener.class, attribute = "classes")
-    Class<?>[] value() default {};
+    Class<? extends ModelEvent>[] value() default {};
 
     @AliasFor(annotation = TransactionalEventListener.class, attribute = "classes")
-    Class<?>[] classes() default {};
+    Class<? extends ModelEvent>[] classes() default {};
 
     @AliasFor(annotation = TransactionalEventListener.class, attribute = "condition")
     String condition() default "";

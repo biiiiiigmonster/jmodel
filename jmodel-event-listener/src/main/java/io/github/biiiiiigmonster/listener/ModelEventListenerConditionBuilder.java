@@ -1,4 +1,4 @@
-package io.github.biiiiiigmonster.event.listener;
+package io.github.biiiiiigmonster.listener;
 
 import io.github.biiiiiigmonster.Model;
 import org.springframework.util.StringUtils;

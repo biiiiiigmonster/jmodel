@@ -1,4 +1,4 @@
-package io.github.biiiiiigmonster.event.listener;
+package io.github.biiiiiigmonster.listener;
 
 import io.github.biiiiiigmonster.config.ModelEventListenerAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
