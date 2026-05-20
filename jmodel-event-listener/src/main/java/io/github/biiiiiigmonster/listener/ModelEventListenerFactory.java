@@ -1,32 +1,36 @@
 package io.github.biiiiiigmonster.listener;
 
 import io.github.biiiiiigmonster.ModelEventListener;
-import io.github.biiiiiigmonster.event.ModelEvent;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ApplicationListenerMethodAdapter;
 import org.springframework.context.event.EventListenerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.event.ModelEventListenerMethodAdapter;
+import org.springframework.transaction.event.TransactionalEventListenerFactory;
 
 import java.lang.reflect.Method;
 
 /**
  * 处理 {@link ModelEventListener} 注解方法的 {@link EventListenerFactory}。
- * 优先级高于 {@link org.springframework.transaction.event.TransactionalEventListenerFactory}。
+ * <p>
+ * 继承 {@link TransactionalEventListenerFactory} 以复用其事务感知的事件分发能力，
+ * 仅在 {@link #supportsMethod} 上识别 {@link ModelEventListener}，并交由
+ * {@link ModelEventListenerMethodAdapter} 处理 {@link ModelEventListener#models()} 条件合并。
+ * <p>
+ * 默认 order 为 40，优先级高于 {@link TransactionalEventListenerFactory}（默认 50），
+ * 以确保 {@link ModelEventListener} 注解的方法优先由本工厂处理。
  */
 public class ModelEventListenerFactory implements EventListenerFactory, Ordered {
 
-    static final int ORDER = 40;
+    private int order = 40;
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
 
     @Override
     public int getOrder() {
-        return ORDER;
+        return this.order;
     }
 
     @Override
@@ -37,90 +41,5 @@ public class ModelEventListenerFactory implements EventListenerFactory, Ordered 
     @Override
     public ApplicationListener<?> createApplicationListener(String beanName, Class<?> type, Method method) {
         return new ModelEventListenerMethodAdapter(beanName, type, method);
-    }
-
-    static final class ModelEventListenerMethodAdapter extends ApplicationListenerMethodAdapter {
-
-        private final TransactionalEventListener transactionalEventListener;
-        private final String mergedCondition;
-
-        ModelEventListenerMethodAdapter(String beanName, Class<?> targetClass, Method method) {
-            super(beanName, targetClass, method);
-            ModelEventListener modelEventListener = AnnotatedElementUtils.findMergedAnnotation(method, ModelEventListener.class);
-            if (modelEventListener == null) {
-                throw new IllegalStateException("No @ModelEventListener annotation found on method: " + method);
-            }
-            this.transactionalEventListener = AnnotatedElementUtils.findMergedAnnotation(method, TransactionalEventListener.class);
-            if (this.transactionalEventListener == null) {
-                throw new IllegalStateException("No @TransactionalEventListener annotation found on method: " + method);
-            }
-            validateEventParameter(method);
-            this.mergedCondition = ModelEventListenerConditionBuilder.build(
-                    modelEventListener.models(),
-                    modelEventListener.condition());
-        }
-
-        private static void validateEventParameter(Method method) {
-            int parameterCount = method.getParameterCount();
-            if (parameterCount > 1) {
-                throw new IllegalStateException("@ModelEventListener method must have no more than one parameter: " + method);
-            }
-
-            if (parameterCount == 1) {
-                Class<?> parameterType = method.getParameterTypes()[0];
-                if (!ModelEvent.class.isAssignableFrom(parameterType)) {
-                    throw new IllegalStateException(
-                            "@ModelEventListener method parameter must be a ModelEvent subtype, but got: "
-                                    + parameterType.getName() + " on method: " + method);
-                }
-            }
-        }
-
-        @Override
-        protected String getCondition() {
-            return this.mergedCondition;
-        }
-
-        @Override
-        public void onApplicationEvent(ApplicationEvent event) {
-            if (TransactionSynchronizationManager.isSynchronizationActive()
-                    && TransactionSynchronizationManager.isActualTransactionActive()) {
-                TransactionSynchronizationManager.registerSynchronization(
-                        new TransactionSynchronizationAdapter() {
-                            @Override
-                            public int getOrder() {
-                                return ModelEventListenerMethodAdapter.this.getOrder();
-                            }
-
-                            @Override
-                            public void beforeCommit(boolean readOnly) {
-                                if (transactionalEventListener.phase() == TransactionPhase.BEFORE_COMMIT) {
-                                    processEvent(event);
-                                }
-                            }
-
-                            @Override
-                            public void afterCompletion(int status) {
-                                TransactionPhase phase = transactionalEventListener.phase();
-                                if (phase == TransactionPhase.AFTER_COMMIT
-                                        && status == TransactionSynchronization.STATUS_COMMITTED) {
-                                    processEvent(event);
-                                } else if (phase == TransactionPhase.AFTER_ROLLBACK
-                                        && status == TransactionSynchronization.STATUS_ROLLED_BACK) {
-                                    processEvent(event);
-                                } else if (phase == TransactionPhase.AFTER_COMPLETION) {
-                                    processEvent(event);
-                                }
-                            }
-                        });
-            } else if (this.transactionalEventListener.fallbackExecution()) {
-                if (this.transactionalEventListener.phase() == TransactionPhase.AFTER_ROLLBACK && logger.isWarnEnabled()) {
-                    logger.warn("Processing " + event + " as a fallback execution on AFTER_ROLLBACK phase");
-                }
-                processEvent(event);
-            } else if (logger.isDebugEnabled()) {
-                logger.debug("No transaction is active - skipping " + event);
-            }
-        }
     }
 }
