@@ -112,8 +112,4 @@ public class AttributeUtils implements BeanPostProcessor {
         }
         ATTRIBUTE_MAP.put(ReflectUtil.getField(modelClazz, field), map);
     }
-
-    public static boolean hasAttributeAnnotation(Field field) {
-        return field.getAnnotation(Attribute.class) != null;
-    }
 }

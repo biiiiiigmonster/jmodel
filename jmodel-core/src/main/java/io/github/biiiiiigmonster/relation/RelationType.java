@@ -447,30 +447,13 @@ public enum RelationType {
     private final Class<? extends Annotation> relationAnnotationClazz;
 
     public static RelationType of(Field field) {
-        Annotation relationAnnotation = getRelationAnnotation(field);
-        if (relationAnnotation != null) {
-            for (RelationType type : values()) {
-                if (type.relationAnnotationClazz.equals(relationAnnotation.annotationType())) {
-                    return type;
-                }
+        for (RelationType type : values()) {
+            if (field.isAnnotationPresent(type.relationAnnotationClazz)) {
+                return type;
             }
         }
 
         throw new RelationNotFoundException(RelationUtils.getGenericType(field), field.getName());
-    }
-
-    public static Annotation getRelationAnnotation(Field field) {
-        for (Annotation annotation : field.getAnnotations()) {
-            if (annotation.annotationType().isAnnotationPresent(io.github.biiiiiigmonster.relation.annotation.config.Relation.class)) {
-                return annotation;
-            }
-        }
-
-        return null;
-    }
-
-    public static boolean hasRelationAnnotation(Field field) {
-        return getRelationAnnotation(field) != null;
     }
 
     public abstract <T extends Model<?>> Relation<T> getRelation(RelationOption<T> relationOption);

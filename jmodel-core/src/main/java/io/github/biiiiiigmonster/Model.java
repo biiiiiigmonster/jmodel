@@ -1,6 +1,7 @@
 package io.github.biiiiiigmonster;
 
 import cn.hutool.core.util.ReflectUtil;
+import io.github.biiiiiigmonster.attribute.Attribute;
 import io.github.biiiiiigmonster.attribute.AttributeUtils;
 import io.github.biiiiiigmonster.driver.DataDriver;
 import io.github.biiiiiigmonster.driver.DriverRegistry;
@@ -8,10 +9,11 @@ import io.github.biiiiiigmonster.driver.QueryCondition;
 import io.github.biiiiiigmonster.event.ModelEventPublisher;
 import io.github.biiiiiigmonster.relation.Pivot;
 import io.github.biiiiiigmonster.relation.RelationOption;
-import io.github.biiiiiigmonster.relation.RelationType;
 import io.github.biiiiiigmonster.relation.RelationUtils;
+import io.github.biiiiiigmonster.relation.annotation.config.Relation;
 import io.github.biiiiiigmonster.tracking.TrackingUtils;
 import lombok.Getter;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -79,9 +81,9 @@ public abstract class Model<T extends Model<?>> {
     }
 
     private void get(Field field) {
-        if (RelationType.hasRelationAnnotation(field)) {
+        if (AnnotatedElementUtils.hasAnnotation(field, Relation.class)) {
             load(field.getName());
-        } else if (AttributeUtils.hasAttributeAnnotation(field)) {
+        } else if (AnnotatedElementUtils.hasAnnotation(field, Attribute.class)) {
             append(field.getName());
         }
     }

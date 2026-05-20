@@ -1,8 +1,9 @@
 package io.github.biiiiiigmonster.tracking;
 
 import io.github.biiiiiigmonster.Model;
-import io.github.biiiiiigmonster.attribute.AttributeUtils;
-import io.github.biiiiiigmonster.relation.RelationType;
+import io.github.biiiiiigmonster.attribute.Attribute;
+import io.github.biiiiiigmonster.relation.annotation.config.Relation;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -83,12 +84,12 @@ public class TrackingUtils {
         }
 
         // 排除关系字段（带 @HasOne, @HasMany, @BelongsTo 等注解）
-        if (RelationType.hasRelationAnnotation(field)) {
+        if (AnnotatedElementUtils.hasAnnotation(field, Relation.class)) {
             return false;
         }
 
         // 排除计算属性字段（带 @Attribute 注解）
-        if (AttributeUtils.hasAttributeAnnotation(field)) {
+        if (AnnotatedElementUtils.hasAnnotation(field, Attribute.class)) {
             return false;
         }
 
