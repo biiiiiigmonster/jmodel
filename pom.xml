@@ -18,6 +18,7 @@
         <module>jmodel-router</module>
         <module>jmodel-driver-mybatis-plus</module>
         <module>jmodel-enhance-plugin</module>
+        <module>jmodel-event-listener</module>
     </modules>
 
     <licenses>
