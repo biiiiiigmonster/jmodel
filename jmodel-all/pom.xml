@@ -39,6 +39,12 @@
             <groupId>io.github.biiiiiigmonster</groupId>
             <artifactId>jmodel-driver-mybatis-plus</artifactId>
         </dependency>
+
+        <!-- Model event listener support -->
+        <dependency>
+            <groupId>io.github.biiiiiigmonster</groupId>
+            <artifactId>jmodel-event-listener</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

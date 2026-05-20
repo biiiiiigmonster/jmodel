@@ -105,6 +105,11 @@
                 <artifactId>jmodel-enhance-plugin</artifactId>
                 <version>${revision}</version>
             </dependency>
+            <dependency>
+                <groupId>io.github.biiiiiigmonster</groupId>
+                <artifactId>jmodel-event-listener</artifactId>
+                <version>${revision}</version>
+            </dependency>
             <!-- External dependencies -->
             <dependency>
                 <groupId>org.projectlombok</groupId>
