@@ -1,6 +1,7 @@
 package io.github.biiiiiigmonster.listener;
 
 import io.github.biiiiiigmonster.ModelEventListener;
+import lombok.Setter;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.EventListenerFactory;
 import org.springframework.core.Ordered;
@@ -20,13 +21,10 @@ import java.lang.reflect.Method;
  * 默认 order 为 40，优先级高于 {@link TransactionalEventListenerFactory}（默认 50），
  * 以确保 {@link ModelEventListener} 注解的方法优先由本工厂处理。
  */
+@Setter
 public class ModelEventListenerFactory implements EventListenerFactory, Ordered {
 
     private int order = 40;
-
-    public void setOrder(int order) {
-        this.order = order;
-    }
 
     @Override
     public int getOrder() {
