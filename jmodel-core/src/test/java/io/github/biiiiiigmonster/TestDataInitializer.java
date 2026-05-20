@@ -5,6 +5,7 @@ import io.github.biiiiiigmonster.driver.entity.Address;
 import io.github.biiiiiigmonster.driver.entity.Comment;
 import io.github.biiiiiigmonster.driver.entity.Image;
 import io.github.biiiiiigmonster.driver.entity.Likes;
+import io.github.biiiiiigmonster.driver.entity.Permission;
 import io.github.biiiiiigmonster.driver.entity.Phone;
 import io.github.biiiiiigmonster.driver.entity.Post;
 import io.github.biiiiiigmonster.driver.entity.Profile;
@@ -29,6 +30,7 @@ public class TestDataInitializer {
         initPhones(driver);
         initVideos(driver);
         initRoles(driver);
+        initPermissions(driver);
         initTags(driver);
         initComments(driver);
         initImages(driver);
@@ -171,6 +173,28 @@ public class TestDataInitializer {
             r.setId(Long.parseLong(row[0]));
             r.setName(row[1]);
             driver.put(Role.class, r);
+        }
+    }
+
+    private static void initPermissions(InMemoryDataDriver driver) {
+        Object[][] data = {
+                {1L, 1L, "Manage users"},
+                {2L, 1L, "Manage roles"},
+                {3L, 1L, "System configuration"},
+                {4L, 2L, "Moderate posts"},
+                {5L, 2L, "Moderate comments"},
+                {6L, 3L, "Edit posts"},
+                {7L, 3L, "Publish posts"},
+                {8L, 4L, "Create posts"},
+                {9L, 4L, "Edit own posts"},
+                {10L, 5L, "Create drafts"},
+        };
+        for (Object[] row : data) {
+            Permission p = new Permission();
+            p.setId((Long) row[0]);
+            p.setRoleId((Long) row[1]);
+            p.setDesc((String) row[2]);
+            driver.put(Permission.class, p);
         }
     }
 

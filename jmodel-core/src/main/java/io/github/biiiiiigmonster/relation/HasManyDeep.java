@@ -2,9 +2,11 @@ package io.github.biiiiiigmonster.relation;
 
 import cn.hutool.core.util.ReflectUtil;
 import io.github.biiiiiigmonster.Model;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -19,9 +21,20 @@ public class HasManyDeep<T extends Model<?>> extends HasOneOrManyDeep<T> {
 
     @Override
     public <R extends Model<?>> List<R> match(List<T> models, List<R> results) {
+//        if (CollectionUtils.isEmpty(results)) {
+//            models.forEach(o -> ReflectUtil.setFieldValue(o, relatedField, new ArrayList<>()));
+//            return new ArrayList<>();
+//        }
+
         List<Map<?, List<?>>> dictionaries = viaList.stream()
-                .map(via -> (Map<?, List<?>>) via.getResults().stream()
-                        .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, via.getForeignField()))))
+                .map(via -> {
+                    if (via.getResults() == null) {
+                        return new HashMap<Object, List<?>>();
+                    }
+
+                    return (Map<?, List<?>>) via.getResults().stream()
+                            .collect(Collectors.groupingBy(r -> ReflectUtil.getFieldValue(r, via.getForeignField())));
+                })
                 .collect(Collectors.toList());
 
         List<R> matchResults = new ArrayList<>();
