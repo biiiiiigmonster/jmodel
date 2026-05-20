@@ -4,11 +4,13 @@ import io.github.biiiiiigmonster.Model;
 import io.github.biiiiiigmonster.driver.CriterionType;
 import io.github.biiiiiigmonster.relation.annotation.BelongsTo;
 import io.github.biiiiiigmonster.relation.annotation.HasMany;
+import io.github.biiiiiigmonster.relation.annotation.HasOneDeep;
 import io.github.biiiiiigmonster.relation.annotation.MorphMany;
 import io.github.biiiiiigmonster.relation.annotation.MorphOne;
 import io.github.biiiiiigmonster.relation.annotation.MorphToMany;
 import io.github.biiiiiigmonster.relation.annotation.SiblingMany;
 import io.github.biiiiiigmonster.relation.annotation.config.MorphAlias;
+import io.github.biiiiiigmonster.relation.annotation.config.Via;
 import io.github.biiiiiigmonster.relation.constraint.Constraint;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,6 +27,18 @@ public class Post extends Model<Post> {
 
     @BelongsTo(foreignKey = "userId")
     private User user;
+
+    /**
+     * 深层 HasOne：帖子作者所在组织所属的地区。
+     * Post → User → Membership → Organization → Region
+     */
+    @HasOneDeep({
+            @Via(via = User.class, viaForeignKey = "id", localKey = "userId"),
+            @Via(via = Membership.class),
+            @Via(via = Organization.class, viaForeignKey = "id", localKey = "organizationId"),
+            @Via(via = Region.class, viaForeignKey = "id", localKey = "regionId")
+    })
+    private Region authorRegion;
 
     @HasMany(foreignKey = "postId")
     private List<Likes> likes;

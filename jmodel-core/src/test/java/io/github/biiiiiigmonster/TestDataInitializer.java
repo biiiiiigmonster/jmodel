@@ -5,10 +5,13 @@ import io.github.biiiiiigmonster.driver.entity.Address;
 import io.github.biiiiiigmonster.driver.entity.Comment;
 import io.github.biiiiiigmonster.driver.entity.Image;
 import io.github.biiiiiigmonster.driver.entity.Likes;
+import io.github.biiiiiigmonster.driver.entity.Membership;
+import io.github.biiiiiigmonster.driver.entity.Organization;
 import io.github.biiiiiigmonster.driver.entity.Permission;
 import io.github.biiiiiigmonster.driver.entity.Phone;
 import io.github.biiiiiigmonster.driver.entity.Post;
 import io.github.biiiiiigmonster.driver.entity.Profile;
+import io.github.biiiiiigmonster.driver.entity.Region;
 import io.github.biiiiiigmonster.driver.entity.Role;
 import io.github.biiiiiigmonster.driver.entity.Tag;
 import io.github.biiiiiigmonster.driver.entity.Taggable;
@@ -30,6 +33,9 @@ public class TestDataInitializer {
         initPhones(driver);
         initVideos(driver);
         initRoles(driver);
+        initRegions(driver);
+        initOrganizations(driver);
+        initMemberships(driver);
         initPermissions(driver);
         initTags(driver);
         initComments(driver);
@@ -173,6 +179,58 @@ public class TestDataInitializer {
             r.setId(Long.parseLong(row[0]));
             r.setName(row[1]);
             driver.put(Role.class, r);
+        }
+    }
+
+    private static void initRegions(InMemoryDataDriver driver) {
+        String[][] data = {
+                {"1", "East Coast"},
+                {"2", "West Coast"},
+                {"3", "Midwest"},
+                {"4", "South"},
+        };
+        for (String[] row : data) {
+            Region region = new Region();
+            region.setId(Long.parseLong(row[0]));
+            region.setName(row[1]);
+            driver.put(Region.class, region);
+        }
+    }
+
+    private static void initOrganizations(InMemoryDataDriver driver) {
+        Object[][] data = {
+                {1L, "Tech Corp", 1L},
+                {2L, "Media Inc", 2L},
+                {3L, "Product Co", 3L},
+                {4L, "Design Studio", 2L},
+        };
+        for (Object[] row : data) {
+            Organization org = new Organization();
+            org.setId((Long) row[0]);
+            org.setName((String) row[1]);
+            org.setRegionId((Long) row[2]);
+            driver.put(Organization.class, org);
+        }
+    }
+
+    private static void initMemberships(InMemoryDataDriver driver) {
+        long[][] data = {
+                {1, 1, 1},
+                {2, 2, 2},
+                {3, 3, 3},
+                {4, 4, 4},
+                {5, 5, 1},
+                {6, 6, 2},
+                {7, 7, 3},
+                {8, 9, 1},
+                {9, 10, 2},
+        };
+        for (long[] row : data) {
+            Membership membership = new Membership();
+            membership.setId(row[0]);
+            membership.setUserId(row[1]);
+            membership.setOrganizationId(row[2]);
+            driver.put(Membership.class, membership);
         }
     }
 
