@@ -44,4 +44,7 @@ public @interface ModelEventListener {
 
     @AliasFor(annotation = TransactionalEventListener.class, attribute = "condition")
     String condition() default "";
+
+    @AliasFor(annotation = TransactionalEventListener.class, attribute = "id")
+    String id() default "";
 }
