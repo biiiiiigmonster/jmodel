@@ -31,7 +31,7 @@ public class CoreProperties {
     public static class Model {
 
         /**
-         * 默认驱动类
+         * 默认主键名
          */
         private String defaultPrimaryKey = "id";
     }
