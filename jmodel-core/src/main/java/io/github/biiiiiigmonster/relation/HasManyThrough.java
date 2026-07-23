@@ -36,7 +36,7 @@ public class HasManyThrough<T extends Model<?>, TH extends Model<?>> extends Has
         models.forEach(o -> {
             List<R> valList = throughDictionary.getOrDefault(ReflectUtil.getFieldValue(o, localField), new ArrayList<>())
                     .stream()
-                    .flatMap(th -> dictionary.get(ReflectUtil.getFieldValue(th, throughLocalField)).stream())
+                    .flatMap(th -> dictionary.getOrDefault(ReflectUtil.getFieldValue(th, throughLocalField), new ArrayList<>()).stream())
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
             ReflectUtil.setFieldValue(o, relatedField, valList);
