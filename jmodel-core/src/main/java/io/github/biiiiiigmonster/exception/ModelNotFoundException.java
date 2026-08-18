@@ -1,4 +1,4 @@
-package io.github.biiiiiigmonster;
+package io.github.biiiiiigmonster.exception;
 
 public class ModelNotFoundException extends RuntimeException {
     public ModelNotFoundException(Class<?> clazz) {

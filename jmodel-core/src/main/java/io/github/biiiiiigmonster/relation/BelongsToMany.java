@@ -6,9 +6,9 @@ import io.github.biiiiiigmonster.Model;
 import io.github.biiiiiigmonster.driver.DataDriver;
 import io.github.biiiiiigmonster.driver.DriverRegistry;
 import io.github.biiiiiigmonster.driver.QueryCondition;
+import io.github.biiiiiigmonster.relation.annotation.config.PivotField;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -16,12 +16,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Slf4j
 @SuppressWarnings({"rawtypes"})
 public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relation<T> {
+    private static final Map<Class<?>, Field> PIVOT_FIELD_MAP = new ConcurrentHashMap<>();
+
     @Getter
     protected Class<P> pivotClass;
     @Getter
@@ -54,8 +56,18 @@ public class BelongsToMany<T extends Model<?>, P extends Pivot<?>> extends Relat
         this.withPivot = withPivot;
     }
 
-    protected Field withPivotField() {
-        return ReflectUtil.getField(foreignField.getDeclaringClass(), "pivot");
+    public Field withPivotField() {
+        Class<?> clazz = foreignField.getDeclaringClass();
+
+        return PIVOT_FIELD_MAP.computeIfAbsent(clazz, k -> {
+            for (Field field : clazz.getDeclaredFields()) {
+                if (field.isAnnotationPresent(PivotField.class)) {
+                    return field;
+                }
+            }
+
+            return ReflectUtil.getField(clazz, "pivot");
+        });
     }
 
     @Override

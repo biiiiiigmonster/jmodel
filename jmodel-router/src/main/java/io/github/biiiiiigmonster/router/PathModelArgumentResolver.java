@@ -2,7 +2,7 @@ package io.github.biiiiiigmonster.router;
 
 import cn.hutool.core.util.ReflectUtil;
 import io.github.biiiiiigmonster.Model;
-import io.github.biiiiiigmonster.ModelNotFoundException;
+import io.github.biiiiiigmonster.exception.ModelNotFoundException;
 import io.github.biiiiiigmonster.driver.DataDriver;
 import io.github.biiiiiigmonster.driver.DriverRegistry;
 import io.github.biiiiiigmonster.driver.QueryCondition;

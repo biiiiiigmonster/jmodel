@@ -78,7 +78,7 @@ public abstract class Relation<T extends Model<?>> {
      * 批量追加约束
      */
     public Relation<T> addConstraints(List<Consumer<QueryCondition>> list) {
-        if (list != null && !list.isEmpty()) {
+        if (!CollectionUtils.isEmpty(list)) {
             this.constraints.addAll(list);
         }
         return this;

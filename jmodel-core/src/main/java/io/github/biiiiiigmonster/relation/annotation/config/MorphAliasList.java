@@ -1,7 +1,5 @@
 package io.github.biiiiiigmonster.relation.annotation.config;
 
-import io.github.biiiiiigmonster.Model;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

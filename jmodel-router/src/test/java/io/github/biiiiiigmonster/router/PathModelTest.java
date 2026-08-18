@@ -2,7 +2,7 @@ package io.github.biiiiiigmonster.router;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import io.github.biiiiiigmonster.ModelNotFoundException;
+import io.github.biiiiiigmonster.exception.ModelNotFoundException;
 import io.github.biiiiiigmonster.router.entity.Post;
 import io.github.biiiiiigmonster.router.entity.User;
 import org.junit.Test;
