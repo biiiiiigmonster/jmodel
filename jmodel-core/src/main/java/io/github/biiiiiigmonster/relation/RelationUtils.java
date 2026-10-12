@@ -345,7 +345,7 @@ public class RelationUtils {
 
         newList.addAll(oldList);
         return new ArrayList<>(newList.stream().collect(Collectors.toMap(
-                r -> ReflectUtil.getFieldValue(r, RelationUtils.getPrimaryField((Class<? extends Model<?>>) r.getClass())),
+                r -> ReflectUtil.getFieldValue(r, RelationUtils.getPrimaryKey((Class<? extends Model<?>>) r.getClass())),
                 r -> r,
                 (o1, o2) -> o1
         )).values());
@@ -420,18 +420,7 @@ public class RelationUtils {
      */
     public static String getPrimaryKey(Class<? extends Model<?>> clazz) {
         DataDriver driver = DriverRegistry.getDriver(clazz);
-        return driver.getColumnName(driver.getPrimaryField(clazz));
-    }
-
-    /**
-     * 获取实体主键列（通过驱动）
-     *
-     * @param clazz model class
-     * @return 主键列
-     */
-    public static Field getPrimaryField(Class<? extends Model<?>> clazz) {
-        DataDriver driver = DriverRegistry.getDriver(clazz);
-        return driver.getPrimaryField(clazz);
+        return driver.getPrimaryField(clazz).getName();
     }
 
     /**

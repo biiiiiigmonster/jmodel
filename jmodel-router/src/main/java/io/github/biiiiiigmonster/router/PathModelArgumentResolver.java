@@ -52,7 +52,8 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         }
 
         Class<? extends Model<?>> modelClass = (Class<? extends Model<?>>) parameter.getParameterType();
-        Model<?> model = getModel(value, ann.routeKey(), modelClass);
+        String fieldName = ann.routeKey().isEmpty() ? RelationUtils.getPrimaryKey(modelClass) : ann.routeKey();
+        Model<?> model = getModel(value, fieldName, modelClass);
         if (model != null && ann.scopeBinding()) {
             scopeBinding(model, request);
         }
@@ -60,9 +61,9 @@ public class PathModelArgumentResolver extends AbstractNamedValueMethodArgumentR
         return model;
     }
 
-    protected Model<?> getModel(String value, String routeKey, Class<? extends Model<?>> parameterType) {
+    protected Model<?> getModel(String value, String fieldName, Class<? extends Model<?>> parameterType) {
         DataDriver driver = DriverRegistry.getDriver(parameterType);
-        Field field = routeKey.isEmpty() ? RelationUtils.getPrimaryField(parameterType) : ReflectUtil.getField(parameterType, routeKey);
+        Field field = ReflectUtil.getField(parameterType, fieldName);
         QueryCondition<? extends Model<?>> condition = QueryCondition.create(parameterType).eq(field, value);
         List<? extends Model<?>> results = driver.findByCondition(condition);
         return CollectionUtils.isEmpty(results) ? null : results.get(0);

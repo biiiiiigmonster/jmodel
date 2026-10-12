@@ -18,6 +18,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -145,11 +147,11 @@ public class MyBatisPlusDriver extends AbstractDataDriver {
         Class<?>[] interfaces = mapper.getClass().getInterfaces();
         for (Class<?> iface : interfaces) {
             if (BaseMapper.class.isAssignableFrom(iface)) {
-                java.lang.reflect.Type[] genericInterfaces = iface.getGenericInterfaces();
-                for (java.lang.reflect.Type genericInterface : genericInterfaces) {
-                    if (genericInterface instanceof java.lang.reflect.ParameterizedType) {
-                        java.lang.reflect.ParameterizedType pt = (java.lang.reflect.ParameterizedType) genericInterface;
-                        java.lang.reflect.Type[] typeArgs = pt.getActualTypeArguments();
+                Type[] genericInterfaces = iface.getGenericInterfaces();
+                for (Type genericInterface : genericInterfaces) {
+                    if (genericInterface instanceof ParameterizedType) {
+                        ParameterizedType pt = (ParameterizedType) genericInterface;
+                        Type[] typeArgs = pt.getActualTypeArguments();
                         if (typeArgs.length > 0 && typeArgs[0].equals(entityClass)) {
                             return true;
                         }
