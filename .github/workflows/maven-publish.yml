@@ -40,6 +40,12 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: GPG_PASSPHRASE
 
+      - name: Install Maven 3.9.16
+        run: |
+          curl -fsSL -o /tmp/maven.tgz https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.16/apache-maven-3.9.16-bin.tar.gz
+          sudo tar -xzf /tmp/maven.tgz -C /opt
+          echo "/opt/apache-maven-3.9.16/bin" >> "$GITHUB_PATH"
+
       - name: Update version in pom.xml files
         run: |
           VERSION=${{ steps.version.outputs.VERSION }}
